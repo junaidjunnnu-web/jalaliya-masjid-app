@@ -2,11 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert, Modal } from 'react-native';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
-import { useAuth } from '../../lib/auth-context';
 import * as Linking from 'expo-linking';
 
 export default function FeesScreen() {
-  const { user, family } = useAuth();
+  const [family, setFamily] = useState<any>(null);
   const [fees, setFees] = useState<any[]>([]);
   const [summary, setSummary] = useState<any>(null);
   const [selectedMonth, setSelectedMonth] = useState<string>(
@@ -18,11 +17,7 @@ export default function FeesScreen() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (user?.role === 'committee') {
-      loadCommitteeView();
-    } else if (family?.id) {
-      loadFamilyFees();
-    }
+    loadCommitteeView();
   }, [selectedMonth]);
 
   const loadCommitteeView = async () => {
@@ -132,13 +127,11 @@ JazakAllah Khair`;
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>
-          {user?.role === 'committee' ? 'Fee Collection' : 'My Fees'}
-        </Text>
+        <Text style={styles.headerTitle}>Fee Collection</Text>
       </View>
 
       {/* Committee Summary Header */}
-      {user?.role === 'committee' && summary && (
+      {summary && (
         <View style={styles.summaryCard}>
           <Text style={styles.summaryTitle}>Collection Summary - {selectedMonth}</Text>
           <View style={styles.summaryStats}>
@@ -160,12 +153,10 @@ JazakAllah Khair`;
         </View>
       )}
 
-      {/* Generate Fees Button - Committee Only */}
-      {user?.role === 'committee' && (
-        <TouchableOpacity style={styles.generateButton} onPress={handleGenerateFees}>
-          <Text style={styles.generateButtonText}>Generate This Month's Fees</Text>
-        </TouchableOpacity>
-      )}
+      {/* Generate Fees Button */}
+      <TouchableOpacity style={styles.generateButton} onPress={handleGenerateFees}>
+        <Text style={styles.generateButtonText}>Generate This Month's Fees</Text>
+      </TouchableOpacity>
 
       {/* Fees List */}
       <View style={styles.feesList}>
@@ -183,7 +174,7 @@ JazakAllah Khair`;
                 </View>
               </View>
               
-              {!!(user?.role === 'committee' && fee.familyHeadName) && (
+              {!!fee.familyHeadName && (
                 <Text style={styles.familyName}>{fee.familyHeadName}</Text>
               )}
 

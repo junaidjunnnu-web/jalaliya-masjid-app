@@ -2,12 +2,11 @@ const express = require('express');
 const { db } = require('../db');
 const { expenses, committeeMembers } = require('../db/schema');
 const { eq, desc, and, gte, lte } = require('drizzle-orm');
-const { auth, committeeOnly } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Get all expenses (committee only)
-router.get('/', auth, committeeOnly, async (req, res) => {
+// Get all expenses
+router.get('/', async (req, res) => {
   try {
     const { category, startDate, endDate } = req.query;
     let query = db.select({
@@ -40,7 +39,7 @@ router.get('/', auth, committeeOnly, async (req, res) => {
 });
 
 // Get single expense
-router.get('/:id', auth, committeeOnly, async (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const [expense] = await db.select({
@@ -66,8 +65,8 @@ router.get('/:id', auth, committeeOnly, async (req, res) => {
   }
 });
 
-// Create expense (committee only)
-router.post('/', auth, committeeOnly, async (req, res) => {
+// Create expense
+router.post('/', async (req, res) => {
   try {
     const { category, amount, date, note } = req.body;
 
@@ -76,7 +75,6 @@ router.post('/', auth, committeeOnly, async (req, res) => {
       amount,
       date,
       note,
-      enteredBy: req.user.committeeMemberId,
     }).returning();
 
     res.status(201).json(newExpense);
@@ -86,8 +84,8 @@ router.post('/', auth, committeeOnly, async (req, res) => {
   }
 });
 
-// Update expense (committee only)
-router.put('/:id', auth, committeeOnly, async (req, res) => {
+// Update expense
+router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { category, amount, date, note } = req.body;
@@ -104,8 +102,8 @@ router.put('/:id', auth, committeeOnly, async (req, res) => {
   }
 });
 
-// Delete expense (committee only)
-router.delete('/:id', auth, committeeOnly, async (req, res) => {
+// Delete expense
+router.delete('/:id', async (req, res) => {
   try {
     await db.delete(expenses).where(eq(expenses.id, req.params.id));
     res.json({ message: 'Expense deleted' });
@@ -115,8 +113,8 @@ router.delete('/:id', auth, committeeOnly, async (req, res) => {
   }
 });
 
-// Get summary by category (committee only)
-router.get('/summary/total', auth, committeeOnly, async (req, res) => {
+// Get summary by category
+router.get('/summary/total', async (req, res) => {
   try {
     const { category, startDate, endDate } = req.query;
     

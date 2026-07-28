@@ -1,28 +1,8 @@
 import { Tabs } from 'expo-router';
 import { theme } from '../../theme';
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect } from 'react';
-import { useAuth } from '../../lib/auth-context';
-import { useRouter } from 'expo-router';
 
 export default function TabLayout() {
-  const { user, loading } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!loading && !user) {
-      router.replace('/auth/login');
-    }
-  }, [user, loading, router]);
-
-  if (loading) {
-    return null; // AuthGuard in root layout handles loading state
-  }
-
-  if (!user) {
-    return null; // Will redirect via useEffect
-  }
-
   return (
     <Tabs
       screenOptions={{

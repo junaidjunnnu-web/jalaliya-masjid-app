@@ -2,7 +2,6 @@ const express = require('express');
 const { db } = require('../db');
 const { monthlyFees, families, familyMembers, committeeMembers } = require('../db/schema');
 const { eq, desc, and, gte, lte, sum } = require('drizzle-orm');
-const { auth, committeeOnly } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -33,16 +32,9 @@ const calculateFamilyFee = async (familyId) => {
 };
 
 // Get monthly fees for a family
-router.get('/family/:familyId', auth, async (req, res) => {
+router.get('/family/:familyId', async (req, res) => {
   try {
     const { familyId } = req.params;
-    const userRole = req.user.role;
-    const userFamilyId = req.user.familyId;
-
-    // Members can only view their own fees
-    if (userRole === 'member' && parseInt(familyId) !== userFamilyId) {
-      return res.status(403).json({ error: 'Access denied' });
-    }
 
     const fees = await db.select({
       id: monthlyFees.id,
@@ -70,8 +62,8 @@ router.get('/family/:familyId', auth, async (req, res) => {
   }
 });
 
-// Get all monthly fees for a month (committee only)
-router.get('/month/:month', auth, committeeOnly, async (req, res) => {
+// Get all monthly fees for a month
+router.get('/month/:month', async (req, res) => {
   try {
     const { month } = req.params;
 
@@ -104,8 +96,8 @@ router.get('/month/:month', auth, committeeOnly, async (req, res) => {
   }
 });
 
-// Get fee summary for a month (committee only)
-router.get('/summary/:month', auth, committeeOnly, async (req, res) => {
+// Get fee summary for a month
+router.get('/summary/:month', async (req, res) => {
   try {
     const { month } = req.params;
 
@@ -133,8 +125,8 @@ router.get('/summary/:month', auth, committeeOnly, async (req, res) => {
   }
 });
 
-// Generate monthly fees for all families (committee only)
-router.post('/generate/:month', auth, committeeOnly, async (req, res) => {
+// Generate monthly fees for all families
+router.post('/generate/:month', async (req, res) => {
   try {
     const { month } = req.params;
 
@@ -191,8 +183,8 @@ router.post('/generate/:month', auth, committeeOnly, async (req, res) => {
   }
 });
 
-// Update payment (committee only)
-router.patch('/:id/payment', auth, committeeOnly, async (req, res) => {
+// Update payment
+router.patch('/:id/payment', async (req, res) => {
   try {
     const { id } = req.params;
     const { amountPaid, paidDate, note } = req.body;
@@ -213,7 +205,6 @@ router.patch('/:id/payment', auth, committeeOnly, async (req, res) => {
         closingBalance: newClosingBalance,
         status: newStatus,
         paidDate: paidDate || new Date().toISOString().split('T')[0],
-        collectedBy: req.user.committeeMemberId,
         note,
       })
       .where(eq(monthlyFees.id, id))

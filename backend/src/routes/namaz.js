@@ -2,7 +2,6 @@ const express = require('express');
 const { db } = require('../db');
 const { namazTimings } = require('../db/schema');
 const { eq, desc } = require('drizzle-orm');
-const { auth, committeeOnly } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -21,7 +20,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get all namaz timings history
-router.get('/history', auth, committeeOnly, async (req, res) => {
+router.get('/history', async (req, res) => {
   try {
     const timings = await db.select().from(namazTimings).orderBy(desc(namazTimings.effectiveFrom));
     res.json(timings);
@@ -31,8 +30,8 @@ router.get('/history', auth, committeeOnly, async (req, res) => {
   }
 });
 
-// Create namaz timings (committee only)
-router.post('/', auth, committeeOnly, async (req, res) => {
+// Create namaz timings
+router.post('/', async (req, res) => {
   try {
     const {
       effectiveFrom,

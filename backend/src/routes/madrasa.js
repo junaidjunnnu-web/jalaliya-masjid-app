@@ -2,12 +2,11 @@ const express = require('express');
 const { db } = require('../db');
 const { madrasaStudents, madrasaAttendance, families } = require('../db/schema');
 const { eq, and, gte, lte } = require('drizzle-orm');
-const { auth, committeeOnly } = require('../middleware/auth');
 
 const router = express.Router();
 
 // Get all students
-router.get('/students', auth, async (req, res) => {
+router.get('/students', async (req, res) => {
   try {
     const { classLevel } = req.query;
     let query = db.select({
@@ -35,7 +34,7 @@ router.get('/students', auth, async (req, res) => {
 });
 
 // Get single student with attendance
-router.get('/students/:id', auth, async (req, res) => {
+router.get('/students/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -57,8 +56,8 @@ router.get('/students/:id', auth, async (req, res) => {
   }
 });
 
-// Create student (committee only)
-router.post('/students', auth, committeeOnly, async (req, res) => {
+// Create student
+router.post('/students', async (req, res) => {
   try {
     const { name, guardianName, guardianPhone, familyId, classLevel, ustadName, progressNotes, photoUrl } = req.body;
 
@@ -80,8 +79,8 @@ router.post('/students', auth, committeeOnly, async (req, res) => {
   }
 });
 
-// Update student (committee only)
-router.put('/students/:id', auth, committeeOnly, async (req, res) => {
+// Update student
+router.put('/students/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { name, guardianName, guardianPhone, familyId, classLevel, ustadName, progressNotes, photoUrl } = req.body;
@@ -98,8 +97,8 @@ router.put('/students/:id', auth, committeeOnly, async (req, res) => {
   }
 });
 
-// Delete student (committee only)
-router.delete('/students/:id', auth, committeeOnly, async (req, res) => {
+// Delete student
+router.delete('/students/:id', async (req, res) => {
   try {
     await db.delete(madrasaStudents).where(eq(madrasaStudents.id, req.params.id));
     res.json({ message: 'Student deleted' });
@@ -109,8 +108,8 @@ router.delete('/students/:id', auth, committeeOnly, async (req, res) => {
   }
 });
 
-// Mark attendance (committee only)
-router.post('/attendance', auth, committeeOnly, async (req, res) => {
+// Mark attendance
+router.post('/attendance', async (req, res) => {
   try {
     const { studentId, date, status } = req.body;
 

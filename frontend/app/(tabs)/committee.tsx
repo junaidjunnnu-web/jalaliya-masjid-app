@@ -3,11 +3,9 @@ import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking, TextInpu
 import { useRouter } from 'expo-router';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
-import { useAuth } from '../../lib/auth-context';
 
 export default function CommitteeScreen() {
   const router = useRouter();
-  const { user } = useAuth();
   const [members, setMembers] = useState<any[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [editingMember, setEditingMember] = useState<any>(null);
@@ -152,11 +150,9 @@ export default function CommitteeScreen() {
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Committee Members</Text>
-          {user?.role === 'committee' && (
-            <TouchableOpacity style={styles.addButton} onPress={openAddModal}>
-              <Text style={styles.addButtonText}>+ Add</Text>
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity style={styles.addButton} onPress={openAddModal}>
+            <Text style={styles.addButtonText}>+ Add</Text>
+          </TouchableOpacity>
         </View>
         {members.map((member) => (
           <View key={member.id} style={styles.memberCard}>
@@ -175,22 +171,20 @@ export default function CommitteeScreen() {
               </View>
             </View>
             <View style={styles.memberActions}>
-              {user?.role === 'committee' && (
-                <View style={styles.editDeleteButtons}>
-                  <TouchableOpacity
-                    style={styles.editButton}
-                    onPress={() => openEditModal(member)}
-                  >
-                    <Text style={styles.editButtonText}>Edit</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.deleteButton}
-                    onPress={() => handleDelete(member)}
-                  >
-                    <Text style={styles.deleteButtonText}>Delete</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
+              <View style={styles.editDeleteButtons}>
+                <TouchableOpacity
+                  style={styles.editButton}
+                  onPress={() => openEditModal(member)}
+                >
+                  <Text style={styles.editButtonText}>Edit</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={() => handleDelete(member)}
+                >
+                  <Text style={styles.deleteButtonText}>Delete</Text>
+                </TouchableOpacity>
+              </View>
               <View style={styles.contactButtons}>
                 <TouchableOpacity
                   style={[styles.contactButton, styles.callButton]}

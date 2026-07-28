@@ -3,10 +3,8 @@ import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-nati
 import { useRouter } from 'expo-router';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
-import { useAuth } from '../../lib/auth-context';
 
 export default function HomeScreen() {
-  const { user } = useAuth();
   const router = useRouter();
   const [announcement, setAnnouncement] = useState<any>(null);
   const [event, setEvent] = useState<any>(null);
@@ -106,11 +104,10 @@ export default function HomeScreen() {
         </TouchableOpacity>
       )}
 
-      {/* Quick Actions for Committee */}
-      {user?.role === 'committee' && (
-        <View style={styles.quickActions}>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
-          <TouchableOpacity
+      {/* Quick Actions */}
+      <View style={styles.quickActions}>
+        <Text style={styles.sectionTitle}>Quick Actions</Text>
+        <TouchableOpacity
             style={styles.actionButton}
             onPress={() => router.push('/more/broadcast')}
           >

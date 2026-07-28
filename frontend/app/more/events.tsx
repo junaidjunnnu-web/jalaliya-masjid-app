@@ -2,10 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert, Modal } from 'react-native';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
-import { useAuth } from '../../lib/auth-context';
 
 export default function EventsScreen() {
-  const { user } = useAuth();
   const [events, setEvents] = useState<any[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState<any>(null);
@@ -117,12 +115,10 @@ export default function EventsScreen() {
         <Text style={styles.headerTitle}>Events</Text>
       </View>
 
-      {/* Create Button - Committee Only */}
-      {user?.role === 'committee' && (
-        <TouchableOpacity style={styles.createButton} onPress={openAddModal}>
-          <Text style={styles.createButtonText}>+ New Event</Text>
-        </TouchableOpacity>
-      )}
+      {/* Create Button */}
+      <TouchableOpacity style={styles.createButton} onPress={openAddModal}>
+        <Text style={styles.createButtonText}>+ New Event</Text>
+      </TouchableOpacity>
 
       {/* Events List */}
       <View style={styles.eventsList}>
@@ -135,22 +131,20 @@ export default function EventsScreen() {
             <View key={event.id} style={styles.eventCard}>
               <View style={styles.eventHeader}>
                 <Text style={styles.eventTitle}>{event.title}</Text>
-                {user?.role === 'committee' && (
-                  <View style={styles.eventActions}>
-                    <TouchableOpacity
-                      style={styles.editButton}
-                      onPress={() => openEditModal(event)}
-                    >
-                      <Text style={styles.editButtonText}>Edit</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.deleteButton}
-                      onPress={() => handleDelete(event)}
-                    >
-                      <Text style={styles.deleteButtonText}>Delete</Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
+                <View style={styles.eventActions}>
+                  <TouchableOpacity
+                    style={styles.editButton}
+                    onPress={() => openEditModal(event)}
+                  >
+                    <Text style={styles.editButtonText}>Edit</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.deleteButton}
+                    onPress={() => handleDelete(event)}
+                  >
+                    <Text style={styles.deleteButtonText}>Delete</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
               <View style={styles.eventMeta}>
                 <Text style={styles.eventDate}>

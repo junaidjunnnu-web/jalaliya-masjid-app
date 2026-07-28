@@ -2,10 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert, Modal } from 'react-native';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
-import { useAuth } from '../../lib/auth-context';
 
 export default function AnnouncementsScreen() {
-  const { user } = useAuth();
   const [announcements, setAnnouncements] = useState<any[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
@@ -85,12 +83,10 @@ export default function AnnouncementsScreen() {
         <Text style={styles.headerTitle}>Announcements</Text>
       </View>
 
-      {/* Create Button - Committee Only */}
-      {user?.role === 'committee' && (
-        <TouchableOpacity style={styles.createButton} onPress={openAddModal}>
-          <Text style={styles.createButtonText}>+ New Announcement</Text>
-        </TouchableOpacity>
-      )}
+      {/* Create Button */}
+      <TouchableOpacity style={styles.createButton} onPress={openAddModal}>
+        <Text style={styles.createButtonText}>+ New Announcement</Text>
+      </TouchableOpacity>
 
       {/* Announcements List */}
       <View style={styles.announcementsList}>
@@ -103,14 +99,12 @@ export default function AnnouncementsScreen() {
             <View key={announcement.id} style={styles.announcementCard}>
               <View style={styles.announcementHeader}>
                 <Text style={styles.announcementTitle}>{announcement.title}</Text>
-                {user?.role === 'committee' && (
-                  <TouchableOpacity
-                    style={styles.deleteButton}
-                    onPress={() => handleDelete(announcement)}
-                  >
-                    <Text style={styles.deleteButtonText}>Delete</Text>
-                  </TouchableOpacity>
-                )}
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={() => handleDelete(announcement)}
+                >
+                  <Text style={styles.deleteButtonText}>Delete</Text>
+                </TouchableOpacity>
               </View>
               <Text style={styles.announcementDate}>
                 {new Date(announcement.createdAt).toLocaleDateString('en-US', {

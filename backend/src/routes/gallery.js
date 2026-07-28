@@ -3,7 +3,6 @@ const { createClient } = require('@supabase/supabase-js');
 const { db } = require('../db');
 const { galleryPhotos, events, committeeMembers } = require('../db/schema');
 const { eq, desc } = require('drizzle-orm');
-const { auth, committeeOnly } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -77,8 +76,8 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Upload photo (committee only)
-router.post('/', auth, committeeOnly, async (req, res) => {
+// Upload photo
+router.post('/', async (req, res) => {
   try {
     const { photoBase64, category, caption, eventId } = req.body;
 
@@ -106,7 +105,6 @@ router.post('/', auth, committeeOnly, async (req, res) => {
       category,
       caption,
       eventId: eventId || null,
-      uploadedBy: req.user.committeeMemberId,
     }).returning();
 
     res.status(201).json(newPhoto);
@@ -116,8 +114,8 @@ router.post('/', auth, committeeOnly, async (req, res) => {
   }
 });
 
-// Update photo (committee only)
-router.put('/:id', auth, committeeOnly, async (req, res) => {
+// Update photo
+router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { category, caption, eventId } = req.body;
@@ -134,8 +132,8 @@ router.put('/:id', auth, committeeOnly, async (req, res) => {
   }
 });
 
-// Delete photo (committee only)
-router.delete('/:id', auth, committeeOnly, async (req, res) => {
+// Delete photo
+router.delete('/:id', async (req, res) => {
   try {
     // Get photo URL to delete from Supabase
     const [photo] = await db.select().from(galleryPhotos).where(eq(galleryPhotos.id, req.params.id));

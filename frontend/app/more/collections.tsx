@@ -2,10 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert, Modal } from 'react-native';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
-import { useAuth } from '../../lib/auth-context';
 
 export default function CollectionsScreen() {
-  const { user } = useAuth();
   const [collections, setCollections] = useState<any[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
@@ -91,12 +89,10 @@ export default function CollectionsScreen() {
         <Text style={styles.headerTitle}>Collections</Text>
       </View>
 
-      {/* Add Button - Committee Only */}
-      {user?.role === 'committee' && (
-        <TouchableOpacity style={styles.createButton} onPress={openAddModal}>
-          <Text style={styles.createButtonText}>+ Add Collection</Text>
-        </TouchableOpacity>
-      )}
+      {/* Add Button */}
+      <TouchableOpacity style={styles.createButton} onPress={openAddModal}>
+        <Text style={styles.createButtonText}>+ Add Collection</Text>
+      </TouchableOpacity>
 
       {/* Collections List */}
       <View style={styles.collectionsList}>
@@ -109,14 +105,12 @@ export default function CollectionsScreen() {
             <View key={collection.id} style={styles.collectionCard}>
               <View style={styles.collectionHeader}>
                 <Text style={styles.collectionType}>{collection.type}</Text>
-                {user?.role === 'committee' && (
-                  <TouchableOpacity
-                    style={styles.deleteButton}
-                    onPress={() => handleDelete(collection)}
-                  >
-                    <Text style={styles.deleteButtonText}>Delete</Text>
-                  </TouchableOpacity>
-                )}
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={() => handleDelete(collection)}
+                >
+                  <Text style={styles.deleteButtonText}>Delete</Text>
+                </TouchableOpacity>
               </View>
               <Text style={styles.collectionAmount}>₹{collection.amount}</Text>
               <Text style={styles.collectionDonor}>Donor: {collection.donorName}</Text>

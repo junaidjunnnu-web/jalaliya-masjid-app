@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
-import { useAuth } from '../../lib/auth-context';
 
 export default function MembersScreen() {
-  const { user } = useAuth();
   const router = useRouter();
   const [familiesByPlace, setFamiliesByPlace] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -66,28 +64,24 @@ export default function MembersScreen() {
         <Text style={styles.headerTitle}>Members</Text>
       </View>
 
-      {/* Search Bar - Committee Only */}
-      {user?.role === 'committee' && (
-        <View style={styles.searchContainer}>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search by name or phone..."
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            placeholderTextColor={theme.colors.gray[400]}
-          />
-        </View>
-      )}
+      {/* Search Bar */}
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search by name or phone..."
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholderTextColor={theme.colors.gray[400]}
+        />
+      </View>
 
-      {/* Add Family Button - Committee Only */}
-      {user?.role === 'committee' && (
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => router.push('/family/add')}
-        >
-          <Text style={styles.addButtonText}>+ Add Family</Text>
-        </TouchableOpacity>
-      )}
+      {/* Add Family Button */}
+      <TouchableOpacity
+        style={styles.addButton}
+        onPress={() => router.push('/family/add')}
+      >
+        <Text style={styles.addButtonText}>+ Add Family</Text>
+      </TouchableOpacity>
 
       {/* Families Grouped by Place */}
       {familiesByPlace.map((placeGroup) => (
@@ -118,23 +112,18 @@ export default function MembersScreen() {
                     </View>
                     <View style={styles.familyDetails}>
                       <Text style={styles.familyHead}>{family.headName}</Text>
-                      {user?.role === 'committee' && family.headPhone && (
+                      {family.headPhone && (
                         <Text style={styles.familyPhone}>{family.headPhone}</Text>
                       )}
                     </View>
                   </TouchableOpacity>
-                  {family.status === 'pending' && user?.role === 'committee' && (
+                  {family.status === 'pending' && (
                     <TouchableOpacity
                       style={styles.approveButton}
                       onPress={() => handleApproveFamily(family.id, family.headName)}
                     >
                       <Text style={styles.approveButtonText}>Approve</Text>
                     </TouchableOpacity>
-                  )}
-                  {family.status === 'pending' && user?.role !== 'committee' && (
-                    <View style={styles.pendingBadge}>
-                      <Text style={styles.pendingText}>Pending</Text>
-                    </View>
                   )}
                 </View>
               ))}

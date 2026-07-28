@@ -4,7 +4,6 @@ const jwt = require('jsonwebtoken');
 const { db } = require('../db');
 const { users, families, committeeMembers } = require('../db/schema');
 const { eq } = require('drizzle-orm');
-const { auth } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -115,47 +114,9 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Get current user
-router.get('/me', auth, async (req, res) => {
-  try {
-    console.log('🔄 /me REQUEST for user ID:', req.user.id);
-
-    const [user] = await db.select().from(users).where(eq(users.id, req.user.id));
-    if (!user) {
-      console.log('❌ /me FAILED: User not found', req.user.id);
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    console.log('👤 /me User found:', { id: user.id, phone: user.phone, role: user.role });
-
-    let familyData = null;
-    let committeeData = null;
-
-    if (user.familyId) {
-      [familyData] = await db.select().from(families).where(eq(families.id, user.familyId));
-      console.log('👨‍👩‍👧‍👦 /me Family found:', { id: familyData?.id, headName: familyData?.headName });
-    }
-
-    if (user.committeeMemberId) {
-      [committeeData] = await db.select().from(committeeMembers).where(eq(committeeMembers.id, user.committeeMemberId));
-      console.log('🏛️ /me Committee member found:', { id: committeeData?.id, name: committeeData?.name });
-    }
-
-    res.json({
-      user: {
-        id: user.id,
-        phone: user.phone,
-        role: user.role,
-        familyId: user.familyId,
-        committeeMemberId: user.committeeMemberId,
-      },
-      family: familyData,
-      committeeMember: committeeData,
-    });
-  } catch (error) {
-    console.error('❌ /me ERROR:', error);
-    res.status(500).json({ error: 'Failed to fetch user data' });
-  }
+// Get current user (disabled - no auth)
+router.get('/me', async (req, res) => {
+  res.json({ user: null, family: null, committeeMember: null });
 });
 
 module.exports = router;

@@ -2,7 +2,6 @@ const express = require('express');
 const { db } = require('../db');
 const { committeeMembers } = require('../db/schema');
 const { eq } = require('drizzle-orm');
-const { auth, committeeOnly } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -34,8 +33,8 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Create committee member (committee only)
-router.post('/', auth, committeeOnly, async (req, res) => {
+// Create committee member
+router.post('/', async (req, res) => {
   try {
     const { name, designation, phone, photoUrl, tenureStart, tenureEnd } = req.body;
 
@@ -55,8 +54,8 @@ router.post('/', auth, committeeOnly, async (req, res) => {
   }
 });
 
-// Update committee member (committee only)
-router.put('/:id', auth, committeeOnly, async (req, res) => {
+// Update committee member
+router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { name, designation, phone, photoUrl, tenureStart, tenureEnd } = req.body;
@@ -73,8 +72,8 @@ router.put('/:id', auth, committeeOnly, async (req, res) => {
   }
 });
 
-// Delete committee member (committee only)
-router.delete('/:id', auth, committeeOnly, async (req, res) => {
+// Delete committee member
+router.delete('/:id', async (req, res) => {
   try {
     await db.delete(committeeMembers).where(eq(committeeMembers.id, req.params.id));
     res.json({ message: 'Committee member deleted' });

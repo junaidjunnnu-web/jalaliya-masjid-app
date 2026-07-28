@@ -2,10 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert, Modal } from 'react-native';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
-import { useAuth } from '../../lib/auth-context';
 
 export default function ExpensesScreen() {
-  const { user } = useAuth();
   const [expenses, setExpenses] = useState<any[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
@@ -89,12 +87,10 @@ export default function ExpensesScreen() {
         <Text style={styles.headerTitle}>Expenses</Text>
       </View>
 
-      {/* Add Button - Committee Only */}
-      {user?.role === 'committee' && (
-        <TouchableOpacity style={styles.createButton} onPress={openAddModal}>
-          <Text style={styles.createButtonText}>+ Add Expense</Text>
-        </TouchableOpacity>
-      )}
+      {/* Add Button */}
+      <TouchableOpacity style={styles.createButton} onPress={openAddModal}>
+        <Text style={styles.createButtonText}>+ Add Expense</Text>
+      </TouchableOpacity>
 
       {/* Expenses List */}
       <View style={styles.expensesList}>
@@ -107,14 +103,12 @@ export default function ExpensesScreen() {
             <View key={expense.id} style={styles.expenseCard}>
               <View style={styles.expenseHeader}>
                 <Text style={styles.expenseCategory}>{expense.category}</Text>
-                {user?.role === 'committee' && (
-                  <TouchableOpacity
-                    style={styles.deleteButton}
-                    onPress={() => handleDelete(expense)}
-                  >
-                    <Text style={styles.deleteButtonText}>Delete</Text>
-                  </TouchableOpacity>
-                )}
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={() => handleDelete(expense)}
+                >
+                  <Text style={styles.deleteButtonText}>Delete</Text>
+                </TouchableOpacity>
               </View>
               <Text style={styles.expenseAmount}>₹{expense.amount}</Text>
               <Text style={styles.expenseDescription}>{expense.description}</Text>

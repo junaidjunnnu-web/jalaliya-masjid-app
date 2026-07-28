@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { theme } from '../../theme';
-import { useAuth } from '../../lib/auth-context';
 import { api } from '../../lib/api';
 
 export default function ProfileScreen() {
-  const { user, family, refreshUser, logout } = useAuth();
+  const [user, setUser] = useState<any>(null);
+  const [family, setFamily] = useState<any>(null);
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState({
     headName: '',
@@ -31,27 +31,13 @@ export default function ProfileScreen() {
       Alert.alert(
         'Success',
         'Your family information has been updated and is pending approval.',
-        [{ text: 'OK', onPress: () => { setEditing(false); refreshUser(); } }]
+        [{ text: 'OK', onPress: () => { setEditing(false); } }]
       );
     } else {
       Alert.alert('Error', error || 'Failed to update family information');
     }
   };
 
-  const handleLogout = () => {
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: () => logout(),
-        },
-      ]
-    );
-  };
 
   if (!family) {
     return (
@@ -183,11 +169,8 @@ export default function ProfileScreen() {
         </View>
         <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>Role:</Text>
-          <Text style={styles.infoValue}>{user?.role}</Text>
+          <Text style={styles.infoValue}>Guest</Text>
         </View>
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutButtonText}>Logout</Text>
-        </TouchableOpacity>
       </View>
     </ScrollView>
   );
@@ -345,17 +328,5 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  logoutButton: {
-    backgroundColor: theme.colors.alert,
-    borderRadius: theme.radius.button,
-    padding: theme.spacing.md,
-    alignItems: 'center',
-    marginTop: theme.spacing.md,
-  },
-  logoutButtonText: {
-    color: theme.colors.white,
-    fontSize: 16,
-    fontWeight: '600',
   },
 });

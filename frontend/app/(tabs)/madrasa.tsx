@@ -3,10 +3,8 @@ import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert,
 import { useRouter } from 'expo-router';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
-import { useAuth } from '../../lib/auth-context';
 
 export default function MadrasaScreen() {
-  const { user } = useAuth();
   const router = useRouter();
   const [students, setStudents] = useState<any[]>([]);
   const [selectedClass, setSelectedClass] = useState<string>('all');
@@ -202,32 +200,28 @@ export default function MadrasaScreen() {
                 </Text>
               </View>
             </TouchableOpacity>
-            {(user?.role === 'committee' || user?.committeeMemberId) && (
-              <View style={styles.studentActions}>
-                <TouchableOpacity
-                  style={styles.editButton}
-                  onPress={() => openEditModal(student)}
-                >
-                  <Text style={styles.editButtonText}>Edit</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.deleteButton}
-                  onPress={() => handleDelete(student)}
-                >
-                  <Text style={styles.deleteButtonText}>Delete</Text>
-                </TouchableOpacity>
-              </View>
-            )}
+            <View style={styles.studentActions}>
+              <TouchableOpacity
+                style={styles.editButton}
+                onPress={() => openEditModal(student)}
+              >
+                <Text style={styles.editButtonText}>Edit</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => handleDelete(student)}
+              >
+                <Text style={styles.deleteButtonText}>Delete</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         ))}
       </View>
 
-      {/* Add Student Button - Committee/Ustad Only */}
-      {(user?.role === 'committee' || user?.committeeMemberId) && (
-        <TouchableOpacity style={styles.addButton} onPress={openAddModal}>
-          <Text style={styles.addButtonText}>+ Add Student</Text>
-        </TouchableOpacity>
-      )}
+      {/* Add Student Button */}
+      <TouchableOpacity style={styles.addButton} onPress={openAddModal}>
+        <Text style={styles.addButtonText}>+ Add Student</Text>
+      </TouchableOpacity>
 
       {/* Add/Edit Student Modal */}
       <Modal

@@ -2,10 +2,8 @@ import React from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { theme } from '../../theme';
-import { useAuth } from '../../lib/auth-context';
 
 export default function MoreScreen() {
-  const { user } = useAuth();
   const router = useRouter();
 
   const menuItems = [
@@ -37,10 +35,8 @@ export default function MoreScreen() {
       description: 'View fee status and history',
       onPress: () => router.push('/more/fees'),
     },
-    ...(user?.role === 'committee'
-      ? [
-          {
-            id: 'broadcast',
+    {
+      id: 'broadcast',
             title: 'Broadcast',
             icon: '📨',
             description: 'Send messages to families',
@@ -60,8 +56,7 @@ export default function MoreScreen() {
             description: 'Track masjid expenses',
             onPress: () => router.push('/more/expenses'),
           },
-        ]
-      : []),
+        },
     {
       id: 'profile',
       title: 'My Profile',

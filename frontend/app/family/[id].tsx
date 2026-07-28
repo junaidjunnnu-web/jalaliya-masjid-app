@@ -3,12 +3,10 @@ import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking, TextInpu
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
-import { useAuth } from '../../lib/auth-context';
 
 export default function FamilyDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const { user } = useAuth();
   const [family, setFamily] = useState<any>(null);
   const [members, setMembers] = useState<any[]>([]);
   const [showMemberModal, setShowMemberModal] = useState(false);
@@ -147,8 +145,6 @@ export default function FamilyDetailScreen() {
     );
   }
 
-  const canViewFullDetails = user?.role === 'committee' || user?.familyId === family.id;
-
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -165,7 +161,7 @@ export default function FamilyDetailScreen() {
           </View>
           <View style={styles.familyInfo}>
             <Text style={styles.familyHead}>{family.headName}</Text>
-            {canViewFullDetails && family.headPhone && (
+            {true && family.headPhone && (
               <Text style={styles.familyPhone}>{family.headPhone}</Text>
             )}
             <Text style={styles.familyPlace}>{family.placeName}</Text>
@@ -177,14 +173,14 @@ export default function FamilyDetailScreen() {
           </View>
         </View>
 
-        {canViewFullDetails && family.address && (
+        {true && family.address && (
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Address:</Text>
             <Text style={styles.detailValue}>{family.address}</Text>
           </View>
         )}
 
-        {canViewFullDetails && (
+        {true && (
           <View style={styles.feeInfo}>
             <Text style={styles.feeLabel}>Monthly Fees:</Text>
             <Text style={styles.feeValue}>
@@ -193,7 +189,7 @@ export default function FamilyDetailScreen() {
           </View>
         )}
 
-        {user?.role === 'committee' && family.headPhone && (
+        {family.headPhone && (
           <View style={styles.contactButtons}>
             <TouchableOpacity
               style={[styles.contactButton, styles.callButton]}
@@ -215,7 +211,7 @@ export default function FamilyDetailScreen() {
       <View style={styles.membersSection}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Family Members</Text>
-          {canViewFullDetails && (
+          {true && (
             <TouchableOpacity style={styles.addMemberButton} onPress={openAddMemberModal}>
               <Text style={styles.addMemberButtonText}>+ Add</Text>
             </TouchableOpacity>
@@ -232,7 +228,7 @@ export default function FamilyDetailScreen() {
                 <Text style={styles.memberName}>{member.name}</Text>
                 <Text style={styles.memberRelation}>{member.relation}</Text>
               </View>
-              {canViewFullDetails && (
+              {true && (
                 <View style={styles.memberActions}>
                   <TouchableOpacity
                     style={styles.memberActionButton}
@@ -248,7 +244,7 @@ export default function FamilyDetailScreen() {
                   </TouchableOpacity>
                 </View>
               )}
-              {canViewFullDetails && (
+              {true && (
                 <View style={styles.memberDetails}>
                   {member.age && <Text style={styles.memberDetail}>Age: {member.age}</Text>}
                   {member.gender && <Text style={styles.memberDetail}>{member.gender}</Text>}
@@ -268,7 +264,7 @@ export default function FamilyDetailScreen() {
       </View>
 
       {/* Committee Actions */}
-      {user?.role === 'committee' && family.status === 'pending' && (
+      {family.status === 'pending' && (
         <TouchableOpacity style={styles.approveButton}>
           <Text style={styles.approveButtonText}>Approve Family</Text>
         </TouchableOpacity>

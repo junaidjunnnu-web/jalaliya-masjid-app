@@ -2,10 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert, Modal } from 'react-native';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
-import { useAuth } from '../../lib/auth-context';
 
 export default function NamazScreen() {
-  const { user } = useAuth();
   const [timings, setTimings] = useState<any>(null);
   const [isRamadan, setIsRamadan] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -154,12 +152,10 @@ export default function NamazScreen() {
         </View>
       )}
 
-      {/* Edit Button for Committee */}
-      {user?.role === 'committee' && (
-        <TouchableOpacity style={styles.editButton} onPress={openEditModal}>
-          <Text style={styles.editButtonText}>Edit Timings</Text>
-        </TouchableOpacity>
-      )}
+      {/* Edit Button */}
+      <TouchableOpacity style={styles.editButton} onPress={openEditModal}>
+        <Text style={styles.editButtonText}>Edit Timings</Text>
+      </TouchableOpacity>
 
       {/* Edit Timings Modal */}
       <Modal

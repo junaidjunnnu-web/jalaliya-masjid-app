@@ -2,11 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert, Modal, Image } from 'react-native';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
-import { useAuth } from '../../lib/auth-context';
 import * as Linking from 'expo-linking';
 
 export default function GalleryScreen() {
-  const { user } = useAuth();
   const [photos, setPhotos] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -125,12 +123,10 @@ export default function GalleryScreen() {
         ))}
       </ScrollView>
 
-      {/* Upload Button - Committee Only */}
-      {user?.role === 'committee' && (
-        <TouchableOpacity style={styles.uploadButton} onPress={openUploadModal}>
-          <Text style={styles.uploadButtonText}>+ Upload Photo</Text>
-        </TouchableOpacity>
-      )}
+      {/* Upload Button */}
+      <TouchableOpacity style={styles.uploadButton} onPress={openUploadModal}>
+        <Text style={styles.uploadButtonText}>+ Upload Photo</Text>
+      </TouchableOpacity>
 
       {/* Photo Grid */}
       <View style={styles.photoGrid}>
@@ -156,14 +152,12 @@ export default function GalleryScreen() {
                 >
                   <Text style={styles.shareButtonText}>Share to WhatsApp</Text>
                 </TouchableOpacity>
-                {user?.role === 'committee' && (
-                  <TouchableOpacity
-                    style={styles.deleteButton}
-                    onPress={() => handleDelete(photo)}
-                  >
-                    <Text style={styles.deleteButtonText}>Delete</Text>
-                  </TouchableOpacity>
-                )}
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={() => handleDelete(photo)}
+                >
+                  <Text style={styles.deleteButtonText}>Delete</Text>
+                </TouchableOpacity>
               </View>
             </View>
           ))

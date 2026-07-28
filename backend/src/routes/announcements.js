@@ -2,7 +2,6 @@ const express = require('express');
 const { db } = require('../db');
 const { announcements, committeeMembers } = require('../db/schema');
 const { eq, desc } = require('drizzle-orm');
-const { auth, committeeOnly } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -53,15 +52,14 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Create announcement (committee only)
-router.post('/', auth, committeeOnly, async (req, res) => {
+// Create announcement
+router.post('/', async (req, res) => {
   try {
     const { title, message } = req.body;
 
     const [newAnnouncement] = await db.insert(announcements).values({
       title,
       message,
-      postedBy: req.user.committeeMemberId,
     }).returning();
 
     res.status(201).json(newAnnouncement);
@@ -71,8 +69,8 @@ router.post('/', auth, committeeOnly, async (req, res) => {
   }
 });
 
-// Update announcement (committee only)
-router.put('/:id', auth, committeeOnly, async (req, res) => {
+// Update announcement
+router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { title, message } = req.body;
@@ -89,8 +87,8 @@ router.put('/:id', auth, committeeOnly, async (req, res) => {
   }
 });
 
-// Delete announcement (committee only)
-router.delete('/:id', auth, committeeOnly, async (req, res) => {
+// Delete announcement
+router.delete('/:id', async (req, res) => {
   try {
     await db.delete(announcements).where(eq(announcements.id, req.params.id));
     res.json({ message: 'Announcement deleted' });

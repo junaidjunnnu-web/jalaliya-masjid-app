@@ -2,12 +2,11 @@ const express = require('express');
 const { db } = require('../db');
 const { collections, families, committeeMembers } = require('../db/schema');
 const { eq, desc, and, gte, lte } = require('drizzle-orm');
-const { auth, committeeOnly } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Get all collections (committee only)
-router.get('/', auth, committeeOnly, async (req, res) => {
+// Get all collections
+router.get('/', async (req, res) => {
   try {
     const { type, familyId, startDate, endDate } = req.query;
     let query = db.select({
@@ -44,7 +43,7 @@ router.get('/', auth, committeeOnly, async (req, res) => {
 });
 
 // Get single collection
-router.get('/:id', auth, committeeOnly, async (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const [collection] = await db.select({
@@ -73,8 +72,8 @@ router.get('/:id', auth, committeeOnly, async (req, res) => {
   }
 });
 
-// Create collection (committee only)
-router.post('/', auth, committeeOnly, async (req, res) => {
+// Create collection
+router.post('/', async (req, res) => {
   try {
     const { type, familyId, amount, date, note } = req.body;
 
@@ -84,7 +83,6 @@ router.post('/', auth, committeeOnly, async (req, res) => {
       amount,
       date,
       note,
-      enteredBy: req.user.committeeMemberId,
     }).returning();
 
     res.status(201).json(newCollection);
@@ -94,8 +92,8 @@ router.post('/', auth, committeeOnly, async (req, res) => {
   }
 });
 
-// Update collection (committee only)
-router.put('/:id', auth, committeeOnly, async (req, res) => {
+// Update collection
+router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { type, familyId, amount, date, note } = req.body;
@@ -112,8 +110,8 @@ router.put('/:id', auth, committeeOnly, async (req, res) => {
   }
 });
 
-// Delete collection (committee only)
-router.delete('/:id', auth, committeeOnly, async (req, res) => {
+// Delete collection
+router.delete('/:id', async (req, res) => {
   try {
     await db.delete(collections).where(eq(collections.id, req.params.id));
     res.json({ message: 'Collection deleted' });
@@ -123,8 +121,8 @@ router.delete('/:id', auth, committeeOnly, async (req, res) => {
   }
 });
 
-// Get summary by type (committee only)
-router.get('/summary/total', auth, committeeOnly, async (req, res) => {
+// Get summary by type
+router.get('/summary/total', async (req, res) => {
   try {
     const { type, startDate, endDate } = req.query;
     

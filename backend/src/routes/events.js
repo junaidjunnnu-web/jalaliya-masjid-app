@@ -2,7 +2,6 @@ const express = require('express');
 const { db } = require('../db');
 const { events, committeeMembers } = require('../db/schema');
 const { eq, desc, gte } = require('drizzle-orm');
-const { auth, committeeOnly } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -66,8 +65,8 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Create event (committee only)
-router.post('/', auth, committeeOnly, async (req, res) => {
+// Create event
+router.post('/', async (req, res) => {
   try {
     const { title, description, eventDate, eventTime, location } = req.body;
 
@@ -77,7 +76,6 @@ router.post('/', auth, committeeOnly, async (req, res) => {
       eventDate,
       eventTime,
       location,
-      createdBy: req.user.committeeMemberId,
     }).returning();
 
     res.status(201).json(newEvent);
@@ -87,8 +85,8 @@ router.post('/', auth, committeeOnly, async (req, res) => {
   }
 });
 
-// Update event (committee only)
-router.put('/:id', auth, committeeOnly, async (req, res) => {
+// Update event
+router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { title, description, eventDate, eventTime, location } = req.body;
@@ -105,8 +103,8 @@ router.put('/:id', auth, committeeOnly, async (req, res) => {
   }
 });
 
-// Delete event (committee only)
-router.delete('/:id', auth, committeeOnly, async (req, res) => {
+// Delete event
+router.delete('/:id', async (req, res) => {
   try {
     await db.delete(events).where(eq(events.id, req.params.id));
     res.json({ message: 'Event deleted' });
