@@ -170,9 +170,6 @@ export default function CommitteeScreen() {
               <View style={styles.memberDetails}>
                 <Text style={styles.memberName}>{member.name}</Text>
                 <Text style={styles.memberDesignation}>{member.designation}</Text>
-                <Text style={styles.memberTenure}>
-                  {new Date(member.tenureStart).getFullYear()} - Present
-                </Text>
               </View>
             </View>
             <View style={styles.memberActions}>
@@ -394,6 +391,7 @@ const styles = StyleSheet.create({
   },
   contactButtonText: {
     fontSize: 20,
+    color: theme.colors.white,
   },
   sectionHeader: {
     flexDirection: 'row',
