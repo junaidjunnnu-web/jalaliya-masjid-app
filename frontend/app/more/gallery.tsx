@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert, Modal, Image } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert, Modal, Image, KeyboardAvoidingView, Platform } from 'react-native';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
 import * as Linking from 'expo-linking';
@@ -138,6 +138,7 @@ export default function GalleryScreen() {
               selectedCategory === category && styles.filterButtonActive,
             ]}
             onPress={() => setSelectedCategory(category)}
+            activeOpacity={0.7}
           >
             <Text
               style={[
@@ -152,7 +153,7 @@ export default function GalleryScreen() {
       </ScrollView>
 
       {/* Upload Button */}
-      <TouchableOpacity style={styles.uploadButton} onPress={openUploadModal}>
+      <TouchableOpacity style={styles.uploadButton} onPress={openUploadModal} activeOpacity={0.7}>
         <Text style={styles.uploadButtonText}>+ Upload Photo</Text>
       </TouchableOpacity>
 
@@ -177,12 +178,14 @@ export default function GalleryScreen() {
                 <TouchableOpacity
                   style={styles.shareButton}
                   onPress={() => handleShareToWhatsApp(photo)}
+                  activeOpacity={0.7}
                 >
                   <Text style={styles.shareButtonText}>Share to WhatsApp</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.deleteButton}
                   onPress={() => handleDelete(photo)}
+                  activeOpacity={0.7}
                 >
                   <Text style={styles.deleteButtonText}>Delete</Text>
                 </TouchableOpacity>
@@ -199,70 +202,79 @@ export default function GalleryScreen() {
         transparent={true}
         onRequestClose={() => setShowUploadModal(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Upload Photo</Text>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <ScrollView style={styles.modalScrollView} showsVerticalScrollIndicator={false}>
+                <Text style={styles.modalTitle}>Upload Photo</Text>
 
-            <TouchableOpacity style={styles.photoPickerButton} onPress={pickImage}>
-              {uploadFormData.photoBase64 ? (
-                <Image source={{ uri: `data:image/jpeg;base64,${uploadFormData.photoBase64}` }} style={styles.previewImage} />
-              ) : (
-                <View style={styles.photoPickerPlaceholder}>
-                  <Text style={styles.photoPickerIcon}>📷</Text>
-                  <Text style={styles.photoPickerText}>Tap to select photo</Text>
-                </View>
-              )}
-            </TouchableOpacity>
+                <TouchableOpacity style={styles.photoPickerButton} onPress={pickImage}>
+                  {uploadFormData.photoBase64 ? (
+                    <Image source={{ uri: `data:image/jpeg;base64,${uploadFormData.photoBase64}` }} style={styles.previewImage} />
+                  ) : (
+                    <View style={styles.photoPickerPlaceholder}>
+                      <Text style={styles.photoPickerIcon}>📷</Text>
+                      <Text style={styles.photoPickerText}>Tap to select photo</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
 
-            <Text style={styles.modalLabel}>Caption *</Text>
-            <TextInput
-              style={styles.modalInput}
-              placeholder="Enter photo caption"
-              value={uploadFormData.caption}
-              onChangeText={(text) => setUploadFormData({ ...uploadFormData, caption: text })}
-            />
+                <Text style={styles.modalLabel}>Caption *</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="Enter photo caption"
+                  value={uploadFormData.caption}
+                  onChangeText={(text) => setUploadFormData({ ...uploadFormData, caption: text })}
+                />
 
-            <Text style={styles.modalLabel}>Category</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryContainer}>
-              {['Construction', 'Events', 'Facilities'].map((category) => (
+                <Text style={styles.modalLabel}>Category</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryContainer}>
+                  {['Construction', 'Events', 'Facilities'].map((category) => (
+                    <TouchableOpacity
+                      key={category}
+                      style={[
+                        styles.categoryButton,
+                        uploadFormData.category === category && styles.categoryButtonActive,
+                      ]}
+                      onPress={() => setUploadFormData({ ...uploadFormData, category })}
+                      activeOpacity={0.7}
+                    >
+                      <Text
+                        style={[
+                          styles.categoryButtonText,
+                          uploadFormData.category === category && styles.categoryButtonTextActive,
+                        ]}
+                      >
+                        {category}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </ScrollView>
+
+              <View style={styles.modalActions}>
                 <TouchableOpacity
-                  key={category}
-                  style={[
-                    styles.categoryButton,
-                    uploadFormData.category === category && styles.categoryButtonActive,
-                  ]}
-                  onPress={() => setUploadFormData({ ...uploadFormData, category })}
+                  style={[styles.modalButton, styles.cancelModalButton]}
+                  onPress={() => setShowUploadModal(false)}
                 >
-                  <Text
-                    style={[
-                      styles.categoryButtonText,
-                      uploadFormData.category === category && styles.categoryButtonTextActive,
-                    ]}
-                  >
-                    {category}
+                  <Text style={styles.modalButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.saveModalButton, uploading && styles.modalButtonDisabled]}
+                  onPress={handleUpload}
+                  disabled={uploading}
+                >
+                  <Text style={styles.modalButtonText}>
+                    {uploading ? 'Uploading...' : 'Upload Photo'}
                   </Text>
                 </TouchableOpacity>
-              ))}
-            </ScrollView>
-
-            <TouchableOpacity
-              style={[styles.saveButton, uploading && styles.saveButtonDisabled]}
-              onPress={handleUpload}
-              disabled={uploading}
-            >
-              <Text style={styles.saveButtonText}>
-                {uploading ? 'Uploading...' : 'Upload Photo'}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={() => setShowUploadModal(false)}
-            >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
-            </TouchableOpacity>
+              </View>
+            </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </ScrollView>
   );
@@ -405,6 +417,37 @@ const styles = StyleSheet.create({
     width: '100%',
     maxHeight: '90%',
     ...theme.shadow.card,
+  },
+  modalScrollView: {
+    flex: 1,
+    marginBottom: theme.spacing.md,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+  },
+  modalButton: {
+    flex: 1,
+    padding: theme.spacing.md,
+    borderRadius: theme.radius.button,
+    alignItems: 'center',
+    ...theme.shadow.button,
+  },
+  cancelModalButton: {
+    backgroundColor: theme.colors.gray[300],
+  },
+  saveModalButton: {
+    backgroundColor: theme.colors.primary,
+    borderWidth: 2,
+    borderColor: theme.colors.accent,
+  },
+  modalButtonDisabled: {
+    opacity: 0.6,
+  },
+  modalButtonText: {
+    color: theme.colors.white,
+    fontSize: 16,
+    fontWeight: '600',
   },
   modalTitle: {
     fontSize: 20,

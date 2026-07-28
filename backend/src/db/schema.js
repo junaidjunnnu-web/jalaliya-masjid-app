@@ -56,9 +56,11 @@ const familyMembers = pgTable('family_members', {
   familyId: integer('family_id').references(() => families.id, { onDelete: 'cascade' }).notNull(),
   name: varchar('name', { length: 100 }).notNull(),
   relation: varchar('relation', { length: 50 }).notNull(), // Wife, Son, Daughter, Father, Mother, Grandfather, Grandmother, etc.
+  phone: varchar('phone', { length: 15 }), // Optional phone for individual members
   age: integer('age'),
   gender: genderEnum('gender'),
   maritalStatus: maritalStatusEnum('marital_status'),
+  occupation: varchar('occupation', { length: 100 }), // Optional occupation
   isFeeApplicable: boolean('is_fee_applicable').notNull().default(true),
 }, (table) => ({
   familyIdIdx: index('family_members_family_id_idx').on(table.familyId),

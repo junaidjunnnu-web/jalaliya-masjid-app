@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert, Modal } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert, Modal, KeyboardAvoidingView, Platform } from 'react-native';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
 import { PrayerTimes, CalculationMethod, Coordinates } from 'adhan';
@@ -110,11 +110,10 @@ export default function NamazScreen() {
   const handleSaveTimings = async () => {
     setLoading(true);
     try {
-      const effectiveFrom = Date.now();
-      const { data, error } = await api.namaz.updateTimings(effectiveFrom, editFormData);
+      const { data, error } = await api.namaz.updateTimings(timings.id, editFormData);
       if (error) {
         Alert.alert('Error', error);
-      } else {
+      } else if (data) {
         await loadTimings();
         setShowEditModal(false);
         Alert.alert('Success', 'Prayer times updated');
@@ -195,7 +194,7 @@ export default function NamazScreen() {
       )}
 
       {/* Edit Button */}
-      <TouchableOpacity style={styles.editButton} onPress={openEditModal}>
+      <TouchableOpacity style={styles.editButton} onPress={openEditModal} activeOpacity={0.7}>
         <Text style={styles.editButtonText}>Edit Timings</Text>
       </TouchableOpacity>
 
@@ -206,72 +205,80 @@ export default function NamazScreen() {
         transparent={true}
         onRequestClose={() => setShowEditModal(false)}
       >
-        <ScrollView style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Edit Prayer Times</Text>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <ScrollView style={styles.modalScrollView} showsVerticalScrollIndicator={false}>
+                <Text style={styles.modalTitle}>Edit Prayer Times</Text>
 
-            {prayers.map((prayer) => (
-              <View key={prayer.key} style={styles.prayerEditRow}>
-                <Text style={styles.prayerEditLabel}>{prayer.label}</Text>
-                <View style={styles.timeInputs}>
-                  <TextInput
-                    style={styles.timeInput}
-                    placeholder="Azan"
-                    value={editFormData[`${prayer.key}Azan` as keyof typeof editFormData]}
-                    onChangeText={(text) => setEditFormData({ ...editFormData, [`${prayer.key}Azan`]: text })}
-                  />
-                  <TextInput
-                    style={styles.timeInput}
-                    placeholder="Iqamah"
-                    value={editFormData[`${prayer.key}Iqamah` as keyof typeof editFormData]}
-                    onChangeText={(text) => setEditFormData({ ...editFormData, [`${prayer.key}Iqamah`]: text })}
-                  />
-                </View>
+                {prayers.map((prayer) => (
+                  <View key={prayer.key} style={styles.prayerEditRow}>
+                    <Text style={styles.prayerEditLabel}>{prayer.label}</Text>
+                    <View style={styles.timeInputs}>
+                      <TextInput
+                        style={styles.timeInput}
+                        placeholder="Azan"
+                        value={editFormData[`${prayer.key}Azan` as keyof typeof editFormData]}
+                        onChangeText={(text) => setEditFormData({ ...editFormData, [`${prayer.key}Azan`]: text })}
+                      />
+                      <TextInput
+                        style={styles.timeInput}
+                        placeholder="Iqamah"
+                        value={editFormData[`${prayer.key}Iqamah` as keyof typeof editFormData]}
+                        onChangeText={(text) => setEditFormData({ ...editFormData, [`${prayer.key}Iqamah`]: text })}
+                      />
+                    </View>
+                  </View>
+                ))}
+
+                <Text style={styles.modalLabel}>Jumma Khutbah Time</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="e.g., 13:30"
+                  value={editFormData.jummaKhutbahTime}
+                  onChangeText={(text) => setEditFormData({ ...editFormData, jummaKhutbahTime: text })}
+                />
+
+                <Text style={styles.modalLabel}>Sehri Time (Ramadan)</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="e.g., 04:30"
+                  value={editFormData.sehriTime}
+                  onChangeText={(text) => setEditFormData({ ...editFormData, sehriTime: text })}
+                />
+
+                <Text style={styles.modalLabel}>Iftar Time (Ramadan)</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="e.g., 18:45"
+                  value={editFormData.iftarTime}
+                  onChangeText={(text) => setEditFormData({ ...editFormData, iftarTime: text })}
+                />
+              </ScrollView>
+
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.cancelModalButton]}
+                  onPress={() => setShowEditModal(false)}
+                >
+                  <Text style={styles.modalButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.saveModalButton, loading && styles.modalButtonDisabled]}
+                  onPress={handleSaveTimings}
+                  disabled={loading}
+                >
+                  <Text style={styles.modalButtonText}>
+                    {loading ? 'Saving...' : 'Save Timings'}
+                  </Text>
+                </TouchableOpacity>
               </View>
-            ))}
-
-            <Text style={styles.modalLabel}>Jumma Khutbah Time</Text>
-            <TextInput
-              style={styles.modalInput}
-              placeholder="e.g., 13:30"
-              value={editFormData.jummaKhutbahTime}
-              onChangeText={(text) => setEditFormData({ ...editFormData, jummaKhutbahTime: text })}
-            />
-
-            <Text style={styles.modalLabel}>Sehri Time (Ramadan)</Text>
-            <TextInput
-              style={styles.modalInput}
-              placeholder="e.g., 04:30"
-              value={editFormData.sehriTime}
-              onChangeText={(text) => setEditFormData({ ...editFormData, sehriTime: text })}
-            />
-
-            <Text style={styles.modalLabel}>Iftar Time (Ramadan)</Text>
-            <TextInput
-              style={styles.modalInput}
-              placeholder="e.g., 18:45"
-              value={editFormData.iftarTime}
-              onChangeText={(text) => setEditFormData({ ...editFormData, iftarTime: text })}
-            />
-
-            <TouchableOpacity
-              style={[styles.saveButton, loading && styles.saveButtonDisabled]}
-              onPress={handleSaveTimings}
-              disabled={loading}
-            >
-              <Text style={styles.saveButtonText}>
-                {loading ? 'Saving...' : 'Save Timings'}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={() => setShowEditModal(false)}
-            >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
-            </TouchableOpacity>
+            </View>
           </View>
-        </ScrollView>
+        </KeyboardAvoidingView>
       </Modal>
     </ScrollView>
   );
@@ -402,7 +409,12 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.xl * 2,
     borderRadius: theme.radius.card,
     padding: theme.spacing.xl,
+    maxHeight: '90%',
     ...theme.shadow.card,
+  },
+  modalScrollView: {
+    flex: 1,
+    marginBottom: theme.spacing.md,
   },
   modalTitle: {
     fontSize: 20,

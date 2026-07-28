@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking, TextInput, Alert, Modal } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking, TextInput, Alert, Modal, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
@@ -74,34 +74,54 @@ export default function CommitteeScreen() {
     setLoading(true);
     try {
       if (editingMember) {
-        const { data, error } = await api.committee.update(editingMember.id, {
+        const requestBody = {
           name: formData.name,
           designation: formData.designation,
           phone: formData.phone,
           photoUrl: formData.photoUrl,
           tenureStart: formData.tenureStart,
           tenureEnd: formData.tenureEnd || null,
-        });
+        };
+        console.log('[Committee Update] Request body:', JSON.stringify(requestBody, null, 2));
+
+        const { data, error } = await api.committee.update(editingMember.id, requestBody);
+
+        console.log('[Committee Update] Response data:', JSON.stringify(data, null, 2));
+        console.log('[Committee Update] Response error:', JSON.stringify(error, null, 2));
+
         if (error) {
-          Alert.alert('Error', error);
+          Alert.alert('Error', String(error));
+        } else if (data) {
+          await loadCommitteeMembers();
+          setShowModal(false);
+          Alert.alert('Success', 'Member updated');
         }
       } else {
-        const { data, error } = await api.committee.create({
+        const requestBody = {
           name: formData.name,
           designation: formData.designation,
           phone: formData.phone,
           photoUrl: formData.photoUrl,
           tenureStart: formData.tenureStart,
           tenureEnd: formData.tenureEnd || null,
-        });
+        };
+        console.log('[Committee Create] Request body:', JSON.stringify(requestBody, null, 2));
+
+        const { data, error } = await api.committee.create(requestBody);
+
+        console.log('[Committee Create] Response data:', JSON.stringify(data, null, 2));
+        console.log('[Committee Create] Response error:', JSON.stringify(error, null, 2));
+
         if (error) {
-          Alert.alert('Error', error);
+          Alert.alert('Error', String(error));
+        } else if (data) {
+          await loadCommitteeMembers();
+          setShowModal(false);
+          Alert.alert('Success', 'Member added');
         }
       }
-      await loadCommitteeMembers();
-      setShowModal(false);
-      Alert.alert('Success', editingMember ? 'Member updated' : 'Member added');
     } catch (error) {
+      console.log('[Committee Save] Catch error:', JSON.stringify(error, null, 2));
       Alert.alert('Error', 'Failed to save member');
     }
     setLoading(false);
@@ -150,7 +170,7 @@ export default function CommitteeScreen() {
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Committee Members</Text>
-          <TouchableOpacity style={styles.addButton} onPress={openAddModal}>
+          <TouchableOpacity style={styles.addButton} onPress={openAddModal} activeOpacity={0.7}>
             <Text style={styles.addButtonText}>+ Add</Text>
           </TouchableOpacity>
         </View>
@@ -175,12 +195,14 @@ export default function CommitteeScreen() {
                 <TouchableOpacity
                   style={styles.editButton}
                   onPress={() => openEditModal(member)}
+                  activeOpacity={0.7}
                 >
                   <Text style={styles.editButtonText}>Edit</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.deleteButton}
                   onPress={() => handleDelete(member)}
+                  activeOpacity={0.7}
                 >
                   <Text style={styles.deleteButtonText}>Delete</Text>
                 </TouchableOpacity>
@@ -189,12 +211,14 @@ export default function CommitteeScreen() {
                 <TouchableOpacity
                   style={[styles.contactButton, styles.callButton]}
                   onPress={() => handleCall(member.phone)}
+                  activeOpacity={0.7}
                 >
                   <Text style={styles.contactButtonText}>📞</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.contactButton, styles.whatsappButton]}
                   onPress={() => handleWhatsApp(member.phone)}
+                  activeOpacity={0.7}
                 >
                   <Text style={styles.contactButtonText}>💬</Text>
                 </TouchableOpacity>
@@ -211,81 +235,88 @@ export default function CommitteeScreen() {
         transparent={true}
         onRequestClose={() => setShowModal(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>
-              {editingMember ? 'Edit Committee Member' : 'Add Committee Member'}
-            </Text>
-
-            <Text style={styles.modalLabel}>Name *</Text>
-            <TextInput
-              style={styles.modalInput}
-              placeholder="Enter full name"
-              value={formData.name}
-              onChangeText={(text) => setFormData({ ...formData, name: text })}
-            />
-
-            <Text style={styles.modalLabel}>Designation *</Text>
-            <TextInput
-              style={styles.modalInput}
-              placeholder="e.g., President, Secretary"
-              value={formData.designation}
-              onChangeText={(text) => setFormData({ ...formData, designation: text })}
-            />
-
-            <Text style={styles.modalLabel}>Phone *</Text>
-            <TextInput
-              style={styles.modalInput}
-              placeholder="Enter phone number"
-              value={formData.phone}
-              onChangeText={(text) => setFormData({ ...formData, phone: text })}
-              keyboardType="phone-pad"
-              maxLength={15}
-            />
-
-            <Text style={styles.modalLabel}>Photo URL</Text>
-            <TextInput
-              style={styles.modalInput}
-              placeholder="Enter photo URL"
-              value={formData.photoUrl}
-              onChangeText={(text) => setFormData({ ...formData, photoUrl: text })}
-            />
-
-            <Text style={styles.modalLabel}>Tenure Start *</Text>
-            <TextInput
-              style={styles.modalInput}
-              placeholder="YYYY-MM-DD"
-              value={formData.tenureStart}
-              onChangeText={(text) => setFormData({ ...formData, tenureStart: text })}
-            />
-
-            <Text style={styles.modalLabel}>Tenure End</Text>
-            <TextInput
-              style={styles.modalInput}
-              placeholder="YYYY-MM-DD (optional)"
-              value={formData.tenureEnd}
-              onChangeText={(text) => setFormData({ ...formData, tenureEnd: text })}
-            />
-
-            <View style={styles.modalActions}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.cancelModalButton]}
-                onPress={() => setShowModal(false)}
-              >
-                <Text style={styles.modalButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.saveModalButton, loading && styles.modalButtonDisabled]}
-                onPress={handleSave}
-                disabled={loading}
-              >
-                <Text style={styles.modalButtonText}>
-                  {loading ? 'Saving...' : 'Save'}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <ScrollView style={styles.modalScrollView} showsVerticalScrollIndicator={false}>
+                <Text style={styles.modalTitle}>
+                  {editingMember ? 'Edit Committee Member' : 'Add Committee Member'}
                 </Text>
-              </TouchableOpacity>
+
+                <Text style={styles.modalLabel}>Name *</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="Enter full name"
+                  value={formData.name}
+                  onChangeText={(text) => setFormData({ ...formData, name: text })}
+                />
+
+                <Text style={styles.modalLabel}>Designation *</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="e.g., President, Secretary"
+                  value={formData.designation}
+                  onChangeText={(text) => setFormData({ ...formData, designation: text })}
+                />
+
+                <Text style={styles.modalLabel}>Phone *</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="Enter phone number"
+                  value={formData.phone}
+                  onChangeText={(text) => setFormData({ ...formData, phone: text })}
+                  keyboardType="phone-pad"
+                  maxLength={15}
+                />
+
+                <Text style={styles.modalLabel}>Photo URL</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="Enter photo URL"
+                  value={formData.photoUrl}
+                  onChangeText={(text) => setFormData({ ...formData, photoUrl: text })}
+                />
+
+                <Text style={styles.modalLabel}>Tenure Start *</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="YYYY-MM-DD"
+                  value={formData.tenureStart}
+                  onChangeText={(text) => setFormData({ ...formData, tenureStart: text })}
+                />
+
+                <Text style={styles.modalLabel}>Tenure End</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="YYYY-MM-DD (optional)"
+                  value={formData.tenureEnd}
+                  onChangeText={(text) => setFormData({ ...formData, tenureEnd: text })}
+                />
+              </ScrollView>
+
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.cancelModalButton]}
+                  onPress={() => setShowModal(false)}
+                >
+                  <Text style={styles.modalButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.saveModalButton, loading && styles.modalButtonDisabled]}
+                  onPress={handleSave}
+                  disabled={loading}
+                >
+                  <Text style={styles.modalButtonText}>
+                    {loading ? 'Saving...' : 'Save'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </ScrollView>
   );
@@ -468,6 +499,10 @@ const styles = StyleSheet.create({
     width: '100%',
     maxHeight: '90%',
     ...theme.shadow.card,
+  },
+  modalScrollView: {
+    flex: 1,
+    marginBottom: theme.spacing.md,
   },
   modalTitle: {
     fontSize: 20,

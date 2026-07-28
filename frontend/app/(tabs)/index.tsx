@@ -167,6 +167,7 @@ export default function HomeScreen() {
         <TouchableOpacity
           style={styles.card}
           onPress={() => router.push('/more/announcements')}
+          activeOpacity={0.7}
         >
           <Text style={styles.cardLabel}>Announcement</Text>
           <Text style={styles.cardTitle}>{announcement.title}</Text>
@@ -181,6 +182,7 @@ export default function HomeScreen() {
         <TouchableOpacity
           style={styles.card}
           onPress={() => router.push('/more/events')}
+          activeOpacity={0.7}
         >
           <Text style={styles.cardLabel}>Upcoming Event</Text>
           <Text style={styles.cardTitle}>{event.title}</Text>
@@ -198,20 +200,23 @@ export default function HomeScreen() {
       {/* Quick Actions */}
       <View style={styles.quickActions}>
         <Text style={styles.sectionTitle}>Quick Actions</Text>
-        <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => router.push('/more/broadcast')}
-          >
-            <Text style={styles.actionButtonText}>📢 Broadcast</Text>
-          </TouchableOpacity>
+        <View style={styles.actionButtonsRow}>
           <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => router.push('/more/fees')}
-          >
-            <Text style={styles.actionButtonText}>💰 Manage Fees</Text>
-          </TouchableOpacity>
+              style={styles.actionButton}
+              onPress={() => router.push('/more/broadcast')}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.actionButtonText}>📢 Broadcast</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => router.push('/more/fees')}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.actionButtonText}>💰 Manage Fees</Text>
+            </TouchableOpacity>
         </View>
-      )}
+      </View>
     </ScrollView>
   );
 }
@@ -342,11 +347,15 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
     fontFamily: theme.typography.display,
   },
+  actionButtonsRow: {
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+  },
   actionButton: {
+    flex: 1,
     backgroundColor: theme.colors.primary,
     borderRadius: theme.radius.button,
     padding: theme.spacing.md,
-    marginBottom: theme.spacing.sm,
     alignItems: 'center',
     borderWidth: 2,
     borderColor: theme.colors.accent,

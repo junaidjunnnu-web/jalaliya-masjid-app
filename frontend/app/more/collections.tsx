@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert, Modal } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert, Modal, KeyboardAvoidingView, Platform } from 'react-native';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
 
@@ -90,7 +90,7 @@ export default function CollectionsScreen() {
       </View>
 
       {/* Add Button */}
-      <TouchableOpacity style={styles.createButton} onPress={openAddModal}>
+      <TouchableOpacity style={styles.createButton} onPress={openAddModal} activeOpacity={0.7}>
         <Text style={styles.createButtonText}>+ Add Collection</Text>
       </TouchableOpacity>
 
@@ -108,6 +108,7 @@ export default function CollectionsScreen() {
                 <TouchableOpacity
                   style={styles.deleteButton}
                   onPress={() => handleDelete(collection)}
+                  activeOpacity={0.7}
                 >
                   <Text style={styles.deleteButtonText}>Delete</Text>
                 </TouchableOpacity>
@@ -136,78 +137,86 @@ export default function CollectionsScreen() {
         transparent={true}
         onRequestClose={() => setShowModal(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Add Collection</Text>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <ScrollView style={styles.modalScrollView} showsVerticalScrollIndicator={false}>
+                <Text style={styles.modalTitle}>Add Collection</Text>
 
-            <Text style={styles.modalLabel}>Type</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.typeContainer}>
-              {collectionTypes.map((type) => (
+                <Text style={styles.modalLabel}>Type</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.typeContainer}>
+                  {collectionTypes.map((type) => (
+                    <TouchableOpacity
+                      key={type}
+                      style={[
+                        styles.typeButton,
+                        formData.type === type && styles.typeButtonActive,
+                      ]}
+                      onPress={() => setFormData({ ...formData, type })}
+                    >
+                      <Text
+                        style={[
+                          styles.typeButtonText,
+                          formData.type === type && styles.typeButtonTextActive,
+                        ]}
+                      >
+                        {type}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+
+                <Text style={styles.modalLabel}>Amount *</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="Enter amount"
+                  value={formData.amount}
+                  onChangeText={(text) => setFormData({ ...formData, amount: text })}
+                  keyboardType="numeric"
+                />
+
+                <Text style={styles.modalLabel}>Donor Name *</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="Enter donor name"
+                  value={formData.donorName}
+                  onChangeText={(text) => setFormData({ ...formData, donorName: text })}
+                />
+
+                <Text style={styles.modalLabel}>Notes</Text>
+                <TextInput
+                  style={[styles.modalInput, styles.textArea]}
+                  placeholder="Enter notes"
+                  value={formData.notes}
+                  onChangeText={(text) => setFormData({ ...formData, notes: text })}
+                  multiline
+                  numberOfLines={3}
+                />
+              </ScrollView>
+
+              <View style={styles.modalActions}>
                 <TouchableOpacity
-                  key={type}
-                  style={[
-                    styles.typeButton,
-                    formData.type === type && styles.typeButtonActive,
-                  ]}
-                  onPress={() => setFormData({ ...formData, type })}
+                  style={[styles.modalButton, styles.cancelModalButton]}
+                  onPress={() => setShowModal(false)}
                 >
-                  <Text
-                    style={[
-                      styles.typeButtonText,
-                      formData.type === type && styles.typeButtonTextActive,
-                    ]}
-                  >
-                    {type}
+                  <Text style={styles.modalButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.saveModalButton, loading && styles.modalButtonDisabled]}
+                  onPress={handleSave}
+                  disabled={loading}
+                >
+                  <Text style={styles.modalButtonText}>
+                    {loading ? 'Adding...' : 'Add Collection'}
                   </Text>
                 </TouchableOpacity>
-              ))}
-            </ScrollView>
-
-            <Text style={styles.modalLabel}>Amount *</Text>
-            <TextInput
-              style={styles.modalInput}
-              placeholder="Enter amount"
-              value={formData.amount}
-              onChangeText={(text) => setFormData({ ...formData, amount: text })}
-              keyboardType="numeric"
-            />
-
-            <Text style={styles.modalLabel}>Donor Name *</Text>
-            <TextInput
-              style={styles.modalInput}
-              placeholder="Enter donor name"
-              value={formData.donorName}
-              onChangeText={(text) => setFormData({ ...formData, donorName: text })}
-            />
-
-            <Text style={styles.modalLabel}>Notes</Text>
-            <TextInput
-              style={[styles.modalInput, styles.textArea]}
-              placeholder="Enter notes"
-              value={formData.notes}
-              onChangeText={(text) => setFormData({ ...formData, notes: text })}
-              multiline
-              numberOfLines={3}
-            />
-
-            <TouchableOpacity
-              style={[styles.saveButton, loading && styles.saveButtonDisabled]}
-              onPress={handleSave}
-              disabled={loading}
-            >
-              <Text style={styles.saveButtonText}>
-                {loading ? 'Adding...' : 'Add Collection'}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={() => setShowModal(false)}
-            >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
-            </TouchableOpacity>
+              </View>
+            </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </ScrollView>
   );
@@ -323,6 +332,37 @@ const styles = StyleSheet.create({
     width: '100%',
     maxHeight: '90%',
     ...theme.shadow.card,
+  },
+  modalScrollView: {
+    flex: 1,
+    marginBottom: theme.spacing.md,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+  },
+  modalButton: {
+    flex: 1,
+    padding: theme.spacing.md,
+    borderRadius: theme.radius.button,
+    alignItems: 'center',
+    ...theme.shadow.button,
+  },
+  cancelModalButton: {
+    backgroundColor: theme.colors.gray[300],
+  },
+  saveModalButton: {
+    backgroundColor: theme.colors.primary,
+    borderWidth: 2,
+    borderColor: theme.colors.accent,
+  },
+  modalButtonDisabled: {
+    opacity: 0.6,
+  },
+  modalButtonText: {
+    color: theme.colors.white,
+    fontSize: 16,
+    fontWeight: '600',
   },
   modalTitle: {
     fontSize: 20,

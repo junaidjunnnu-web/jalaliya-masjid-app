@@ -23,19 +23,27 @@ async function request<T>(
   }
 
   try {
+    console.log(`API Request: ${options.method || 'GET'} ${API_URL}${endpoint}`);
+    if (options.body) {
+      console.log('Request body:', options.body);
+    }
+
     const response = await fetch(`${API_URL}${endpoint}`, {
       ...options,
       headers,
     });
 
     const data = await response.json();
+    console.log(`API Response: ${response.status}`, data);
 
     if (!response.ok) {
+      console.error('API Error:', data.error);
       return { error: data.error || 'Request failed' };
     }
 
     return { data };
   } catch (error) {
+    console.error('Network error:', error);
     return { error: 'Network error' };
   }
 }
@@ -81,6 +89,7 @@ export const api = {
   },
   families: {
     getAll: (params?: string) => request(`/families${params ? `?${params}` : ''}`),
+    getPlaces: () => request('/families/places'),
     getById: (id: number) => request(`/families/${id}`),
     create: (data: any) =>
       request('/families', {

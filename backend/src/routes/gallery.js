@@ -1,15 +1,32 @@
 const express = require('express');
-const { createClient } = require('@supabase/supabase-js');
 const { db } = require('../db');
 const { galleryPhotos, events, committeeMembers } = require('../db/schema');
 const { eq, desc } = require('drizzle-orm');
 
 const router = express.Router();
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+let supabase = null;
+
+// Initialize Supabase only if credentials are available
+function initSupabase() {
+  if (!supabase) {
+    if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      try {
+        const { createClient } = require('@supabase/supabase-js');
+        supabase = createClient(
+          process.env.SUPABASE_URL,
+          process.env.SUPABASE_SERVICE_ROLE_KEY
+        );
+        console.log('Supabase client initialized');
+      } catch (error) {
+        console.error('Failed to initialize Supabase client:', error.message);
+      }
+    } else {
+      console.warn('Supabase credentials not found. Gallery upload functionality will be disabled.');
+    }
+  }
+  return supabase;
+}
 
 // Get all gallery photos (public)
 router.get('/', async (req, res) => {
@@ -79,11 +96,16 @@ router.get('/:id', async (req, res) => {
 // Upload photo
 router.post('/', async (req, res) => {
   try {
+    const client = initSupabase();
+    if (!client) {
+      return res.status(500).json({ error: 'Supabase not configured. Please set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY environment variables.' });
+    }
+
     const { photoBase64, category, caption, eventId } = req.body;
 
     // Upload to Supabase Storage
     const fileName = `gallery/${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
-    const { data, error: uploadError } = await supabase.storage
+    const { data, error: uploadError } = await client.storage
       .from('jalaliya-masjid')
       .upload(fileName, Buffer.from(photoBase64, 'base64'), {
         contentType: 'image/jpeg',
@@ -95,7 +117,7 @@ router.post('/', async (req, res) => {
     }
 
     // Get public URL
-    const { data: { publicUrl } } = supabase.storage
+    const { data: { publicUrl } } = client.storage
       .from('jalaliya-masjid')
       .getPublicUrl(fileName);
 

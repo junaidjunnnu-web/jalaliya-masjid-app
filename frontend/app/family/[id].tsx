@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking, TextInput, Alert, Modal } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking, TextInput, Alert, Modal, KeyboardAvoidingView, Platform } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
@@ -14,9 +14,11 @@ export default function FamilyDetailScreen() {
   const [memberFormData, setMemberFormData] = useState({
     name: '',
     relation: '',
+    phone: '',
     age: '',
     gender: '',
     maritalStatus: '',
+    occupation: '',
     isFeeApplicable: true,
   });
   const [loading, setLoading] = useState(false);
@@ -46,9 +48,11 @@ export default function FamilyDetailScreen() {
     setMemberFormData({
       name: '',
       relation: '',
+      phone: '',
       age: '',
       gender: '',
       maritalStatus: '',
+      occupation: '',
       isFeeApplicable: true,
     });
     setShowMemberModal(true);
@@ -59,9 +63,11 @@ export default function FamilyDetailScreen() {
     setMemberFormData({
       name: member.name,
       relation: member.relation,
+      phone: member.phone || '',
       age: member.age?.toString() || '',
       gender: member.gender || '',
       maritalStatus: member.maritalStatus || '',
+      occupation: member.occupation || '',
       isFeeApplicable: member.isFeeApplicable ?? true,
     });
     setShowMemberModal(true);
@@ -83,26 +89,30 @@ export default function FamilyDetailScreen() {
           {
             name: memberFormData.name,
             relation: memberFormData.relation,
+            phone: memberFormData.phone || null,
             age: memberFormData.age ? parseInt(memberFormData.age) : null,
             gender: memberFormData.gender || null,
             maritalStatus: memberFormData.maritalStatus || null,
+            occupation: memberFormData.occupation || null,
             isFeeApplicable: memberFormData.isFeeApplicable,
           }
         );
         if (error) {
-          Alert.alert('Error', error);
+          Alert.alert('Error', String(error));
         }
       } else {
         const { data, error } = await api.families.addMember(family.id, {
           name: memberFormData.name,
           relation: memberFormData.relation,
+          phone: memberFormData.phone || null,
           age: memberFormData.age ? parseInt(memberFormData.age) : null,
           gender: memberFormData.gender || null,
           maritalStatus: memberFormData.maritalStatus || null,
+          occupation: memberFormData.occupation || null,
           isFeeApplicable: memberFormData.isFeeApplicable,
         });
         if (error) {
-          Alert.alert('Error', error);
+          Alert.alert('Error', String(error));
         }
       }
       await loadFamilyData();
@@ -194,12 +204,14 @@ export default function FamilyDetailScreen() {
             <TouchableOpacity
               style={[styles.contactButton, styles.callButton]}
               onPress={() => handleCall(family.headPhone)}
+              activeOpacity={0.7}
             >
               <Text style={styles.contactButtonText}>📞 Call</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.contactButton, styles.whatsappButton]}
               onPress={() => handleWhatsApp(family.headPhone)}
+              activeOpacity={0.7}
             >
               <Text style={styles.contactButtonText}>💬 WhatsApp</Text>
             </TouchableOpacity>
@@ -212,7 +224,7 @@ export default function FamilyDetailScreen() {
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Family Members</Text>
           {true && (
-            <TouchableOpacity style={styles.addMemberButton} onPress={openAddMemberModal}>
+            <TouchableOpacity style={styles.addMemberButton} onPress={openAddMemberModal} activeOpacity={0.7}>
               <Text style={styles.addMemberButtonText}>+ Add</Text>
             </TouchableOpacity>
           )}
@@ -227,18 +239,26 @@ export default function FamilyDetailScreen() {
               <View style={styles.memberInfo}>
                 <Text style={styles.memberName}>{member.name}</Text>
                 <Text style={styles.memberRelation}>{member.relation}</Text>
+                {member.phone && (
+                  <Text style={styles.memberPhone}>{member.phone}</Text>
+                )}
+                {member.occupation && (
+                  <Text style={styles.memberOccupation}>{member.occupation}</Text>
+                )}
               </View>
               {true && (
                 <View style={styles.memberActions}>
                   <TouchableOpacity
                     style={styles.memberActionButton}
                     onPress={() => openEditMemberModal(member)}
+                    activeOpacity={0.7}
                   >
                     <Text style={styles.memberActionText}>Edit</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={[styles.memberActionButton, styles.deleteButton]}
                     onPress={() => handleDeleteMember(member)}
+                    activeOpacity={0.7}
                   >
                     <Text style={styles.memberActionText}>Delete</Text>
                   </TouchableOpacity>
@@ -277,112 +297,137 @@ export default function FamilyDetailScreen() {
         transparent={true}
         onRequestClose={() => setShowMemberModal(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>
-              {editingMember ? 'Edit Family Member' : 'Add Family Member'}
-            </Text>
-
-            <Text style={styles.modalLabel}>Name *</Text>
-            <TextInput
-              style={styles.modalInput}
-              placeholder="Enter name"
-              value={memberFormData.name}
-              onChangeText={(text) => setMemberFormData({ ...memberFormData, name: text })}
-            />
-
-            <Text style={styles.modalLabel}>Relation *</Text>
-            <TextInput
-              style={styles.modalInput}
-              placeholder="e.g., Wife, Son, Daughter"
-              value={memberFormData.relation}
-              onChangeText={(text) => setMemberFormData({ ...memberFormData, relation: text })}
-            />
-
-            <Text style={styles.modalLabel}>Age</Text>
-            <TextInput
-              style={styles.modalInput}
-              placeholder="Enter age"
-              value={memberFormData.age}
-              onChangeText={(text) => setMemberFormData({ ...memberFormData, age: text })}
-              keyboardType="number-pad"
-            />
-
-            <Text style={styles.modalLabel}>Gender</Text>
-            <View style={styles.modalOptions}>
-              {['male', 'female'].map((gender) => (
-                <TouchableOpacity
-                  key={gender}
-                  style={[
-                    styles.modalOption,
-                    memberFormData.gender === gender && styles.modalOptionActive,
-                  ]}
-                  onPress={() => setMemberFormData({ ...memberFormData, gender })}
-                >
-                  <Text
-                    style={[
-                      styles.modalOptionText,
-                      memberFormData.gender === gender && styles.modalOptionTextActive,
-                    ]}
-                  >
-                    {gender.charAt(0).toUpperCase() + gender.slice(1)}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <Text style={styles.modalLabel}>Marital Status</Text>
-            <View style={styles.modalOptions}>
-              {['married', 'unmarried'].map((status) => (
-                <TouchableOpacity
-                  key={status}
-                  style={[
-                    styles.modalOption,
-                    memberFormData.maritalStatus === status && styles.modalOptionActive,
-                  ]}
-                  onPress={() => setMemberFormData({ ...memberFormData, maritalStatus: status })}
-                >
-                  <Text
-                    style={[
-                      styles.modalOptionText,
-                      memberFormData.maritalStatus === status && styles.modalOptionTextActive,
-                    ]}
-                  >
-                    {status.charAt(0).toUpperCase() + status.slice(1)}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <TouchableOpacity
-              style={styles.modalCheckbox}
-              onPress={() => setMemberFormData({ ...memberFormData, isFeeApplicable: !memberFormData.isFeeApplicable })}
-            >
-              <View style={[styles.checkbox, memberFormData.isFeeApplicable && styles.checkboxChecked]}>
-                {memberFormData.isFeeApplicable && <Text style={styles.checkmark}>✓</Text>}
-              </View>
-              <Text style={styles.checkboxLabel}>Fee Applicable</Text>
-            </TouchableOpacity>
-
-            <View style={styles.modalActions}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.cancelModalButton]}
-                onPress={() => setShowMemberModal(false)}
-              >
-                <Text style={styles.modalButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.saveModalButton, loading && styles.modalButtonDisabled]}
-                onPress={handleSaveMember}
-                disabled={loading}
-              >
-                <Text style={styles.modalButtonText}>
-                  {loading ? 'Saving...' : 'Save'}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <ScrollView style={styles.modalScrollView} showsVerticalScrollIndicator={false}>
+                <Text style={styles.modalTitle}>
+                  {editingMember ? 'Edit Family Member' : 'Add Family Member'}
                 </Text>
-              </TouchableOpacity>
+
+                <Text style={styles.modalLabel}>Name *</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="Enter name"
+                  value={memberFormData.name}
+                  onChangeText={(text) => setMemberFormData({ ...memberFormData, name: text })}
+                />
+
+                <Text style={styles.modalLabel}>Relation *</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="e.g., Wife, Son, Daughter"
+                  value={memberFormData.relation}
+                  onChangeText={(text) => setMemberFormData({ ...memberFormData, relation: text })}
+                />
+
+                <Text style={styles.modalLabel}>Phone</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="Enter phone number"
+                  value={memberFormData.phone}
+                  onChangeText={(text) => setMemberFormData({ ...memberFormData, phone: text })}
+                  keyboardType="phone-pad"
+                  maxLength={15}
+                />
+
+                <Text style={styles.modalLabel}>Age</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="Enter age"
+                  value={memberFormData.age}
+                  onChangeText={(text) => setMemberFormData({ ...memberFormData, age: text })}
+                  keyboardType="number-pad"
+                />
+
+                <Text style={styles.modalLabel}>Gender</Text>
+                <View style={styles.modalOptions}>
+                  {['male', 'female'].map((gender) => (
+                    <TouchableOpacity
+                      key={gender}
+                      style={[
+                        styles.modalOption,
+                        memberFormData.gender === gender && styles.modalOptionActive,
+                      ]}
+                      onPress={() => setMemberFormData({ ...memberFormData, gender })}
+                    >
+                      <Text
+                        style={[
+                          styles.modalOptionText,
+                          memberFormData.gender === gender && styles.modalOptionTextActive,
+                        ]}
+                      >
+                        {gender.charAt(0).toUpperCase() + gender.slice(1)}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                <Text style={styles.modalLabel}>Marital Status</Text>
+                <View style={styles.modalOptions}>
+                  {['married', 'unmarried'].map((status) => (
+                    <TouchableOpacity
+                      key={status}
+                      style={[
+                        styles.modalOption,
+                        memberFormData.maritalStatus === status && styles.modalOptionActive,
+                      ]}
+                      onPress={() => setMemberFormData({ ...memberFormData, maritalStatus: status })}
+                    >
+                      <Text
+                        style={[
+                          styles.modalOptionText,
+                          memberFormData.maritalStatus === status && styles.modalOptionTextActive,
+                        ]}
+                      >
+                        {status.charAt(0).toUpperCase() + status.slice(1)}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                <Text style={styles.modalLabel}>Occupation</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="Enter occupation"
+                  value={memberFormData.occupation}
+                  onChangeText={(text) => setMemberFormData({ ...memberFormData, occupation: text })}
+                />
+
+                <TouchableOpacity
+                  style={styles.modalCheckbox}
+                  onPress={() => setMemberFormData({ ...memberFormData, isFeeApplicable: !memberFormData.isFeeApplicable })}
+                >
+                  <View style={[styles.checkbox, memberFormData.isFeeApplicable && styles.checkboxChecked]}>
+                    {memberFormData.isFeeApplicable && <Text style={styles.checkmark}>✓</Text>}
+                  </View>
+                  <Text style={styles.checkboxLabel}>Fee Applicable</Text>
+                </TouchableOpacity>
+              </ScrollView>
+
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.cancelModalButton]}
+                  onPress={() => setShowMemberModal(false)}
+                >
+                  <Text style={styles.modalButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.saveModalButton, loading && styles.modalButtonDisabled]}
+                  onPress={handleSaveMember}
+                  disabled={loading}
+                >
+                  <Text style={styles.modalButtonText}>
+                    {loading ? 'Saving...' : 'Save'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </ScrollView>
   );
@@ -554,6 +599,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: theme.colors.gray[500],
   },
+  memberPhone: {
+    fontSize: 13,
+    color: theme.colors.gray[600],
+  },
+  memberOccupation: {
+    fontSize: 13,
+    color: theme.colors.gray[600],
+  },
   memberDetails: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -650,6 +703,10 @@ const styles = StyleSheet.create({
     width: '100%',
     maxHeight: '90%',
     ...theme.shadow.card,
+  },
+  modalScrollView: {
+    flex: 1,
+    marginBottom: theme.spacing.md,
   },
   modalTitle: {
     fontSize: 20,

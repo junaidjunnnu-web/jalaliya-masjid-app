@@ -77,6 +77,7 @@ router.post('/', async (req, res) => {
 // Update namaz timings (committee only)
 router.put('/:id', async (req, res) => {
   try {
+    console.log('PUT /namaz/:id - Request body:', req.body);
     const { id } = req.params;
     const {
       effectiveFrom,
@@ -95,6 +96,7 @@ router.put('/:id', async (req, res) => {
       iftarTime,
     } = req.body;
 
+    console.log('Updating namaz timings with id:', id);
     const [updatedTimings] = await db.update(namazTimings)
       .set({
         effectiveFrom,
@@ -115,10 +117,12 @@ router.put('/:id', async (req, res) => {
       .where(eq(namazTimings.id, id))
       .returning();
 
+    console.log('Namaz timings updated successfully:', updatedTimings);
     res.json(updatedTimings);
   } catch (error) {
     console.error('Update namaz timings error:', error);
-    res.status(500).json({ error: 'Failed to update namaz timings' });
+    console.error('Error details:', error.message, error.stack);
+    res.status(500).json({ error: 'Failed to update namaz timings', details: error.message });
   }
 });
 

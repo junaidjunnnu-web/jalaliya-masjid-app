@@ -79,6 +79,7 @@ export default function MembersScreen() {
       <TouchableOpacity
         style={styles.addButton}
         onPress={() => router.push('/family/add')}
+        activeOpacity={0.7}
       >
         <Text style={styles.addButtonText}>+ Add Family</Text>
       </TouchableOpacity>
@@ -89,6 +90,7 @@ export default function MembersScreen() {
           <TouchableOpacity
             style={styles.placeHeader}
             onPress={() => togglePlace(placeGroup.place)}
+            activeOpacity={0.7}
           >
             <Text style={styles.placeName}>{placeGroup.place}</Text>
             <Text style={styles.placeCount}>({placeGroup.count})</Text>
@@ -104,23 +106,26 @@ export default function MembersScreen() {
                   <TouchableOpacity
                     style={styles.familyInfo}
                     onPress={() => handleFamilyPress(family.id)}
+                    activeOpacity={0.7}
                   >
                     <View style={styles.avatarPlaceholder}>
                       <Text style={styles.avatarText}>
-                        {family.headName.charAt(0).toUpperCase()}
+                        {(family.firstMember?.name || family.headName).charAt(0).toUpperCase()}
                       </Text>
                     </View>
                     <View style={styles.familyDetails}>
-                      <Text style={styles.familyHead}>{family.headName}</Text>
-                      {family.headPhone && (
-                        <Text style={styles.familyPhone}>{family.headPhone}</Text>
+                      <Text style={styles.familyHead}>{family.firstMember?.name || family.headName}</Text>
+                      {family.firstMember?.phone && (
+                        <Text style={styles.familyPhone}>{family.firstMember.phone}</Text>
                       )}
+                      <Text style={styles.memberCount}>{family.memberCount || 0} member{family.memberCount !== 1 ? 's' : ''}</Text>
                     </View>
                   </TouchableOpacity>
                   {family.status === 'pending' && (
                     <TouchableOpacity
                       style={styles.approveButton}
-                      onPress={() => handleApproveFamily(family.id, family.headName)}
+                      onPress={() => handleApproveFamily(family.id, family.firstMember?.name || family.headName)}
+                      activeOpacity={0.7}
                     >
                       <Text style={styles.approveButtonText}>Approve</Text>
                     </TouchableOpacity>
@@ -252,6 +257,11 @@ const styles = StyleSheet.create({
   familyPhone: {
     fontSize: 14,
     color: theme.colors.gray[500],
+    marginTop: 2,
+  },
+  memberCount: {
+    fontSize: 12,
+    color: theme.colors.gray[400],
     marginTop: 2,
   },
   pendingBadge: {

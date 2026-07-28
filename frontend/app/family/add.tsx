@@ -4,60 +4,138 @@ import { useRouter } from 'expo-router';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
 
+interface Member {
+  id: number;
+  name: string;
+  relation: string;
+  phone: string;
+  age: string;
+  gender: string;
+  maritalStatus: string;
+  occupation: string;
+  isFeeApplicable: boolean;
+}
+
 export default function AddFamilyScreen() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [places, setPlaces] = useState<any[]>([]);
   const [formData, setFormData] = useState({
-    headName: '',
-    headPhone: '',
     placeId: '',
     address: '',
     monthlyFeeMarried: '300',
     monthlyFeeUnmarried: '200',
   });
+  const [members, setMembers] = useState<Member[]>([
+    {
+      id: Date.now(),
+      name: '',
+      relation: '',
+      phone: '',
+      age: '',
+      gender: '',
+      maritalStatus: '',
+      occupation: '',
+      isFeeApplicable: true,
+    }
+  ]);
 
   useEffect(() => {
     loadPlaces();
   }, []);
 
   const loadPlaces = async () => {
-    const { data } = await api.families.getAll();
+    const { data } = await api.families.getPlaces();
     if (data && data.length > 0) {
-      setPlaces(data.map((pg: any) => ({ id: pg.placeId, name: pg.place })));
+      setPlaces(data);
     }
   };
 
+  const addMember = () => {
+    setMembers([
+      ...members,
+      {
+        id: Date.now(),
+        name: '',
+        relation: '',
+        phone: '',
+        age: '',
+        gender: '',
+        maritalStatus: '',
+        occupation: '',
+        isFeeApplicable: true,
+      }
+    ]);
+  };
+
+  const removeMember = (id: number) => {
+    if (members.length > 1) {
+      setMembers(members.filter(m => m.id !== id));
+    } else {
+      Alert.alert('Error', 'At least one member is required');
+    }
+  };
+
+  const updateMember = (id: number, field: keyof Member, value: any) => {
+    setMembers(members.map(m => m.id === id ? { ...m, [field]: value } : m));
+  };
+
   const handleSave = async () => {
-    const { headName, headPhone, placeId, monthlyFeeMarried, monthlyFeeUnmarried } = formData;
+    const { placeId, monthlyFeeMarried, monthlyFeeUnmarried } = formData;
 
-    if (!headName || !headPhone || !placeId) {
-      Alert.alert('Error', 'Please fill all required fields');
+    if (!placeId) {
+      Alert.alert('Error', 'Please select a place');
       return;
     }
 
-    if (headPhone.length < 10) {
-      Alert.alert('Error', 'Please enter a valid phone number');
+    // Validate at least one member with name and relation
+    const validMembers = members.filter(m => m.name.trim() && m.relation.trim());
+    if (validMembers.length === 0) {
+      Alert.alert('Error', 'Please add at least one member with name and relation');
       return;
     }
 
-    setLoading(true);
-    const { data, error } = await api.families.create({
-      headName,
-      headPhone,
+    // Validate phone numbers for members who have them
+    for (const member of members) {
+      if (member.phone && member.phone.length < 10) {
+        Alert.alert('Error', `Please enter a valid phone number for ${member.name || 'member'}`);
+        return;
+      }
+    }
+
+    const requestBody = {
       placeId: parseInt(placeId),
       address: formData.address,
       monthlyFeeMarried: parseInt(monthlyFeeMarried),
       monthlyFeeUnmarried: parseInt(monthlyFeeUnmarried),
-    });
+      status: 'approved',
+      members: validMembers.map(m => ({
+        name: m.name,
+        relation: m.relation,
+        phone: m.phone || null,
+        age: m.age ? parseInt(m.age) : null,
+        gender: m.gender || null,
+        maritalStatus: m.maritalStatus || null,
+        occupation: m.occupation || null,
+        isFeeApplicable: m.isFeeApplicable,
+      })),
+    };
+
+    console.log('[Add Family] Request body:', JSON.stringify(requestBody, null, 2));
+
+    setLoading(true);
+    const { data, error } = await api.families.create(requestBody);
     setLoading(false);
 
-    if (data) {
+    console.log('[Add Family] Response data:', JSON.stringify(data, null, 2));
+    console.log('[Add Family] Response error:', JSON.stringify(error, null, 2));
+
+    if (error) {
+      Alert.alert('Error', String(error));
+    } else if (data) {
       Alert.alert('Success', 'Family added successfully', [
         { text: 'OK', onPress: () => router.back() }
       ]);
-    } else {
-      Alert.alert('Error', error || 'Failed to add family');
     }
   };
 
@@ -68,23 +146,7 @@ export default function AddFamilyScreen() {
       </View>
 
       <View style={styles.form}>
-        <Text style={styles.label}>Family Head Name *</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter full name"
-          value={formData.headName}
-          onChangeText={(text) => setFormData({ ...formData, headName: text })}
-        />
-
-        <Text style={styles.label}>Phone Number *</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter phone number"
-          value={formData.headPhone}
-          onChangeText={(text) => setFormData({ ...formData, headPhone: text })}
-          keyboardType="phone-pad"
-          maxLength={15}
-        />
+        <Text style={styles.sectionTitle}>Home Details</Text>
 
         <Text style={styles.label}>Place *</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.placesContainer}>
@@ -96,6 +158,7 @@ export default function AddFamilyScreen() {
                 formData.placeId === place.id.toString() && styles.placeButtonActive,
               ]}
               onPress={() => setFormData({ ...formData, placeId: place.id.toString() })}
+              activeOpacity={0.7}
             >
               <Text
                 style={[
@@ -139,6 +202,129 @@ export default function AddFamilyScreen() {
           keyboardType="number-pad"
         />
 
+        <Text style={styles.sectionTitle}>Members</Text>
+
+        {members.map((member, index) => (
+          <View key={member.id} style={styles.memberCard}>
+            <View style={styles.memberHeader}>
+              <Text style={styles.memberTitle}>Member {index + 1}</Text>
+              {members.length > 1 && (
+                <TouchableOpacity
+                  style={styles.removeButton}
+                  onPress={() => removeMember(member.id)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.removeButtonText}>Remove</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            <Text style={styles.label}>Name *</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter name"
+              value={member.name}
+              onChangeText={(text) => updateMember(member.id, 'name', text)}
+            />
+
+            <Text style={styles.label}>Relation *</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="e.g. Father, Mother, Son, Daughter, Grandfather"
+              value={member.relation}
+              onChangeText={(text) => updateMember(member.id, 'relation', text)}
+            />
+
+            <Text style={styles.label}>Phone (optional)</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter phone number"
+              value={member.phone}
+              onChangeText={(text) => updateMember(member.id, 'phone', text)}
+              keyboardType="phone-pad"
+              maxLength={15}
+            />
+
+            <Text style={styles.label}>Age (optional)</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter age"
+              value={member.age}
+              onChangeText={(text) => updateMember(member.id, 'age', text)}
+              keyboardType="number-pad"
+            />
+
+            <Text style={styles.label}>Gender (optional)</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.optionsContainer}>
+              {['Male', 'Female'].map((gender) => (
+                <TouchableOpacity
+                  key={gender}
+                  style={[
+                    styles.optionButton,
+                    member.gender === gender && styles.optionButtonActive,
+                  ]}
+                  onPress={() => updateMember(member.id, 'gender', gender)}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    style={[
+                      styles.optionButtonText,
+                      member.gender === gender && styles.optionButtonTextActive,
+                    ]}
+                  >
+                    {gender}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <Text style={styles.label}>Marital Status (optional)</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.optionsContainer}>
+              {['Married', 'Unmarried'].map((status) => (
+                <TouchableOpacity
+                  key={status}
+                  style={[
+                    styles.optionButton,
+                    member.maritalStatus === status && styles.optionButtonActive,
+                  ]}
+                  onPress={() => updateMember(member.id, 'maritalStatus', status)}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    style={[
+                      styles.optionButtonText,
+                      member.maritalStatus === status && styles.optionButtonTextActive,
+                    ]}
+                  >
+                    {status}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <Text style={styles.label}>Occupation (optional)</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter occupation"
+              value={member.occupation}
+              onChangeText={(text) => updateMember(member.id, 'occupation', text)}
+            />
+
+            <TouchableOpacity
+              style={styles.feeToggle}
+              onPress={() => updateMember(member.id, 'isFeeApplicable', !member.isFeeApplicable)}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.checkbox, member.isFeeApplicable && styles.checkboxChecked]} />
+              <Text style={styles.feeToggleText}>Fee applicable</Text>
+            </TouchableOpacity>
+          </View>
+        ))}
+
+        <TouchableOpacity style={styles.addMemberButton} onPress={addMember} activeOpacity={0.7}>
+          <Text style={styles.addMemberButtonText}>+ Add Another Member</Text>
+        </TouchableOpacity>
+
         <TouchableOpacity
           style={[styles.button, loading && styles.buttonDisabled]}
           onPress={handleSave}
@@ -149,7 +335,7 @@ export default function AddFamilyScreen() {
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.cancelButton} onPress={() => router.back()}>
+        <TouchableOpacity style={styles.cancelButton} onPress={() => router.back()} activeOpacity={0.7}>
           <Text style={styles.cancelButtonText}>Cancel</Text>
         </TouchableOpacity>
       </View>
@@ -178,6 +364,13 @@ const styles = StyleSheet.create({
   },
   form: {
     padding: theme.spacing.xl,
+    marginTop: theme.spacing.lg,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: theme.colors.textPrimary,
+    marginBottom: theme.spacing.lg,
     marginTop: theme.spacing.lg,
   },
   label: {
@@ -228,6 +421,97 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: theme.colors.gray[500],
     padding: theme.spacing.md,
+  },
+  memberCard: {
+    backgroundColor: theme.colors.white,
+    borderRadius: theme.radius.card,
+    padding: theme.spacing.lg,
+    marginBottom: theme.spacing.lg,
+    borderWidth: 1,
+    borderColor: theme.colors.gray[300],
+    ...theme.shadow.card,
+  },
+  memberHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: theme.spacing.md,
+  },
+  memberTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: theme.colors.textPrimary,
+  },
+  removeButton: {
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    backgroundColor: theme.colors.error,
+    borderRadius: theme.radius.button,
+  },
+  removeButtonText: {
+    color: theme.colors.white,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  optionsContainer: {
+    marginBottom: theme.spacing.md,
+    flexGrow: 0,
+  },
+  optionButton: {
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.radius.pill,
+    backgroundColor: theme.colors.white,
+    borderWidth: 1,
+    borderColor: theme.colors.gray[300],
+    marginRight: theme.spacing.sm,
+  },
+  optionButtonActive: {
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
+  },
+  optionButtonText: {
+    fontSize: 14,
+    color: theme.colors.gray[500],
+    fontWeight: '600',
+  },
+  optionButtonTextActive: {
+    color: theme.colors.white,
+  },
+  feeToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: theme.spacing.sm,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: theme.colors.gray[300],
+    marginRight: theme.spacing.sm,
+  },
+  checkboxChecked: {
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
+  },
+  feeToggleText: {
+    fontSize: 14,
+    color: theme.colors.textPrimary,
+  },
+  addMemberButton: {
+    backgroundColor: theme.colors.gray[100],
+    borderRadius: theme.radius.button,
+    padding: theme.spacing.lg,
+    alignItems: 'center',
+    marginTop: theme.spacing.md,
+    borderWidth: 1,
+    borderColor: theme.colors.gray[300],
+  },
+  addMemberButtonText: {
+    color: theme.colors.primary,
+    fontSize: 16,
+    fontWeight: '600',
   },
   button: {
     backgroundColor: theme.colors.primary,

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert, Modal } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert, Modal, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
@@ -204,12 +204,14 @@ export default function MadrasaScreen() {
               <TouchableOpacity
                 style={styles.editButton}
                 onPress={() => openEditModal(student)}
+                activeOpacity={0.7}
               >
                 <Text style={styles.editButtonText}>Edit</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.deleteButton}
                 onPress={() => handleDelete(student)}
+                activeOpacity={0.7}
               >
                 <Text style={styles.deleteButtonText}>Delete</Text>
               </TouchableOpacity>
@@ -219,7 +221,7 @@ export default function MadrasaScreen() {
       </View>
 
       {/* Add Student Button */}
-      <TouchableOpacity style={styles.addButton} onPress={openAddModal}>
+      <TouchableOpacity style={styles.addButton} onPress={openAddModal} activeOpacity={0.7}>
         <Text style={styles.addButtonText}>+ Add Student</Text>
       </TouchableOpacity>
 
@@ -230,137 +232,147 @@ export default function MadrasaScreen() {
         transparent={true}
         onRequestClose={() => setShowModal(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>
-              {editingStudent ? 'Edit Student' : 'Add Student'}
-            </Text>
-
-            <Text style={styles.modalLabel}>Student Name *</Text>
-            <TextInput
-              style={styles.modalInput}
-              placeholder="Enter student name"
-              value={formData.name}
-              onChangeText={(text) => setFormData({ ...formData, name: text })}
-            />
-
-            <Text style={styles.modalLabel}>Guardian Name *</Text>
-            <TextInput
-              style={styles.modalInput}
-              placeholder="Enter guardian name"
-              value={formData.guardianName}
-              onChangeText={(text) => setFormData({ ...formData, guardianName: text })}
-            />
-
-            <Text style={styles.modalLabel}>Guardian Phone *</Text>
-            <TextInput
-              style={styles.modalInput}
-              placeholder="Enter phone number"
-              value={formData.guardianPhone}
-              onChangeText={(text) => setFormData({ ...formData, guardianPhone: text })}
-              keyboardType="phone-pad"
-              maxLength={15}
-            />
-
-            <Text style={styles.modalLabel}>Family (Optional)</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.familiesContainer}>
-              <TouchableOpacity
-                style={[
-                  styles.familyButton,
-                  formData.familyId === '' && styles.familyButtonActive,
-                ]}
-                onPress={() => setFormData({ ...formData, familyId: '' })}
-              >
-                <Text
-                  style={[
-                    styles.familyButtonText,
-                    formData.familyId === '' && styles.familyButtonTextActive,
-                  ]}
-                >
-                  None
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <ScrollView style={styles.modalScrollView} showsVerticalScrollIndicator={false}>
+                <Text style={styles.modalTitle}>
+                  {editingStudent ? 'Edit Student' : 'Add Student'}
                 </Text>
-              </TouchableOpacity>
-              {families.map((family) => (
-                <TouchableOpacity
-                  key={family.id}
-                  style={[
-                    styles.familyButton,
-                    formData.familyId === family.id.toString() && styles.familyButtonActive,
-                  ]}
-                  onPress={() => setFormData({ ...formData, familyId: family.id.toString() })}
-                >
-                  <Text
+
+                <Text style={styles.modalLabel}>Student Name *</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="Enter student name"
+                  value={formData.name}
+                  onChangeText={(text) => setFormData({ ...formData, name: text })}
+                />
+
+                <Text style={styles.modalLabel}>Guardian Name *</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="Enter guardian name"
+                  value={formData.guardianName}
+                  onChangeText={(text) => setFormData({ ...formData, guardianName: text })}
+                />
+
+                <Text style={styles.modalLabel}>Guardian Phone *</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="Enter phone number"
+                  value={formData.guardianPhone}
+                  onChangeText={(text) => setFormData({ ...formData, guardianPhone: text })}
+                  keyboardType="phone-pad"
+                  maxLength={15}
+                />
+
+                <Text style={styles.modalLabel}>Family (Optional)</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.familiesContainer}>
+                  <TouchableOpacity
                     style={[
-                      styles.familyButtonText,
-                      formData.familyId === family.id.toString() && styles.familyButtonTextActive,
+                      styles.familyButton,
+                      formData.familyId === '' && styles.familyButtonActive,
                     ]}
+                    onPress={() => setFormData({ ...formData, familyId: '' })}
+                    activeOpacity={0.7}
                   >
-                    {family.headName}
+                    <Text
+                      style={[
+                        styles.familyButtonText,
+                        formData.familyId === '' && styles.familyButtonTextActive,
+                      ]}
+                    >
+                      None
+                    </Text>
+                  </TouchableOpacity>
+                  {families.map((family) => (
+                    <TouchableOpacity
+                      key={family.id}
+                      style={[
+                        styles.familyButton,
+                        formData.familyId === family.id.toString() && styles.familyButtonActive,
+                      ]}
+                      onPress={() => setFormData({ ...formData, familyId: family.id.toString() })}
+                      activeOpacity={0.7}
+                    >
+                      <Text
+                        style={[
+                          styles.familyButtonText,
+                          formData.familyId === family.id.toString() && styles.familyButtonTextActive,
+                        ]}
+                      >
+                        {family.headName}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+
+                <Text style={styles.modalLabel}>Class Level *</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.classContainer}>
+                  {['Hifz', 'Qaida', 'Nazra', 'Islamic Studies'].map((level) => (
+                    <TouchableOpacity
+                      key={level}
+                      style={[
+                        styles.classButton,
+                        formData.classLevel === level && styles.classButtonActive,
+                      ]}
+                      onPress={() => setFormData({ ...formData, classLevel: level })}
+                      activeOpacity={0.7}
+                    >
+                      <Text
+                        style={[
+                          styles.classButtonText,
+                          formData.classLevel === level && styles.classButtonTextActive,
+                        ]}
+                      >
+                        {level}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+
+                <Text style={styles.modalLabel}>Ustad Name</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="Enter ustad name"
+                  value={formData.ustadName}
+                  onChangeText={(text) => setFormData({ ...formData, ustadName: text })}
+                />
+
+                <Text style={styles.modalLabel}>Progress Notes</Text>
+                <TextInput
+                  style={[styles.modalInput, styles.textArea]}
+                  placeholder="Enter progress notes"
+                  value={formData.progressNotes}
+                  onChangeText={(text) => setFormData({ ...formData, progressNotes: text })}
+                  multiline
+                  numberOfLines={3}
+                />
+              </ScrollView>
+
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.cancelModalButton]}
+                  onPress={() => setShowModal(false)}
+                >
+                  <Text style={styles.modalButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.saveModalButton, loading && styles.modalButtonDisabled]}
+                  onPress={handleSave}
+                  disabled={loading}
+                >
+                  <Text style={styles.modalButtonText}>
+                    {loading ? 'Saving...' : 'Save'}
                   </Text>
                 </TouchableOpacity>
-              ))}
-            </ScrollView>
-
-            <Text style={styles.modalLabel}>Class Level *</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.classContainer}>
-              {['Hifz', 'Qaida', 'Nazra', 'Islamic Studies'].map((level) => (
-                <TouchableOpacity
-                  key={level}
-                  style={[
-                    styles.classButton,
-                    formData.classLevel === level && styles.classButtonActive,
-                  ]}
-                  onPress={() => setFormData({ ...formData, classLevel: level })}
-                >
-                  <Text
-                    style={[
-                      styles.classButtonText,
-                      formData.classLevel === level && styles.classButtonTextActive,
-                    ]}
-                  >
-                    {level}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-
-            <Text style={styles.modalLabel}>Ustad Name</Text>
-            <TextInput
-              style={styles.modalInput}
-              placeholder="Enter ustad name"
-              value={formData.ustadName}
-              onChangeText={(text) => setFormData({ ...formData, ustadName: text })}
-            />
-
-            <Text style={styles.modalLabel}>Progress Notes</Text>
-            <TextInput
-              style={[styles.modalInput, styles.textArea]}
-              placeholder="Enter progress notes"
-              value={formData.progressNotes}
-              onChangeText={(text) => setFormData({ ...formData, progressNotes: text })}
-              multiline
-              numberOfLines={3}
-            />
-
-            <View style={styles.modalActions}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.cancelModalButton]}
-                onPress={() => setShowModal(false)}
-              >
-                <Text style={styles.modalButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.saveModalButton, loading && styles.modalButtonDisabled]}
-                onPress={handleSave}
-                disabled={loading}
-              >
-                <Text style={styles.modalButtonText}>
-                  {loading ? 'Saving...' : 'Save'}
-                </Text>
-              </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </ScrollView>
   );
@@ -520,6 +532,10 @@ const styles = StyleSheet.create({
     width: '100%',
     maxHeight: '90%',
     ...theme.shadow.card,
+  },
+  modalScrollView: {
+    flex: 1,
+    marginBottom: theme.spacing.md,
   },
   modalTitle: {
     fontSize: 20,

@@ -36,8 +36,10 @@ router.get('/:id', async (req, res) => {
 // Create committee member
 router.post('/', async (req, res) => {
   try {
+    console.log('POST /committee - Request body:', req.body);
     const { name, designation, phone, photoUrl, tenureStart, tenureEnd } = req.body;
 
+    console.log('Inserting committee member with:', { name, designation, phone, photoUrl, tenureStart, tenureEnd });
     const [newMember] = await db.insert(committeeMembers).values({
       name,
       designation,
@@ -47,10 +49,12 @@ router.post('/', async (req, res) => {
       tenureEnd,
     }).returning();
 
+    console.log('Committee member created successfully:', newMember);
     res.status(201).json(newMember);
   } catch (error) {
     console.error('Create committee member error:', error);
-    res.status(500).json({ error: 'Failed to create committee member' });
+    console.error('Error details:', error.message, error.stack);
+    res.status(500).json({ error: 'Failed to create committee member', details: error.message });
   }
 });
 

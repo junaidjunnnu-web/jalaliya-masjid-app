@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert, Modal } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert, Modal, KeyboardAvoidingView, Platform } from 'react-native';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
 
@@ -84,7 +84,7 @@ export default function AnnouncementsScreen() {
       </View>
 
       {/* Create Button */}
-      <TouchableOpacity style={styles.createButton} onPress={openAddModal}>
+      <TouchableOpacity style={styles.createButton} onPress={openAddModal} activeOpacity={0.7}>
         <Text style={styles.createButtonText}>+ New Announcement</Text>
       </TouchableOpacity>
 
@@ -102,6 +102,7 @@ export default function AnnouncementsScreen() {
                 <TouchableOpacity
                   style={styles.deleteButton}
                   onPress={() => handleDelete(announcement)}
+                  activeOpacity={0.7}
                 >
                   <Text style={styles.deleteButtonText}>Delete</Text>
                 </TouchableOpacity>
@@ -131,46 +132,54 @@ export default function AnnouncementsScreen() {
         transparent={true}
         onRequestClose={() => setShowModal(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>New Announcement</Text>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <ScrollView style={styles.modalScrollView} showsVerticalScrollIndicator={false}>
+                <Text style={styles.modalTitle}>New Announcement</Text>
 
-            <Text style={styles.modalLabel}>Title *</Text>
-            <TextInput
-              style={styles.modalInput}
-              placeholder="Enter announcement title"
-              value={formData.title}
-              onChangeText={(text) => setFormData({ ...formData, title: text })}
-            />
+                <Text style={styles.modalLabel}>Title *</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="Enter announcement title"
+                  value={formData.title}
+                  onChangeText={(text) => setFormData({ ...formData, title: text })}
+                />
 
-            <Text style={styles.modalLabel}>Message *</Text>
-            <TextInput
-              style={[styles.modalInput, styles.textArea]}
-              placeholder="Enter announcement message"
-              value={formData.message}
-              onChangeText={(text) => setFormData({ ...formData, message: text })}
-              multiline
-              numberOfLines={4}
-            />
+                <Text style={styles.modalLabel}>Message *</Text>
+                <TextInput
+                  style={[styles.modalInput, styles.textArea]}
+                  placeholder="Enter announcement message"
+                  value={formData.message}
+                  onChangeText={(text) => setFormData({ ...formData, message: text })}
+                  multiline
+                  numberOfLines={4}
+                />
+              </ScrollView>
 
-            <TouchableOpacity
-              style={[styles.saveButton, loading && styles.saveButtonDisabled]}
-              onPress={handleSave}
-              disabled={loading}
-            >
-              <Text style={styles.saveButtonText}>
-                {loading ? 'Creating)' : 'Create Announcement'}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={() => setShowModal(false)}
-            >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
-            </TouchableOpacity>
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.cancelModalButton]}
+                  onPress={() => setShowModal(false)}
+                >
+                  <Text style={styles.modalButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.saveModalButton, loading && styles.modalButtonDisabled]}
+                  onPress={handleSave}
+                  disabled={loading}
+                >
+                  <Text style={styles.modalButtonText}>
+                    {loading ? 'Creating...' : 'Create Announcement'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </ScrollView>
   );
@@ -282,6 +291,37 @@ const styles = StyleSheet.create({
     width: '100%',
     maxHeight: '90%',
     ...theme.shadow.card,
+  },
+  modalScrollView: {
+    flex: 1,
+    marginBottom: theme.spacing.md,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+  },
+  modalButton: {
+    flex: 1,
+    padding: theme.spacing.md,
+    borderRadius: theme.radius.button,
+    alignItems: 'center',
+    ...theme.shadow.button,
+  },
+  cancelModalButton: {
+    backgroundColor: theme.colors.gray[300],
+  },
+  saveModalButton: {
+    backgroundColor: theme.colors.primary,
+    borderWidth: 2,
+    borderColor: theme.colors.accent,
+  },
+  modalButtonDisabled: {
+    opacity: 0.6,
+  },
+  modalButtonText: {
+    color: theme.colors.white,
+    fontSize: 16,
+    fontWeight: '600',
   },
   modalTitle: {
     fontSize: 20,

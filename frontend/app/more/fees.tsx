@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert, Modal } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert, Modal, KeyboardAvoidingView, Platform } from 'react-native';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
 import * as Linking from 'expo-linking';
@@ -154,7 +154,7 @@ JazakAllah Khair`;
       )}
 
       {/* Generate Fees Button */}
-      <TouchableOpacity style={styles.generateButton} onPress={handleGenerateFees}>
+      <TouchableOpacity style={styles.generateButton} onPress={handleGenerateFees} activeOpacity={0.7}>
         <Text style={styles.generateButtonText}>Generate This Month's Fees</Text>
       </TouchableOpacity>
 
@@ -208,12 +208,14 @@ JazakAllah Khair`;
                   <TouchableOpacity
                     style={styles.actionButton}
                     onPress={() => openPaymentModal(fee)}
+                    activeOpacity={0.7}
                   >
                     <Text style={styles.actionButtonText}>Update Payment</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={[styles.actionButton, styles.shareButton]}
                     onPress={() => handleShareStatement(fee)}
+                    activeOpacity={0.7}
                   >
                     <Text style={styles.actionButtonText}>Share Statement</Text>
                   </TouchableOpacity>
@@ -231,40 +233,50 @@ JazakAllah Khair`;
         transparent={true}
         onRequestClose={() => setShowPaymentModal(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Update Payment</Text>
-            {selectedFee && (
-              <>
-                <Text style={styles.modalLabel}>Family: {selectedFee.familyHeadName}</Text>
-                <Text style={styles.modalLabel}>Balance Due: ₹{selectedFee.closingBalance}</Text>
-                <Text style={styles.modalLabel}>Payment Amount *</Text>
-                <TextInput
-                  style={styles.modalInput}
-                  placeholder="Enter amount"
-                  value={paymentAmount}
-                  onChangeText={setPaymentAmount}
-                  keyboardType="numeric"
-                />
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <ScrollView style={styles.modalScrollView} showsVerticalScrollIndicator={false}>
+                <Text style={styles.modalTitle}>Update Payment</Text>
+                {selectedFee && (
+                  <>
+                    <Text style={styles.modalLabel}>Family: {selectedFee.familyHeadName}</Text>
+                    <Text style={styles.modalLabel}>Balance Due: ₹{selectedFee.closingBalance}</Text>
+                    <Text style={styles.modalLabel}>Payment Amount *</Text>
+                    <TextInput
+                      style={styles.modalInput}
+                      placeholder="Enter amount"
+                      value={paymentAmount}
+                      onChangeText={setPaymentAmount}
+                      keyboardType="numeric"
+                    />
+                  </>
+                )}
+              </ScrollView>
+
+              <View style={styles.modalActions}>
                 <TouchableOpacity
-                  style={[styles.saveButton, loading && styles.saveButtonDisabled]}
+                  style={[styles.modalButton, styles.cancelModalButton]}
+                  onPress={() => setShowPaymentModal(false)}
+                >
+                  <Text style={styles.modalButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.saveModalButton, loading && styles.modalButtonDisabled]}
                   onPress={handleUpdatePayment}
                   disabled={loading}
                 >
-                  <Text style={styles.saveButtonText}>
+                  <Text style={styles.modalButtonText}>
                     {loading ? 'Updating...' : 'Update Payment'}
                   </Text>
                 </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.cancelButton}
-                  onPress={() => setShowPaymentModal(false)}
-                >
-                  <Text style={styles.cancelButtonText}>Cancel</Text>
-                </TouchableOpacity>
-              </>
-            )}
+              </View>
+            </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </ScrollView>
   );
@@ -442,6 +454,37 @@ const styles = StyleSheet.create({
     width: '100%',
     maxHeight: '90%',
     ...theme.shadow.card,
+  },
+  modalScrollView: {
+    flex: 1,
+    marginBottom: theme.spacing.md,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+  },
+  modalButton: {
+    flex: 1,
+    padding: theme.spacing.md,
+    borderRadius: theme.radius.button,
+    alignItems: 'center',
+    ...theme.shadow.button,
+  },
+  cancelModalButton: {
+    backgroundColor: theme.colors.gray[300],
+  },
+  saveModalButton: {
+    backgroundColor: theme.colors.primary,
+    borderWidth: 2,
+    borderColor: theme.colors.accent,
+  },
+  modalButtonDisabled: {
+    opacity: 0.6,
+  },
+  modalButtonText: {
+    color: theme.colors.white,
+    fontSize: 16,
+    fontWeight: '600',
   },
   modalTitle: {
     fontSize: 20,
