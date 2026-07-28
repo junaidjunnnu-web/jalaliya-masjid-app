@@ -143,7 +143,7 @@ router.post('/attendance', async (req, res) => {
 });
 
 // Get attendance by date range
-router.get('/attendance', auth, async (req, res) => {
+router.get('/attendance', async (req, res) => {
   try {
     const { startDate, endDate, studentId } = req.query;
     
