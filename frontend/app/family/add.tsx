@@ -516,13 +516,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   button: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.membersAccent,
     borderRadius: theme.radius.button,
     padding: theme.spacing.lg,
     alignItems: 'center',
     marginTop: theme.spacing.md,
     borderWidth: 2,
-    borderColor: theme.colors.accent,
+    borderColor: theme.colors.primary,
     ...theme.shadow.button,
   },
   buttonDisabled: {

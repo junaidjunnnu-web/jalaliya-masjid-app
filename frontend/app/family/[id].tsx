@@ -655,12 +655,12 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
   },
   addMemberButton: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.membersAccent,
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.sm,
     borderRadius: theme.radius.pill,
     borderWidth: 2,
-    borderColor: theme.colors.accent,
+    borderColor: theme.colors.primary,
   },
   addMemberButtonText: {
     color: theme.colors.white,
@@ -675,7 +675,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.sm,
     paddingVertical: theme.spacing.xs,
     borderRadius: theme.radius.pill,
-    backgroundColor: theme.colors.gray[200],
+    backgroundColor: theme.colors.membersAccent,
   },
   deleteButton: {
     backgroundColor: theme.colors.alert,
@@ -793,9 +793,9 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.gray[200],
   },
   saveModalButton: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.membersAccent,
     borderWidth: 2,
-    borderColor: theme.colors.accent,
+    borderColor: theme.colors.primary,
   },
   modalButtonDisabled: {
     opacity: 0.6,

@@ -171,14 +171,14 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.gray[300],
   },
   addButton: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.membersAccent,
     marginHorizontal: theme.spacing.md,
     marginBottom: theme.spacing.md,
     borderRadius: theme.radius.button,
     padding: theme.spacing.md,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: theme.colors.accent,
+    borderColor: theme.colors.primary,
     ...theme.shadow.button,
   },
   addButtonText: {

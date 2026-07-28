@@ -1,6 +1,7 @@
 export const theme = {
   colors: {
-    primary: '#0F3D3E',      // Deep green — Members/Families section
+    primary: '#0F3D3E',      // Deep green — base color, headers
+    membersAccent: '#4E7A5E',   // Mint deep — Home and Members/Family section
     committeeAccent: '#E8B923',  // Yellow — Committee section
     eventsAccent: '#E0722E',     // Orange — Events section
     announcementsAccent: '#C4304E',  // Rose red — Announcements section
