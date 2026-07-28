@@ -81,7 +81,7 @@ export default function AddFamilyScreen() {
   };
 
   const handleSave = async () => {
-    const { placeId, monthlyFeeMarried, monthlyFeeUnmarried } = formData;
+    const { placeId, address, monthlyFeeMarried, monthlyFeeUnmarried } = formData;
 
     if (!placeId) {
       Alert.alert('Error', 'Please select a place');

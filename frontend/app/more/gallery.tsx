@@ -417,7 +417,6 @@ const styles = StyleSheet.create({
     ...theme.shadow.card,
   },
   modalScrollView: {
-    flex: 1,
     marginBottom: theme.spacing.md,
   },
   modalActions: {
