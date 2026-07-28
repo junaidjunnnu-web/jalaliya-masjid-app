@@ -12,13 +12,7 @@ export default function TabLayout() {
           backgroundColor: theme.colors.white,
           borderTopColor: theme.colors.gray[200],
         },
-        headerStyle: {
-          backgroundColor: theme.colors.primary,
-        },
-        headerTintColor: theme.colors.white,
-        headerTitleStyle: {
-          fontFamily: theme.typography.display,
-        },
+        headerShown: false,
       }}
     >
       <Tabs.Screen

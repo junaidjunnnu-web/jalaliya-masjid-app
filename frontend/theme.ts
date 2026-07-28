@@ -1,12 +1,12 @@
 export const theme = {
   colors: {
-    primary: '#0F3D3E',      // Deep green — base color, headers
-    membersAccent: '#4E7A5E',   // Mint deep — Home and Members/Family section
-    committeeAccent: '#E8B923',  // Yellow — Committee section
-    eventsAccent: '#E0722E',     // Orange — Events section
-    announcementsAccent: '#C4304E',  // Rose red — Announcements section
-    galleryAccent: '#6E6E68',    // Gray — Gallery section
-    feesAccent: '#E02E2E',       // Bright red — Fees/Collections/Expenses section
+    primary: '#5F5E5A',      // Warm taupe — base color, headers
+    membersAccent: '#5F5E5A',   // Warm taupe — unified across all sections
+    committeeAccent: '#5F5E5A',  // Warm taupe — unified across all sections
+    eventsAccent: '#5F5E5A',     // Warm taupe — unified across all sections
+    announcementsAccent: '#5F5E5A',  // Warm taupe — unified across all sections
+    galleryAccent: '#5F5E5A',    // Warm taupe — unified across all sections
+    feesAccent: '#5F5E5A',       // Warm taupe — unified across all sections
     background: '#FAF6EE',   // Soft Ivory
     textPrimary: '#2B2B2B',  // Charcoal Ink
     success: '#6B9080',      // Sage — paid/approved badges
