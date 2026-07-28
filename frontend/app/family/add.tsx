@@ -354,7 +354,7 @@ const styles = StyleSheet.create({
     paddingBottom: theme.spacing.xl,
   },
   header: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.membersAccent,
     padding: theme.spacing.lg,
     paddingTop: theme.spacing.xl,
   },
