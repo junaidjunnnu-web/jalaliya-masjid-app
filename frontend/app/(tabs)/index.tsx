@@ -3,6 +3,7 @@ import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-nati
 import { useRouter } from 'expo-router';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
+import { PrayerTimes, CalculationMethod, Coordinates } from 'adhan';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -12,6 +13,10 @@ export default function HomeScreen() {
 
   useEffect(() => {
     loadHomeData();
+    const interval = setInterval(() => {
+      updateNextPrayer();
+    }, 60000); // Update every minute
+    return () => clearInterval(interval);
   }, []);
 
   const loadHomeData = async () => {
@@ -27,24 +32,110 @@ export default function HomeScreen() {
       setEvent(events[0]);
     }
 
-    // Load namaz timings for next prayer
+    updateNextPrayer();
+  };
+
+  const updateNextPrayer = async () => {
+    // Try to get manual timings first
     const { data: timings } = await api.namaz.getTimings();
+    
     if (timings) {
-      setNextPrayer(calculateNextPrayer(timings));
+      setNextPrayer(calculateNextPrayerFromTimings(timings));
+    } else {
+      // Fallback to calculated times
+      const calculated = calculatePrayerTimes(new Date());
+      setNextPrayer(calculateNextPrayerFromTimings(calculated));
     }
   };
 
-  const calculateNextPrayer = (timings: any) => {
-    // Placeholder logic - will implement actual prayer time calculation
+  const calculatePrayerTimes = (date: Date) => {
+    // Kodagu, Karnataka coordinates: 12.42°N, 75.74°E
+    const coordinates = new Coordinates(12.42, 75.74);
+    const params = CalculationMethod.MuslimWorldLeague();
+    
+    const prayerTimes = new PrayerTimes(coordinates, date, params);
+    
+    const formatTime = (d: Date | null, minutesToAdd: number = 0): string => {
+      if (!d) return '';
+      const time = new Date(d.getTime() + minutesToAdd * 60000);
+      return time.toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: true 
+      });
+    };
+    
     return {
-      name: 'Maghrib',
-      time: timings.maghribIqamah,
-      countdown: '2h 15m',
+      fajrAzan: formatTime(prayerTimes.fajr),
+      fajrIqamah: formatTime(prayerTimes.fajr, 20),
+      zuhrAzan: formatTime(prayerTimes.dhuhr),
+      zuhrIqamah: formatTime(prayerTimes.dhuhr, 15),
+      asrAzan: formatTime(prayerTimes.asr),
+      asrIqamah: formatTime(prayerTimes.asr, 20),
+      maghribAzan: formatTime(prayerTimes.maghrib),
+      maghribIqamah: formatTime(prayerTimes.maghrib, 10),
+      ishaAzan: formatTime(prayerTimes.isha),
+      ishaIqamah: formatTime(prayerTimes.isha, 20),
     };
   };
 
+  const calculateNextPrayerFromTimings = (timings: any) => {
+    const now = new Date();
+    const prayers = [
+      { name: 'Fajr', azan: timings.fajrAzan, iqamah: timings.fajrIqamah },
+      { name: 'Zuhr', azan: timings.zuhrAzan, iqamah: timings.zuhrIqamah },
+      { name: 'Asr', azan: timings.asrAzan, iqamah: timings.asrIqamah },
+      { name: 'Maghrib', azan: timings.maghribAzan, iqamah: timings.maghriIqamah },
+      { name: 'Isha', azan: timings.ishaAzan, iqamah: timings.ishaIqamah },
+    ];
+
+    const parseTime = (timeStr: string): Date | null => {
+      if (!timeStr) return null;
+      const [time, period] = timeStr.split(' ');
+      const [hours, minutes] = time.split(':');
+      let h = parseInt(hours);
+      if (period === 'PM' && h !== 12) h += 12;
+      if (period === 'AM' && h === 12) h = 0;
+      const date = new Date();
+      date.setHours(h, parseInt(minutes), 0, 0);
+      return date;
+    };
+
+    let nextPrayer = null;
+    for (const prayer of prayers) {
+      const iqamahTime = parseTime(prayer.iqamah);
+      if (iqamahTime && iqamahTime > now) {
+        const diff = iqamahTime.getTime() - now.getTime();
+        const hours = Math.floor(diff / 3600000);
+        const minutes = Math.floor((diff % 3600000) / 60000);
+        return {
+          name: prayer.name,
+          time: prayer.iqamah,
+          countdown: `${hours}h ${minutes}m`,
+        };
+      }
+    }
+
+    // If no prayer today, show Fajr tomorrow
+    const fajrIqamah = parseTime(prayers[0].iqamah);
+    if (fajrIqamah) {
+      const tomorrow = new Date(fajrIqamah);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const diff = tomorrow.getTime() - now.getTime();
+      const hours = Math.floor(diff / 3600000);
+      const minutes = Math.floor((diff % 3600000) / 60000);
+      return {
+        name: 'Fajr',
+        time: prayers[0].iqamah,
+        countdown: `${hours}h ${minutes}m`,
+      };
+    }
+
+    return null;
+  };
+
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Jalaliya Juma Masjid</Text>
@@ -129,6 +220,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+  },
+  scrollContent: {
+    paddingBottom: theme.spacing.xl,
   },
   header: {
     backgroundColor: theme.colors.primary,

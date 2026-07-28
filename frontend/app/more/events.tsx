@@ -57,8 +57,8 @@ export default function EventsScreen() {
       if (editingEvent) {
         const { data, error } = await api.events.update(editingEvent.id, {
           title: formData.title,
-          event_date: formData.eventDate,
-          event_time: formData.eventTime,
+          eventDate: formData.eventDate,
+          eventTime: formData.eventTime,
           location: formData.location,
           description: formData.description,
         });
@@ -68,8 +68,8 @@ export default function EventsScreen() {
       } else {
         const { data, error } = await api.events.create({
           title: formData.title,
-          event_date: formData.eventDate,
-          event_time: formData.eventTime,
+          eventDate: formData.eventDate,
+          eventTime: formData.eventTime,
           location: formData.location,
           description: formData.description,
         });
@@ -110,7 +110,7 @@ export default function EventsScreen() {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Events</Text>
       </View>
@@ -249,6 +249,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+  },
+  scrollContent: {
+    paddingBottom: theme.spacing.xl,
   },
   header: {
     backgroundColor: theme.colors.primary,

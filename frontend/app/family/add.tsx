@@ -3,11 +3,9 @@ import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert 
 import { useRouter } from 'expo-router';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
-import { useAuth } from '../../lib/auth-context';
 
 export default function AddFamilyScreen() {
   const router = useRouter();
-  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [places, setPlaces] = useState<any[]>([]);
   const [formData, setFormData] = useState({
@@ -45,12 +43,12 @@ export default function AddFamilyScreen() {
 
     setLoading(true);
     const { data, error } = await api.families.create({
-      head_name: headName,
-      head_phone: headPhone,
-      place_id: parseInt(placeId),
+      headName,
+      headPhone,
+      placeId: parseInt(placeId),
       address: formData.address,
-      monthly_fee_married: parseInt(monthlyFeeMarried),
-      monthly_fee_unmarried: parseInt(monthlyFeeUnmarried),
+      monthlyFeeMarried: parseInt(monthlyFeeMarried),
+      monthlyFeeUnmarried: parseInt(monthlyFeeUnmarried),
     });
     setLoading(false);
 
@@ -64,7 +62,7 @@ export default function AddFamilyScreen() {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Add Family</Text>
       </View>
@@ -163,6 +161,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+  },
+  scrollContent: {
+    paddingBottom: theme.spacing.xl,
   },
   header: {
     backgroundColor: theme.colors.primary,

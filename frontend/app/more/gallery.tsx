@@ -3,6 +3,7 @@ import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert,
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
 import * as Linking from 'expo-linking';
+import * as ImagePicker from 'expo-image-picker';
 
 export default function GalleryScreen() {
   const [photos, setPhotos] = useState<any[]>([]);
@@ -11,8 +12,10 @@ export default function GalleryScreen() {
   const [uploadFormData, setUploadFormData] = useState({
     caption: '',
     category: 'Construction',
+    photoBase64: '',
   });
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     loadPhotos();
@@ -27,22 +30,47 @@ export default function GalleryScreen() {
   };
 
   const openUploadModal = () => {
-    setUploadFormData({ caption: '', category: 'Construction' });
+    setUploadFormData({ caption: '', category: 'Construction', photoBase64: '' });
     setShowUploadModal(true);
   };
 
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Please grant camera roll permissions to upload photos');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.8,
+      base64: true,
+    });
+
+    if (!result.canceled && result.assets && result.assets[0]) {
+      setUploadFormData({ ...uploadFormData, photoBase64: result.assets[0].base64 || '' });
+    }
+  };
+
   const handleUpload = async () => {
-    const { caption, category } = uploadFormData;
+    const { caption, category, photoBase64 } = uploadFormData;
     if (!caption) {
       Alert.alert('Error', 'Please enter a caption');
       return;
     }
+    if (!photoBase64) {
+      Alert.alert('Error', 'Please select a photo');
+      return;
+    }
 
-    setLoading(true);
+    setUploading(true);
     try {
       const { data, error } = await api.gallery.upload({
-        caption: uploadFormData.caption,
-        category: uploadFormData.category,
+        photoBase64,
+        caption,
+        category,
       });
       if (error) {
         Alert.alert('Error', error);
@@ -54,7 +82,7 @@ export default function GalleryScreen() {
     } catch (error) {
       Alert.alert('Error', 'Failed to upload photo');
     }
-    setLoading(false);
+    setUploading(false);
   };
 
   const handleDelete = (photo: any) => {
@@ -91,7 +119,7 @@ export default function GalleryScreen() {
   const categories = ['all', 'Construction', 'Events', 'Facilities'];
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Gallery</Text>
       </View>
@@ -175,6 +203,17 @@ export default function GalleryScreen() {
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Upload Photo</Text>
 
+            <TouchableOpacity style={styles.photoPickerButton} onPress={pickImage}>
+              {uploadFormData.photoBase64 ? (
+                <Image source={{ uri: `data:image/jpeg;base64,${uploadFormData.photoBase64}` }} style={styles.previewImage} />
+              ) : (
+                <View style={styles.photoPickerPlaceholder}>
+                  <Text style={styles.photoPickerIcon}>📷</Text>
+                  <Text style={styles.photoPickerText}>Tap to select photo</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+
             <Text style={styles.modalLabel}>Caption *</Text>
             <TextInput
               style={styles.modalInput}
@@ -207,12 +246,12 @@ export default function GalleryScreen() {
             </ScrollView>
 
             <TouchableOpacity
-              style={[styles.saveButton, loading && styles.saveButtonDisabled]}
+              style={[styles.saveButton, uploading && styles.saveButtonDisabled]}
               onPress={handleUpload}
-              disabled={loading}
+              disabled={uploading}
             >
               <Text style={styles.saveButtonText}>
-                {loading ? 'Uploading...' : 'Upload Photo'}
+                {uploading ? 'Uploading...' : 'Upload Photo'}
               </Text>
             </TouchableOpacity>
 
@@ -233,6 +272,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+  },
+  scrollContent: {
+    paddingBottom: theme.spacing.xl,
   },
   header: {
     backgroundColor: theme.colors.primary,
@@ -437,5 +479,34 @@ const styles = StyleSheet.create({
     color: theme.colors.gray[500],
     fontSize: 14,
     fontWeight: '600',
+  },
+  photoPickerButton: {
+    backgroundColor: theme.colors.gray[100],
+    borderRadius: theme.radius.card,
+    marginBottom: theme.spacing.lg,
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: theme.colors.gray[300],
+    borderStyle: 'dashed',
+  },
+  photoPickerPlaceholder: {
+    height: 200,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: theme.spacing.xl,
+  },
+  photoPickerIcon: {
+    fontSize: 48,
+    marginBottom: theme.spacing.sm,
+  },
+  photoPickerText: {
+    fontSize: 14,
+    color: theme.colors.gray[500],
+    textAlign: 'center',
+  },
+  previewImage: {
+    width: '100%',
+    height: 200,
+    resizeMode: 'cover',
   },
 });

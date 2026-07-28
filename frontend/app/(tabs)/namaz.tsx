@@ -2,9 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert, Modal } from 'react-native';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
+import { PrayerTimes, CalculationMethod, Coordinates } from 'adhan';
 
 export default function NamazScreen() {
   const [timings, setTimings] = useState<any>(null);
+  const [calculatedTimings, setCalculatedTimings] = useState<any>(null);
   const [isRamadan, setIsRamadan] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editFormData, setEditFormData] = useState({
@@ -23,20 +25,58 @@ export default function NamazScreen() {
     iftarTime: '',
   });
   const [loading, setLoading] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState(new Date());
 
   useEffect(() => {
     loadTimings();
   }, []);
 
+  const calculatePrayerTimes = (date: Date) => {
+    // Kodagu, Karnataka coordinates: 12.42°N, 75.74°E
+    const coordinates = new Coordinates(12.42, 75.74);
+    const params = CalculationMethod.MuslimWorldLeague();
+    
+    const prayerTimes = new PrayerTimes(coordinates, date, params);
+    
+    return {
+      fajrAzan: formatTime(prayerTimes.fajr),
+      fajrIqamah: formatTime(prayerTimes.fajr, 20),
+      sunrise: formatTime(prayerTimes.sunrise),
+      zuhrAzan: formatTime(prayerTimes.dhuhr),
+      zuhrIqamah: formatTime(prayerTimes.dhuhr, 15),
+      asrAzan: formatTime(prayerTimes.asr),
+      asrIqamah: formatTime(prayerTimes.asr, 20),
+      maghribAzan: formatTime(prayerTimes.maghrib),
+      maghribIqamah: formatTime(prayerTimes.maghrib, 10),
+      ishaAzan: formatTime(prayerTimes.isha),
+      ishaIqamah: formatTime(prayerTimes.isha, 20),
+    };
+  };
+
+  const formatTime = (date: Date | null, minutesToAdd: number = 0): string => {
+    if (!date) return '';
+    const time = new Date(date.getTime() + minutesToAdd * 60000);
+    return time.toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: true 
+    });
+  };
+
   const loadTimings = async () => {
     const { data } = await api.namaz.getTimings();
     if (data) {
       setTimings(data);
-      // Check if current date is during Ramadan
-      const today = new Date();
-      // Placeholder - will implement actual Hijri date check
-      setIsRamadan(false);
+    } else {
+      // Fallback to calculated times if no manual override exists
+      const calculated = calculatePrayerTimes(new Date());
+      setCalculatedTimings(calculated);
     }
+    
+    // Check if current date is during Ramadan
+    const today = new Date();
+    // Placeholder - will implement actual Hijri date check
+    setIsRamadan(false);
   };
 
   const prayers = [
@@ -85,7 +125,7 @@ export default function NamazScreen() {
     setLoading(false);
   };
 
-  if (!timings) {
+  if (!timings && !calculatedTimings) {
     return (
       <View style={styles.loadingContainer}>
         <Text>Loading prayer times...</Text>
@@ -93,8 +133,10 @@ export default function NamazScreen() {
     );
   }
 
+  const displayTimings = timings || calculatedTimings;
+
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Prayer Times</Text>
         <Text style={styles.dateText}>
@@ -114,10 +156,10 @@ export default function NamazScreen() {
             <Text style={styles.prayerLabel}>{prayer.label}</Text>
             <View style={styles.prayerTimes}>
               <Text style={styles.prayerTime}>
-                {timings[`${prayer.key}Azan`]}
+                {displayTimings[`${prayer.key}Azan`]}
               </Text>
               <Text style={styles.iqamahTime}>
-                Iqamah: {timings[`${prayer.key}Iqamah`]}
+                Iqamah: {displayTimings[`${prayer.key}Iqamah`]}
               </Text>
             </View>
           </View>
@@ -129,7 +171,7 @@ export default function NamazScreen() {
         <Text style={styles.sectionTitle}>Jumma Prayer</Text>
         <View style={styles.jummaRow}>
           <Text style={styles.jummaLabel}>Khutbah Time</Text>
-          <Text style={styles.jummaTime}>{timings.jummaKhutbahTime}</Text>
+          <Text style={styles.jummaTime}>{displayTimings.jummaKhutbahTime}</Text>
         </View>
       </View>
 
@@ -137,16 +179,16 @@ export default function NamazScreen() {
       {isRamadan && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Ramadan Timings</Text>
-          {timings.sehriTime && (
+          {displayTimings.sehriTime && (
             <View style={styles.ramadanRow}>
               <Text style={styles.ramadanLabel}>Sehri</Text>
-              <Text style={styles.ramadanTime}>{timings.sehriTime}</Text>
+              <Text style={styles.ramadanTime}>{displayTimings.sehriTime}</Text>
             </View>
           )}
-          {timings.iftarTime && (
+          {displayTimings.iftarTime && (
             <View style={styles.ramadanRow}>
               <Text style={styles.ramadanLabel}>Iftar</Text>
-              <Text style={styles.ramadanTime}>{timings.iftarTime}</Text>
+              <Text style={styles.ramadanTime}>{displayTimings.iftarTime}</Text>
             </View>
           )}
         </View>
@@ -239,6 +281,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+  },
+  scrollContent: {
+    paddingBottom: theme.spacing.xl,
   },
   loadingContainer: {
     flex: 1,

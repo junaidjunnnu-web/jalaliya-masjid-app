@@ -101,7 +101,7 @@ JazakAllah Khair`;
     setLoading(true);
     try {
       const { data, error } = await api.fees.updatePayment(selectedFee.id, {
-        amount_paid: amount,
+        amountPaid: amount,
       });
       if (error) {
         Alert.alert('Error', error);
@@ -125,7 +125,7 @@ JazakAllah Khair`;
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Fee Collection</Text>
       </View>
@@ -274,6 +274,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+  },
+  scrollContent: {
+    paddingBottom: theme.spacing.xl,
   },
   header: {
     backgroundColor: theme.colors.primary,

@@ -78,9 +78,9 @@ export default function CommitteeScreen() {
           name: formData.name,
           designation: formData.designation,
           phone: formData.phone,
-          photo_url: formData.photoUrl,
-          tenure_start: formData.tenureStart,
-          tenure_end: formData.tenureEnd || null,
+          photoUrl: formData.photoUrl,
+          tenureStart: formData.tenureStart,
+          tenureEnd: formData.tenureEnd || null,
         });
         if (error) {
           Alert.alert('Error', error);
@@ -90,9 +90,9 @@ export default function CommitteeScreen() {
           name: formData.name,
           designation: formData.designation,
           phone: formData.phone,
-          photo_url: formData.photoUrl,
-          tenure_start: formData.tenureStart,
-          tenure_end: formData.tenureEnd || null,
+          photoUrl: formData.photoUrl,
+          tenureStart: formData.tenureStart,
+          tenureEnd: formData.tenureEnd || null,
         });
         if (error) {
           Alert.alert('Error', error);
@@ -131,7 +131,7 @@ export default function CommitteeScreen() {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Committee</Text>
       </View>
@@ -295,6 +295,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+  },
+  scrollContent: {
+    paddingBottom: theme.spacing.xl,
   },
   header: {
     backgroundColor: theme.colors.primary,

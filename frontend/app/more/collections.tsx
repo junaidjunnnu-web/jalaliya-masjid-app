@@ -42,7 +42,7 @@ export default function CollectionsScreen() {
       const { data, error } = await api.collections.create({
         type: formData.type,
         amount: parseFloat(formData.amount),
-        donor_name: formData.donorName,
+        donorName: formData.donorName,
         notes: formData.notes,
       });
       if (error) {
@@ -84,7 +84,7 @@ export default function CollectionsScreen() {
   const collectionTypes = ['Zakat', 'Sadaqah', 'Fitrah', 'General Fund'];
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Collections</Text>
       </View>
@@ -217,6 +217,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+  },
+  scrollContent: {
+    paddingBottom: theme.spacing.xl,
   },
   header: {
     backgroundColor: theme.colors.primary,

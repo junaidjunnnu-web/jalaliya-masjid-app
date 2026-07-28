@@ -86,7 +86,7 @@ export default function FamilyDetailScreen() {
             age: memberFormData.age ? parseInt(memberFormData.age) : null,
             gender: memberFormData.gender || null,
             maritalStatus: memberFormData.maritalStatus || null,
-            is_fee_applicable: memberFormData.isFeeApplicable,
+            isFeeApplicable: memberFormData.isFeeApplicable,
           }
         );
         if (error) {
@@ -99,7 +99,7 @@ export default function FamilyDetailScreen() {
           age: memberFormData.age ? parseInt(memberFormData.age) : null,
           gender: memberFormData.gender || null,
           maritalStatus: memberFormData.maritalStatus || null,
-          is_fee_applicable: memberFormData.isFeeApplicable,
+          isFeeApplicable: memberFormData.isFeeApplicable,
         });
         if (error) {
           Alert.alert('Error', error);
@@ -146,7 +146,7 @@ export default function FamilyDetailScreen() {
   }
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Family Details</Text>
       </View>
@@ -392,6 +392,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+  },
+  scrollContent: {
+    paddingBottom: theme.spacing.xl,
   },
   loadingContainer: {
     flex: 1,

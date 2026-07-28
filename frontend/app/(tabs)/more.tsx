@@ -56,7 +56,6 @@ export default function MoreScreen() {
             description: 'Track masjid expenses',
             onPress: () => router.push('/more/expenses'),
           },
-        },
     {
       id: 'profile',
       title: 'My Profile',

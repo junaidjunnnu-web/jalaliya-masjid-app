@@ -90,12 +90,12 @@ export default function MadrasaScreen() {
       if (editingStudent) {
         const { data, error } = await api.madrasa.updateStudent(editingStudent.id, {
           name: formData.name,
-          guardian_name: formData.guardianName,
-          guardian_phone: formData.guardianPhone,
-          family_id: formData.familyId ? parseInt(formData.familyId) : null,
-          class_level: formData.classLevel,
-          ustad_name: formData.ustadName,
-          progress_notes: formData.progressNotes,
+          guardianName: formData.guardianName,
+          guardianPhone: formData.guardianPhone,
+          familyId: formData.familyId ? parseInt(formData.familyId) : null,
+          classLevel: formData.classLevel,
+          ustadName: formData.ustadName,
+          progressNotes: formData.progressNotes,
         });
         if (error) {
           Alert.alert('Error', error);
@@ -103,12 +103,12 @@ export default function MadrasaScreen() {
       } else {
         const { data, error } = await api.madrasa.createStudent({
           name: formData.name,
-          guardian_name: formData.guardianName,
-          guardian_phone: formData.guardianPhone,
-          family_id: formData.familyId ? parseInt(formData.familyId) : null,
-          class_level: formData.classLevel,
-          ustad_name: formData.ustadName,
-          progress_notes: formData.progressNotes,
+          guardianName: formData.guardianName,
+          guardianPhone: formData.guardianPhone,
+          familyId: formData.familyId ? parseInt(formData.familyId) : null,
+          classLevel: formData.classLevel,
+          ustadName: formData.ustadName,
+          progressNotes: formData.progressNotes,
         });
         if (error) {
           Alert.alert('Error', error);
@@ -147,7 +147,7 @@ export default function MadrasaScreen() {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Madrasa</Text>
       </View>
@@ -370,6 +370,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+  },
+  scrollContent: {
+    paddingBottom: theme.spacing.xl,
   },
   header: {
     backgroundColor: theme.colors.primary,
