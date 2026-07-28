@@ -103,23 +103,32 @@ router.post('/', async (req, res) => {
 
     const { photoBase64, category, caption, eventId } = req.body;
 
+    console.log('Gallery upload request:', { category, caption, eventId, hasPhotoBase64: !!photoBase64 });
+
     // Upload to Supabase Storage
     const fileName = `gallery/${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
+    console.log('Uploading to Supabase bucket: masjid-photos, file:', fileName);
+
     const { data, error: uploadError } = await client.storage
-      .from('jalaliya-masjid')
+      .from('masjid-photos')
       .upload(fileName, Buffer.from(photoBase64, 'base64'), {
         contentType: 'image/jpeg',
       });
 
     if (uploadError) {
-      console.error('Supabase upload error:', uploadError);
-      return res.status(500).json({ error: 'Failed to upload photo' });
+      console.error('Supabase upload error:', JSON.stringify(uploadError, null, 2));
+      console.error('Upload error details:', uploadError.message, uploadError.statusCode);
+      return res.status(500).json({ error: 'Failed to upload photo', details: uploadError.message });
     }
+
+    console.log('Supabase upload successful:', data);
 
     // Get public URL
     const { data: { publicUrl } } = client.storage
-      .from('jalaliya-masjid')
+      .from('masjid-photos')
       .getPublicUrl(fileName);
+
+    console.log('Public URL generated:', publicUrl);
 
     // Save to database
     const [newPhoto] = await db.insert(galleryPhotos).values({
@@ -129,10 +138,12 @@ router.post('/', async (req, res) => {
       eventId: eventId || null,
     }).returning();
 
+    console.log('Photo saved to database:', newPhoto);
     res.status(201).json(newPhoto);
   } catch (error) {
     console.error('Upload photo error:', error);
-    res.status(500).json({ error: 'Failed to upload photo' });
+    console.error('Error details:', error.message, error.stack);
+    res.status(500).json({ error: 'Failed to upload photo', details: error.message });
   }
 });
 
@@ -157,20 +168,27 @@ router.put('/:id', async (req, res) => {
 // Delete photo
 router.delete('/:id', async (req, res) => {
   try {
+    const client = initSupabase();
+    if (!client) {
+      return res.status(500).json({ error: 'Supabase not configured' });
+    }
+
     // Get photo URL to delete from Supabase
     const [photo] = await db.select().from(galleryPhotos).where(eq(galleryPhotos.id, req.params.id));
-    
+
     if (photo && photo.photoUrl) {
       // Extract filename from URL
       const fileName = photo.photoUrl.split('/').pop();
-      await supabase.storage.from('jalaliya-masjid').remove([`gallery/${fileName}`]);
+      console.log('Deleting from Supabase bucket: masjid-photos, file:', `gallery/${fileName}`);
+      await client.storage.from('masjid-photos').remove([`gallery/${fileName}`]);
     }
 
     await db.delete(galleryPhotos).where(eq(galleryPhotos.id, req.params.id));
     res.json({ message: 'Photo deleted' });
   } catch (error) {
     console.error('Delete photo error:', error);
-    res.status(500).json({ error: 'Failed to delete photo' });
+    console.error('Error details:', error.message, error.stack);
+    res.status(500).json({ error: 'Failed to delete photo', details: error.message });
   }
 });
 

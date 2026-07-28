@@ -44,9 +44,9 @@ router.post('/', async (req, res) => {
       name,
       designation,
       phone,
-      photoUrl,
-      tenureStart,
-      tenureEnd,
+      photoUrl: photoUrl || null,
+      tenureStart: tenureStart || null,
+      tenureEnd: tenureEnd || null,
     }).returning();
 
     console.log('Committee member created successfully:', newMember);
@@ -65,7 +65,14 @@ router.put('/:id', async (req, res) => {
     const { name, designation, phone, photoUrl, tenureStart, tenureEnd } = req.body;
 
     const [updatedMember] = await db.update(committeeMembers)
-      .set({ name, designation, phone, photoUrl, tenureStart, tenureEnd })
+      .set({ 
+        name, 
+        designation, 
+        phone, 
+        photoUrl: photoUrl || null,
+        tenureStart: tenureStart || null,
+        tenureEnd: tenureEnd || null
+      })
       .where(eq(committeeMembers.id, id))
       .returning();
 

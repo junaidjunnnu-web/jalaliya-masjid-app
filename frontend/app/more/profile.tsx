@@ -4,7 +4,6 @@ import { theme } from '../../theme';
 import { api } from '../../lib/api';
 
 export default function ProfileScreen() {
-  const [user, setUser] = useState<any>(null);
   const [family, setFamily] = useState<any>(null);
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -157,19 +156,6 @@ export default function ProfileScreen() {
         {/* Family members list would go here */}
         <View style={styles.emptyMembers}>
           <Text style={styles.emptyText}>No family members added yet</Text>
-        </View>
-      </View>
-
-      {/* Account Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Account</Text>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Phone:</Text>
-          <Text style={styles.infoValue}>{user?.phone}</Text>
-        </View>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Role:</Text>
-          <Text style={styles.infoValue}>Guest</Text>
         </View>
       </View>
     </ScrollView>

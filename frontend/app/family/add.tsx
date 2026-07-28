@@ -258,7 +258,7 @@ export default function AddFamilyScreen() {
 
             <Text style={styles.label}>Gender (optional)</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.optionsContainer}>
-              {['Male', 'Female'].map((gender) => (
+              {['male', 'female'].map((gender) => (
                 <TouchableOpacity
                   key={gender}
                   style={[
@@ -282,7 +282,7 @@ export default function AddFamilyScreen() {
 
             <Text style={styles.label}>Marital Status (optional)</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.optionsContainer}>
-              {['Married', 'Unmarried'].map((status) => (
+              {['married', 'unmarried'].map((status) => (
                 <TouchableOpacity
                   key={status}
                   style={[

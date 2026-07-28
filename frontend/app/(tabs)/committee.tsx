@@ -13,9 +13,6 @@ export default function CommitteeScreen() {
     name: '',
     designation: '',
     phone: '',
-    photoUrl: '',
-    tenureStart: '',
-    tenureEnd: '',
   });
   const [loading, setLoading] = useState(false);
 
@@ -44,9 +41,6 @@ export default function CommitteeScreen() {
       name: '',
       designation: '',
       phone: '',
-      photoUrl: '',
-      tenureStart: '',
-      tenureEnd: '',
     });
     setShowModal(true);
   };
@@ -57,16 +51,13 @@ export default function CommitteeScreen() {
       name: member.name,
       designation: member.designation,
       phone: member.phone,
-      photoUrl: member.photoUrl || '',
-      tenureStart: member.tenureStart,
-      tenureEnd: member.tenureEnd || '',
     });
     setShowModal(true);
   };
 
   const handleSave = async () => {
-    const { name, designation, phone, tenureStart } = formData;
-    if (!name || !designation || !phone || !tenureStart) {
+    const { name, designation, phone } = formData;
+    if (!name || !designation || !phone) {
       Alert.alert('Error', 'Please fill all required fields');
       return;
     }
@@ -78,9 +69,6 @@ export default function CommitteeScreen() {
           name: formData.name,
           designation: formData.designation,
           phone: formData.phone,
-          photoUrl: formData.photoUrl,
-          tenureStart: formData.tenureStart,
-          tenureEnd: formData.tenureEnd || null,
         };
         console.log('[Committee Update] Request body:', JSON.stringify(requestBody, null, 2));
 
@@ -101,9 +89,6 @@ export default function CommitteeScreen() {
           name: formData.name,
           designation: formData.designation,
           phone: formData.phone,
-          photoUrl: formData.photoUrl,
-          tenureStart: formData.tenureStart,
-          tenureEnd: formData.tenureEnd || null,
         };
         console.log('[Committee Create] Request body:', JSON.stringify(requestBody, null, 2));
 
@@ -270,30 +255,6 @@ export default function CommitteeScreen() {
                 keyboardType="phone-pad"
                 maxLength={15}
               />
-
-              <Text style={styles.modalLabel}>Photo URL</Text>
-              <TextInput
-                style={styles.modalInput}
-                placeholder="Enter photo URL"
-                value={formData.photoUrl}
-                onChangeText={(text) => setFormData({ ...formData, photoUrl: text })}
-              />
-
-              <Text style={styles.modalLabel}>Tenure Start *</Text>
-              <TextInput
-                style={styles.modalInput}
-                placeholder="YYYY-MM-DD"
-                value={formData.tenureStart}
-                onChangeText={(text) => setFormData({ ...formData, tenureStart: text })}
-              />
-
-              <Text style={styles.modalLabel}>Tenure End</Text>
-              <TextInput
-                style={styles.modalInput}
-                placeholder="YYYY-MM-DD (optional)"
-                value={formData.tenureEnd}
-                onChangeText={(text) => setFormData({ ...formData, tenureEnd: text })}
-              />
             </ScrollView>
 
             <View style={styles.modalActions}>
@@ -441,12 +402,12 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
   },
   addButton: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.accent,
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.sm,
     borderRadius: theme.radius.pill,
     borderWidth: 2,
-    borderColor: theme.colors.accent,
+    borderColor: theme.colors.primary,
   },
   addButtonText: {
     color: theme.colors.white,
@@ -537,9 +498,9 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.gray[200],
   },
   saveModalButton: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.accent,
     borderWidth: 2,
-    borderColor: theme.colors.accent,
+    borderColor: theme.colors.primary,
   },
   modalButtonDisabled: {
     opacity: 0.6,

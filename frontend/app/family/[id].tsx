@@ -267,9 +267,9 @@ export default function FamilyDetailScreen() {
               {true && (
                 <View style={styles.memberDetails}>
                   {member.age && <Text style={styles.memberDetail}>Age: {member.age}</Text>}
-                  {member.gender && <Text style={styles.memberDetail}>{member.gender}</Text>}
+                  {member.gender && <Text style={styles.memberDetail}>{member.gender.charAt(0).toUpperCase() + member.gender.slice(1)}</Text>}
                   {member.maritalStatus && (
-                    <Text style={styles.memberDetail}>{member.maritalStatus}</Text>
+                    <Text style={styles.memberDetail}>{member.maritalStatus.charAt(0).toUpperCase() + member.maritalStatus.slice(1)}</Text>
                   )}
                   {member.isFeeApplicable && (
                     <View style={styles.feeApplicableBadge}>

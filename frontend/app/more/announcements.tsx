@@ -203,13 +203,13 @@ const styles = StyleSheet.create({
     fontFamily: theme.typography.display,
   },
   createButton: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.announcementsAccent,
     margin: theme.spacing.md,
     borderRadius: theme.radius.button,
     padding: theme.spacing.md,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: theme.colors.accent,
+    borderColor: theme.colors.primary,
     ...theme.shadow.button,
   },
   createButtonText: {
@@ -308,9 +308,9 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.gray[300],
   },
   saveModalButton: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.announcementsAccent,
     borderWidth: 2,
-    borderColor: theme.colors.accent,
+    borderColor: theme.colors.primary,
   },
   modalButtonDisabled: {
     opacity: 0.6,

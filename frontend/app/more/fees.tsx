@@ -203,24 +203,22 @@ JazakAllah Khair`;
                 </View>
               </View>
 
-              {user?.role === 'committee' && (
-                <View style={styles.feeActions}>
-                  <TouchableOpacity
-                    style={styles.actionButton}
-                    onPress={() => openPaymentModal(fee)}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.actionButtonText}>Update Payment</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.actionButton, styles.shareButton]}
-                    onPress={() => handleShareStatement(fee)}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.actionButtonText}>Share Statement</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
+              <View style={styles.feeActions}>
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={() => openPaymentModal(fee)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.actionButtonText}>Update Payment</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.shareButton]}
+                  onPress={() => handleShareStatement(fee)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.actionButtonText}>Share Statement</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           ))
         )}
@@ -341,14 +339,14 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   generateButton: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.feesAccent,
     marginHorizontal: theme.spacing.md,
     marginBottom: theme.spacing.md,
     borderRadius: theme.radius.button,
     padding: theme.spacing.md,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: theme.colors.accent,
+    borderColor: theme.colors.primary,
     ...theme.shadow.button,
   },
   generateButtonText: {
@@ -456,7 +454,6 @@ const styles = StyleSheet.create({
     ...theme.shadow.card,
   },
   modalScrollView: {
-    flex: 1,
     marginBottom: theme.spacing.md,
   },
   modalActions: {
@@ -474,9 +471,9 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.gray[300],
   },
   saveModalButton: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.feesAccent,
     borderWidth: 2,
-    borderColor: theme.colors.accent,
+    borderColor: theme.colors.primary,
   },
   modalButtonDisabled: {
     opacity: 0.6,

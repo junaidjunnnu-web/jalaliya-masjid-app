@@ -1,7 +1,11 @@
 export const theme = {
   colors: {
-    primary: '#0F3D3E',      // Deep Teal — headers, nav, primary surfaces
-    accent: '#C9A24B',       // Warm Gold — icons, highlights, arc signature
+    primary: '#0F3D3E',      // Deep Teal — Members/Families section
+    accent: '#C9A24B',       // Warm Gold — Committee section
+    eventsAccent: '#2C5F7A',  // Muted Navy — Events section
+    announcementsAccent: '#C15C3D',  // Terracotta — Announcements section
+    galleryAccent: '#9B7EBD', // Soft Plum — Gallery section
+    feesAccent: '#3D5A3D',    // Deep Forest Green — Fees/Collections/Expenses section
     background: '#FAF6EE',   // Soft Ivory
     textPrimary: '#2B2B2B',  // Charcoal Ink
     success: '#6B9080',      // Sage — paid/approved badges
