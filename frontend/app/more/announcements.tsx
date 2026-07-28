@@ -136,47 +136,45 @@ export default function AnnouncementsScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.modalOverlay}
         >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <ScrollView style={styles.modalScrollView} showsVerticalScrollIndicator={false}>
-                <Text style={styles.modalTitle}>New Announcement</Text>
+          <View style={styles.modalContent}>
+            <ScrollView style={styles.modalScrollView} showsVerticalScrollIndicator={false}>
+              <Text style={styles.modalTitle}>New Announcement</Text>
 
-                <Text style={styles.modalLabel}>Title *</Text>
-                <TextInput
-                  style={styles.modalInput}
-                  placeholder="Enter announcement title"
-                  value={formData.title}
-                  onChangeText={(text) => setFormData({ ...formData, title: text })}
-                />
+              <Text style={styles.modalLabel}>Title *</Text>
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Enter announcement title"
+                value={formData.title}
+                onChangeText={(text) => setFormData({ ...formData, title: text })}
+              />
 
-                <Text style={styles.modalLabel}>Message *</Text>
-                <TextInput
-                  style={[styles.modalInput, styles.textArea]}
-                  placeholder="Enter announcement message"
-                  value={formData.message}
-                  onChangeText={(text) => setFormData({ ...formData, message: text })}
-                  multiline
-                  numberOfLines={4}
-                />
-              </ScrollView>
+              <Text style={styles.modalLabel}>Message *</Text>
+              <TextInput
+                style={[styles.modalInput, styles.textArea]}
+                placeholder="Enter announcement message"
+                value={formData.message}
+                onChangeText={(text) => setFormData({ ...formData, message: text })}
+                multiline
+                numberOfLines={4}
+              />
+            </ScrollView>
 
-              <View style={styles.modalActions}>
-                <TouchableOpacity
-                  style={[styles.modalButton, styles.cancelModalButton]}
-                  onPress={() => setShowModal(false)}
-                >
-                  <Text style={styles.modalButtonText}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.modalButton, styles.saveModalButton, loading && styles.modalButtonDisabled]}
-                  onPress={handleSave}
-                  disabled={loading}
-                >
-                  <Text style={styles.modalButtonText}>
-                    {loading ? 'Creating...' : 'Create Announcement'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelModalButton]}
+                onPress={() => setShowModal(false)}
+              >
+                <Text style={styles.modalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.saveModalButton, loading && styles.modalButtonDisabled]}
+                onPress={handleSave}
+                disabled={loading}
+              >
+                <Text style={styles.modalButtonText}>
+                  {loading ? 'Creating...' : 'Create Announcement'}
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         </KeyboardAvoidingView>

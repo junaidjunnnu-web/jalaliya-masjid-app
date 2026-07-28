@@ -239,81 +239,79 @@ export default function CommitteeScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.modalOverlay}
         >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <ScrollView style={styles.modalScrollView} showsVerticalScrollIndicator={false}>
-                <Text style={styles.modalTitle}>
-                  {editingMember ? 'Edit Committee Member' : 'Add Committee Member'}
+          <View style={styles.modalContent}>
+            <ScrollView style={styles.modalScrollView} showsVerticalScrollIndicator={false}>
+              <Text style={styles.modalTitle}>
+                {editingMember ? 'Edit Committee Member' : 'Add Committee Member'}
+              </Text>
+
+              <Text style={styles.modalLabel}>Name *</Text>
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Enter full name"
+                value={formData.name}
+                onChangeText={(text) => setFormData({ ...formData, name: text })}
+              />
+
+              <Text style={styles.modalLabel}>Designation *</Text>
+              <TextInput
+                style={styles.modalInput}
+                placeholder="e.g., President, Secretary"
+                value={formData.designation}
+                onChangeText={(text) => setFormData({ ...formData, designation: text })}
+              />
+
+              <Text style={styles.modalLabel}>Phone *</Text>
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Enter phone number"
+                value={formData.phone}
+                onChangeText={(text) => setFormData({ ...formData, phone: text })}
+                keyboardType="phone-pad"
+                maxLength={15}
+              />
+
+              <Text style={styles.modalLabel}>Photo URL</Text>
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Enter photo URL"
+                value={formData.photoUrl}
+                onChangeText={(text) => setFormData({ ...formData, photoUrl: text })}
+              />
+
+              <Text style={styles.modalLabel}>Tenure Start *</Text>
+              <TextInput
+                style={styles.modalInput}
+                placeholder="YYYY-MM-DD"
+                value={formData.tenureStart}
+                onChangeText={(text) => setFormData({ ...formData, tenureStart: text })}
+              />
+
+              <Text style={styles.modalLabel}>Tenure End</Text>
+              <TextInput
+                style={styles.modalInput}
+                placeholder="YYYY-MM-DD (optional)"
+                value={formData.tenureEnd}
+                onChangeText={(text) => setFormData({ ...formData, tenureEnd: text })}
+              />
+            </ScrollView>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelModalButton]}
+                onPress={() => setShowModal(false)}
+              >
+                <Text style={styles.modalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.saveModalButton, loading && styles.modalButtonDisabled]}
+                onPress={handleSave}
+                disabled={loading}
+              >
+                <Text style={styles.modalButtonText}>
+                  {loading ? 'Saving...' : 'Save'}
                 </Text>
-
-                <Text style={styles.modalLabel}>Name *</Text>
-                <TextInput
-                  style={styles.modalInput}
-                  placeholder="Enter full name"
-                  value={formData.name}
-                  onChangeText={(text) => setFormData({ ...formData, name: text })}
-                />
-
-                <Text style={styles.modalLabel}>Designation *</Text>
-                <TextInput
-                  style={styles.modalInput}
-                  placeholder="e.g., President, Secretary"
-                  value={formData.designation}
-                  onChangeText={(text) => setFormData({ ...formData, designation: text })}
-                />
-
-                <Text style={styles.modalLabel}>Phone *</Text>
-                <TextInput
-                  style={styles.modalInput}
-                  placeholder="Enter phone number"
-                  value={formData.phone}
-                  onChangeText={(text) => setFormData({ ...formData, phone: text })}
-                  keyboardType="phone-pad"
-                  maxLength={15}
-                />
-
-                <Text style={styles.modalLabel}>Photo URL</Text>
-                <TextInput
-                  style={styles.modalInput}
-                  placeholder="Enter photo URL"
-                  value={formData.photoUrl}
-                  onChangeText={(text) => setFormData({ ...formData, photoUrl: text })}
-                />
-
-                <Text style={styles.modalLabel}>Tenure Start *</Text>
-                <TextInput
-                  style={styles.modalInput}
-                  placeholder="YYYY-MM-DD"
-                  value={formData.tenureStart}
-                  onChangeText={(text) => setFormData({ ...formData, tenureStart: text })}
-                />
-
-                <Text style={styles.modalLabel}>Tenure End</Text>
-                <TextInput
-                  style={styles.modalInput}
-                  placeholder="YYYY-MM-DD (optional)"
-                  value={formData.tenureEnd}
-                  onChangeText={(text) => setFormData({ ...formData, tenureEnd: text })}
-                />
-              </ScrollView>
-
-              <View style={styles.modalActions}>
-                <TouchableOpacity
-                  style={[styles.modalButton, styles.cancelModalButton]}
-                  onPress={() => setShowModal(false)}
-                >
-                  <Text style={styles.modalButtonText}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.modalButton, styles.saveModalButton, loading && styles.modalButtonDisabled]}
-                  onPress={handleSave}
-                  disabled={loading}
-                >
-                  <Text style={styles.modalButtonText}>
-                    {loading ? 'Saving...' : 'Save'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
+              </TouchableOpacity>
             </View>
           </View>
         </KeyboardAvoidingView>

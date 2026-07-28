@@ -206,72 +206,70 @@ export default function GalleryScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.modalOverlay}
         >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <ScrollView style={styles.modalScrollView} showsVerticalScrollIndicator={false}>
-                <Text style={styles.modalTitle}>Upload Photo</Text>
+          <View style={styles.modalContent}>
+            <ScrollView style={styles.modalScrollView} showsVerticalScrollIndicator={false}>
+              <Text style={styles.modalTitle}>Upload Photo</Text>
 
-                <TouchableOpacity style={styles.photoPickerButton} onPress={pickImage}>
-                  {uploadFormData.photoBase64 ? (
-                    <Image source={{ uri: `data:image/jpeg;base64,${uploadFormData.photoBase64}` }} style={styles.previewImage} />
-                  ) : (
-                    <View style={styles.photoPickerPlaceholder}>
-                      <Text style={styles.photoPickerIcon}>📷</Text>
-                      <Text style={styles.photoPickerText}>Tap to select photo</Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
+              <TouchableOpacity style={styles.photoPickerButton} onPress={pickImage}>
+                {uploadFormData.photoBase64 ? (
+                  <Image source={{ uri: `data:image/jpeg;base64,${uploadFormData.photoBase64}` }} style={styles.previewImage} />
+                ) : (
+                  <View style={styles.photoPickerPlaceholder}>
+                    <Text style={styles.photoPickerIcon}>📷</Text>
+                    <Text style={styles.photoPickerText}>Tap to select photo</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
 
-                <Text style={styles.modalLabel}>Caption *</Text>
-                <TextInput
-                  style={styles.modalInput}
-                  placeholder="Enter photo caption"
-                  value={uploadFormData.caption}
-                  onChangeText={(text) => setUploadFormData({ ...uploadFormData, caption: text })}
-                />
+              <Text style={styles.modalLabel}>Caption *</Text>
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Enter photo caption"
+                value={uploadFormData.caption}
+                onChangeText={(text) => setUploadFormData({ ...uploadFormData, caption: text })}
+              />
 
-                <Text style={styles.modalLabel}>Category</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryContainer}>
-                  {['Construction', 'Events', 'Facilities'].map((category) => (
-                    <TouchableOpacity
-                      key={category}
+              <Text style={styles.modalLabel}>Category</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryContainer}>
+                {['Construction', 'Events', 'Facilities'].map((category) => (
+                  <TouchableOpacity
+                    key={category}
+                    style={[
+                      styles.categoryButton,
+                      uploadFormData.category === category && styles.categoryButtonActive,
+                    ]}
+                    onPress={() => setUploadFormData({ ...uploadFormData, category })}
+                    activeOpacity={0.7}
+                  >
+                    <Text
                       style={[
-                        styles.categoryButton,
-                        uploadFormData.category === category && styles.categoryButtonActive,
+                        styles.categoryButtonText,
+                        uploadFormData.category === category && styles.categoryButtonTextActive,
                       ]}
-                      onPress={() => setUploadFormData({ ...uploadFormData, category })}
-                      activeOpacity={0.7}
                     >
-                      <Text
-                        style={[
-                          styles.categoryButtonText,
-                          uploadFormData.category === category && styles.categoryButtonTextActive,
-                        ]}
-                      >
-                        {category}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
+                      {category}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </ScrollView>
+            </ScrollView>
 
-              <View style={styles.modalActions}>
-                <TouchableOpacity
-                  style={[styles.modalButton, styles.cancelModalButton]}
-                  onPress={() => setShowUploadModal(false)}
-                >
-                  <Text style={styles.modalButtonText}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.modalButton, styles.saveModalButton, uploading && styles.modalButtonDisabled]}
-                  onPress={handleUpload}
-                  disabled={uploading}
-                >
-                  <Text style={styles.modalButtonText}>
-                    {uploading ? 'Uploading...' : 'Upload Photo'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelModalButton]}
+                onPress={() => setShowUploadModal(false)}
+              >
+                <Text style={styles.modalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.saveModalButton, uploading && styles.modalButtonDisabled]}
+                onPress={handleUpload}
+                disabled={uploading}
+              >
+                <Text style={styles.modalButtonText}>
+                  {uploading ? 'Uploading...' : 'Upload Photo'}
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         </KeyboardAvoidingView>

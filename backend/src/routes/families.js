@@ -156,13 +156,26 @@ router.get('/:id', async (req, res) => {
 // Create family with members
 router.post('/', async (req, res) => {
   try {
-    console.log('POST /families - Request body:', req.body);
+    console.log('POST /families - Request body:', JSON.stringify(req.body, null, 2));
     const { placeId, address, photoUrl, monthlyFeeMarried, monthlyFeeUnmarried, status, members } = req.body;
+
+    console.log('POST /families - Destructured values:', {
+      placeId,
+      address,
+      photoUrl,
+      monthlyFeeMarried,
+      monthlyFeeUnmarried,
+      status,
+      membersCount: members?.length,
+      firstMember: members?.[0]
+    });
 
     // Get the first member's name/phone for backward compatibility with families table
     const firstMember = members && members.length > 0 ? members[0] : null;
     const headName = firstMember?.name || 'Unknown';
     const headPhone = firstMember?.phone || '';
+
+    console.log('POST /families - Computed headName/headPhone:', { headName, headPhone });
 
     // Create the family (home)
     const [newFamily] = await db.insert(families).values({

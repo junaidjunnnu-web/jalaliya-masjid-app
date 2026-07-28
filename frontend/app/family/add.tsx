@@ -122,6 +122,7 @@ export default function AddFamilyScreen() {
     };
 
     console.log('[Add Family] Request body:', JSON.stringify(requestBody, null, 2));
+    console.log('[Add Family] About to call API with:', { placeId, address, monthlyFeeMarried, monthlyFeeUnmarried, membersCount: validMembers.length });
 
     setLoading(true);
     const { data, error } = await api.families.create(requestBody);
@@ -129,6 +130,7 @@ export default function AddFamilyScreen() {
 
     console.log('[Add Family] Response data:', JSON.stringify(data, null, 2));
     console.log('[Add Family] Response error:', JSON.stringify(error, null, 2));
+    console.log('[Add Family] Full response object:', { data, error });
 
     if (error) {
       Alert.alert('Error', String(error));

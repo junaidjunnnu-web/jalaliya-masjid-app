@@ -180,73 +180,71 @@ export default function EventsScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.modalOverlay}
         >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <ScrollView style={styles.modalScrollView} showsVerticalScrollIndicator={false}>
-                <Text style={styles.modalTitle}>
-                  {editingEvent ? 'Edit Event' : 'New Event'}
+          <View style={styles.modalContent}>
+            <ScrollView style={styles.modalScrollView} showsVerticalScrollIndicator={false}>
+              <Text style={styles.modalTitle}>
+                {editingEvent ? 'Edit Event' : 'New Event'}
+              </Text>
+
+              <Text style={styles.modalLabel}>Title *</Text>
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Enter event title"
+                value={formData.title}
+                onChangeText={(text) => setFormData({ ...formData, title: text })}
+              />
+
+              <Text style={styles.modalLabel}>Date *</Text>
+              <TextInput
+                style={styles.modalInput}
+                placeholder="YYYY-MM-DD"
+                value={formData.eventDate}
+                onChangeText={(text) => setFormData({ ...formData, eventDate: text })}
+              />
+
+              <Text style={styles.modalLabel}>Time *</Text>
+              <TextInput
+                style={styles.modalInput}
+                placeholder="e.g., 14:30"
+                value={formData.eventTime}
+                onChangeText={(text) => setFormData({ ...formData, eventTime: text })}
+              />
+
+              <Text style={styles.modalLabel}>Location</Text>
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Enter location"
+                value={formData.location}
+                onChangeText={(text) => setFormData({ ...formData, location: text })}
+              />
+
+              <Text style={styles.modalLabel}>Description</Text>
+              <TextInput
+                style={[styles.modalInput, styles.textArea]}
+                placeholder="Enter event description"
+                value={formData.description}
+                onChangeText={(text) => setFormData({ ...formData, description: text })}
+                multiline
+                numberOfLines={3}
+              />
+            </ScrollView>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelModalButton]}
+                onPress={() => setShowModal(false)}
+              >
+                <Text style={styles.modalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.saveModalButton, loading && styles.modalButtonDisabled]}
+                onPress={handleSave}
+                disabled={loading}
+              >
+                <Text style={styles.modalButtonText}>
+                  {loading ? 'Saving...' : 'Save Event'}
                 </Text>
-
-                <Text style={styles.modalLabel}>Title *</Text>
-                <TextInput
-                  style={styles.modalInput}
-                  placeholder="Enter event title"
-                  value={formData.title}
-                  onChangeText={(text) => setFormData({ ...formData, title: text })}
-                />
-
-                <Text style={styles.modalLabel}>Date *</Text>
-                <TextInput
-                  style={styles.modalInput}
-                  placeholder="YYYY-MM-DD"
-                  value={formData.eventDate}
-                  onChangeText={(text) => setFormData({ ...formData, eventDate: text })}
-                />
-
-                <Text style={styles.modalLabel}>Time *</Text>
-                <TextInput
-                  style={styles.modalInput}
-                  placeholder="e.g., 14:30"
-                  value={formData.eventTime}
-                  onChangeText={(text) => setFormData({ ...formData, eventTime: text })}
-                />
-
-                <Text style={styles.modalLabel}>Location</Text>
-                <TextInput
-                  style={styles.modalInput}
-                  placeholder="Enter location"
-                  value={formData.location}
-                  onChangeText={(text) => setFormData({ ...formData, location: text })}
-                />
-
-                <Text style={styles.modalLabel}>Description</Text>
-                <TextInput
-                  style={[styles.modalInput, styles.textArea]}
-                  placeholder="Enter event description"
-                  value={formData.description}
-                  onChangeText={(text) => setFormData({ ...formData, description: text })}
-                  multiline
-                  numberOfLines={3}
-                />
-              </ScrollView>
-
-              <View style={styles.modalActions}>
-                <TouchableOpacity
-                  style={[styles.modalButton, styles.cancelModalButton]}
-                  onPress={() => setShowModal(false)}
-                >
-                  <Text style={styles.modalButtonText}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.modalButton, styles.saveModalButton, loading && styles.modalButtonDisabled]}
-                  onPress={handleSave}
-                  disabled={loading}
-                >
-                  <Text style={styles.modalButtonText}>
-                    {loading ? 'Saving...' : 'Save Event'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
+              </TouchableOpacity>
             </View>
           </View>
         </KeyboardAvoidingView>
