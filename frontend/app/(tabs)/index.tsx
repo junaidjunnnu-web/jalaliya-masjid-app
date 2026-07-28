@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
@@ -137,9 +137,9 @@ export default function HomeScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       {/* Header */}
-      <View style={styles.header}>
+      <SafeAreaView style={styles.header}>
         <Text style={styles.headerTitle}>Jalaliya Juma Masjid</Text>
-      </View>
+      </SafeAreaView>
 
       {/* Photo Banner Carousel */}
       <View style={styles.bannerContainer}>

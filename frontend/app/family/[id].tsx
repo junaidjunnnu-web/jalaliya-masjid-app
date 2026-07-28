@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking, TextInput, Alert, Modal, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking, TextInput, Alert, Modal, KeyboardAvoidingView, Platform, SafeAreaView } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
@@ -157,9 +157,9 @@ export default function FamilyDetailScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
-      <View style={styles.header}>
+      <SafeAreaView style={styles.header}>
         <Text style={styles.headerTitle}>Family Details</Text>
-      </View>
+      </SafeAreaView>
 
       {/* Family Card */}
       <View style={styles.familyCard}>

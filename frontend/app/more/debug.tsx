@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
 import { theme } from '../../theme';
 import { useAuth } from '../../lib/auth-context';
 import { useRouter } from 'expo-router';
@@ -10,12 +10,12 @@ export default function DebugScreen() {
 
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.header}>
+      <SafeAreaView style={styles.header}>
         <Text style={styles.headerTitle}>Debug Info</Text>
         <TouchableOpacity onPress={() => router.back()}>
           <Text style={styles.backButton}>← Back</Text>
         </TouchableOpacity>
-      </View>
+      </SafeAreaView>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Current User</Text>

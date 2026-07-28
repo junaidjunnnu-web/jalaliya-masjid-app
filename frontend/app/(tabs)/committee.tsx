@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking, TextInput, Alert, Modal, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking, TextInput, Alert, Modal, KeyboardAvoidingView, Platform, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
@@ -137,9 +137,9 @@ export default function CommitteeScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
-      <View style={styles.header}>
+      <SafeAreaView style={styles.header}>
         <Text style={styles.headerTitle}>Committee</Text>
-      </View>
+      </SafeAreaView>
 
       {/* About Section */}
       <View style={styles.aboutSection}>
@@ -173,38 +173,34 @@ export default function CommitteeScreen() {
               </View>
             </View>
             <View style={styles.memberActions}>
-              <View style={styles.editDeleteButtons}>
-                <TouchableOpacity
-                  style={styles.editButton}
-                  onPress={() => openEditModal(member)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.editButtonText}>Edit</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.deleteButton}
-                  onPress={() => handleDelete(member)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.deleteButtonText}>Delete</Text>
-                </TouchableOpacity>
-              </View>
-              <View style={styles.contactButtons}>
-                <TouchableOpacity
-                  style={[styles.contactButton, styles.callButton]}
-                  onPress={() => handleCall(member.phone)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.contactButtonText}>📞</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.contactButton, styles.whatsappButton]}
-                  onPress={() => handleWhatsApp(member.phone)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.contactButtonText}>💬</Text>
-                </TouchableOpacity>
-              </View>
+              <TouchableOpacity
+                style={styles.editButton}
+                onPress={() => openEditModal(member)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.editButtonText}>Edit</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => handleDelete(member)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.deleteButtonText}>Delete</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.contactButton, styles.callButton]}
+                onPress={() => handleCall(member.phone)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.contactButtonText}>📞</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.contactButton, styles.whatsappButton]}
+                onPress={() => handleWhatsApp(member.phone)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.contactButtonText}>💬</Text>
+              </TouchableOpacity>
             </View>
           </View>
         ))}
@@ -400,7 +396,7 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
   },
   addButton: {
-    backgroundColor: theme.colors.committeeAccent,
+    backgroundColor: theme.colors.addButtonColor,
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.sm,
     borderRadius: theme.radius.pill,
@@ -408,15 +404,11 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.primary,
   },
   addButtonText: {
-    color: theme.colors.textPrimary,
+    color: theme.colors.white,
     fontSize: 14,
     fontWeight: '600',
   },
   memberActions: {
-    flexDirection: 'row',
-    gap: theme.spacing.sm,
-  },
-  editDeleteButtons: {
     flexDirection: 'row',
     gap: theme.spacing.sm,
   },

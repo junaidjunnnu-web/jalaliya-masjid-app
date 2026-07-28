@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert, Modal } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert, Modal, SafeAreaView } from 'react-native';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
 
@@ -83,9 +83,9 @@ export default function ExpensesScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
-      <View style={styles.header}>
+      <SafeAreaView style={styles.header}>
         <Text style={styles.headerTitle}>Expenses</Text>
-      </View>
+      </SafeAreaView>
 
       {/* Add Button */}
       <TouchableOpacity style={styles.createButton} onPress={openAddModal}>
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
     fontFamily: theme.typography.display,
   },
   createButton: {
-    backgroundColor: theme.colors.feesAccent,
+    backgroundColor: theme.colors.addButtonColor,
     margin: theme.spacing.md,
     borderRadius: theme.radius.button,
     padding: theme.spacing.md,

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert, Modal, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert, Modal, KeyboardAvoidingView, Platform, SafeAreaView } from 'react-native';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
 
@@ -79,9 +79,9 @@ export default function AnnouncementsScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
-      <View style={styles.header}>
+      <SafeAreaView style={styles.header}>
         <Text style={styles.headerTitle}>Announcements</Text>
-      </View>
+      </SafeAreaView>
 
       {/* Create Button */}
       <TouchableOpacity style={styles.createButton} onPress={openAddModal} activeOpacity={0.7}>
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
     fontFamily: theme.typography.display,
   },
   createButton: {
-    backgroundColor: theme.colors.announcementsAccent,
+    backgroundColor: theme.colors.addButtonColor,
     margin: theme.spacing.md,
     borderRadius: theme.radius.button,
     padding: theme.spacing.md,
@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: theme.spacing.md,
     borderWidth: 2,
-    borderColor: theme.colors.accent,
+    borderColor: theme.colors.primary,
     ...theme.shadow.button,
   },
   saveButtonDisabled: {

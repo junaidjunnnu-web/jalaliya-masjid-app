@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
@@ -60,9 +60,9 @@ export default function MembersScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
-      <View style={styles.header}>
+      <SafeAreaView style={styles.header}>
         <Text style={styles.headerTitle}>Members</Text>
-      </View>
+      </SafeAreaView>
 
       {/* Search Bar */}
       <View style={styles.searchContainer}>
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.gray[300],
   },
   addButton: {
-    backgroundColor: theme.colors.membersAccent,
+    backgroundColor: theme.colors.addButtonColor,
     marginHorizontal: theme.spacing.md,
     marginBottom: theme.spacing.md,
     borderRadius: theme.radius.button,

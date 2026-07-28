@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert, Modal, Image, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert, Modal, Image, KeyboardAvoidingView, Platform, SafeAreaView } from 'react-native';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
 import * as Linking from 'expo-linking';
@@ -120,9 +120,9 @@ export default function GalleryScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
-      <View style={styles.header}>
+      <SafeAreaView style={styles.header}>
         <Text style={styles.headerTitle}>Gallery</Text>
-      </View>
+      </SafeAreaView>
 
       {/* Category Filter */}
       <ScrollView
@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
     color: theme.colors.white,
   },
   uploadButton: {
-    backgroundColor: theme.colors.galleryAccent,
+    backgroundColor: theme.colors.addButtonColor,
     marginHorizontal: theme.spacing.md,
     marginBottom: theme.spacing.md,
     borderRadius: theme.radius.button,
@@ -500,7 +500,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: theme.spacing.md,
     borderWidth: 2,
-    borderColor: theme.colors.accent,
+    borderColor: theme.colors.primary,
     ...theme.shadow.button,
   },
   saveButtonDisabled: {

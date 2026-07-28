@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
 import { theme } from '../../theme';
 import { useAuth } from '../../lib/auth-context';
 
@@ -45,9 +45,9 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.header}>
+      <SafeAreaView style={styles.header}>
         <Text style={styles.headerTitle}>Settings</Text>
-      </View>
+      </SafeAreaView>
 
       <View style={styles.settingsList}>
         {settingsItems.map((item) => (

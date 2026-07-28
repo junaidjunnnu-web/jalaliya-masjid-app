@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ScrollView, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { theme } from '../../theme';
 import { useAuth } from '../../lib/auth-context';
@@ -64,10 +64,10 @@ export default function RegisterScreen() {
 
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.header}>
+      <SafeAreaView style={styles.header}>
         <Text style={styles.headerTitle}>Register Family</Text>
         <Text style={styles.headerSubtitle}>Join Jalaliya Juma Masjid Community</Text>
-      </View>
+      </SafeAreaView>
 
       <View style={styles.form}>
         <TextInput
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
   },
   headerSubtitle: {
     fontSize: 14,
-    color: theme.colors.accent,
+    color: theme.colors.gray[500],
   },
   form: {
     padding: theme.spacing.xl,
@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: theme.spacing.md,
     borderWidth: 2,
-    borderColor: theme.colors.accent,
+    borderColor: theme.colors.primary,
     ...theme.shadow.button,
   },
   buttonDisabled: {

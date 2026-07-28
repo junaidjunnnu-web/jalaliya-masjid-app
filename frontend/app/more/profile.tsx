@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert, SafeAreaView } from 'react-native';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
 
@@ -41,9 +41,9 @@ export default function ProfileScreen() {
   if (!family) {
     return (
       <View style={styles.container}>
-        <View style={styles.header}>
+        <SafeAreaView style={styles.header}>
           <Text style={styles.headerTitle}>My Profile</Text>
-        </View>
+        </SafeAreaView>
         <View style={styles.loadingContainer}>
           <Text>Loading...</Text>
         </View>
@@ -53,9 +53,9 @@ export default function ProfileScreen() {
 
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.header}>
+      <SafeAreaView style={styles.header}>
         <Text style={styles.headerTitle}>My Profile</Text>
-      </View>
+      </SafeAreaView>
 
       {/* Status Badge */}
       {family.status === 'pending' && (
@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: theme.spacing.md,
     borderWidth: 2,
-    borderColor: theme.colors.accent,
+    borderColor: theme.colors.primary,
     ...theme.shadow.button,
   },
   addMemberButtonText: {

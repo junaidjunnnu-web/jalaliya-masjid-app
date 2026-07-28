@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
 import { theme } from '../../theme';
 
 export default function BroadcastScreen() {
@@ -73,10 +73,10 @@ Jalaliya Juma Masjid Committee`,
 
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.header}>
+      <SafeAreaView style={styles.header}>
         <Text style={styles.headerTitle}>Broadcast</Text>
         <Text style={styles.headerSubtitle}>Send messages to families</Text>
-      </View>
+      </SafeAreaView>
 
       {/* Template Selection */}
       <View style={styles.section}>
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
   },
   headerSubtitle: {
     fontSize: 14,
-    color: theme.colors.accent,
+    color: theme.colors.gray[500],
   },
   section: {
     padding: theme.spacing.md,
@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
     padding: theme.spacing.lg,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: theme.colors.accent,
+    borderColor: theme.colors.primary,
     ...theme.shadow.button,
   },
   sendButtonText: {
@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   infoBox: {
-    backgroundColor: `${theme.colors.accent}20`,
+    backgroundColor: `${theme.colors.primary}20`,
     margin: theme.spacing.md,
     padding: theme.spacing.md,
     borderRadius: theme.radius.card,

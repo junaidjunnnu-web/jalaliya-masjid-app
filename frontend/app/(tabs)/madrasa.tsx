@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert, Modal, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert, Modal, KeyboardAvoidingView, Platform, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
@@ -148,9 +148,9 @@ export default function MadrasaScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
-      <View style={styles.header}>
+      <SafeAreaView style={styles.header}>
         <Text style={styles.headerTitle}>Madrasa</Text>
-      </View>
+      </SafeAreaView>
 
       {/* Class Filter */}
       <ScrollView
@@ -478,13 +478,13 @@ const styles = StyleSheet.create({
     marginLeft: theme.spacing.sm,
   },
   addButton: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.addButtonColor,
     margin: theme.spacing.md,
     borderRadius: theme.radius.button,
     padding: theme.spacing.md,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: theme.colors.accent,
+    borderColor: theme.colors.primary,
     ...theme.shadow.button,
   },
   addButtonText: {
@@ -628,7 +628,7 @@ const styles = StyleSheet.create({
   saveModalButton: {
     backgroundColor: theme.colors.primary,
     borderWidth: 2,
-    borderColor: theme.colors.accent,
+    borderColor: theme.colors.primary,
   },
   modalButtonDisabled: {
     opacity: 0.6,

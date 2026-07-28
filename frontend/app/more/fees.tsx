@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert, Modal, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert, Modal, KeyboardAvoidingView, Platform, SafeAreaView } from 'react-native';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
 import * as Linking from 'expo-linking';
@@ -37,7 +37,7 @@ export default function FeesScreen() {
       case 'paid':
         return theme.colors.success;
       case 'partial':
-        return theme.colors.accent;
+        return theme.colors.gray[500];
       case 'unpaid':
         return theme.colors.alert;
       default:
@@ -126,9 +126,9 @@ JazakAllah Khair`;
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
-      <View style={styles.header}>
+      <SafeAreaView style={styles.header}>
         <Text style={styles.headerTitle}>Fee Collection</Text>
-      </View>
+      </SafeAreaView>
 
       {/* Committee Summary Header */}
       {summary && (
@@ -512,7 +512,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: theme.spacing.md,
     borderWidth: 2,
-    borderColor: theme.colors.accent,
+    borderColor: theme.colors.primary,
     ...theme.shadow.button,
   },
   saveButtonDisabled: {

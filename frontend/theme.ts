@@ -1,6 +1,7 @@
 export const theme = {
   colors: {
     primary: '#5F5E5A',      // Warm taupe — base color, headers
+    addButtonColor: '#8C3B4A',  // Deep rose red — Add/Create buttons
     membersAccent: '#5F5E5A',   // Warm taupe — unified across all sections
     committeeAccent: '#5F5E5A',  // Warm taupe — unified across all sections
     eventsAccent: '#5F5E5A',     // Warm taupe — unified across all sections
