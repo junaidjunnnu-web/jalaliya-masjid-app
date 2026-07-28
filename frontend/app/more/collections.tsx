@@ -242,13 +242,13 @@ const styles = StyleSheet.create({
     fontFamily: theme.typography.display,
   },
   createButton: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.feesAccent,
     margin: theme.spacing.md,
     borderRadius: theme.radius.button,
     padding: theme.spacing.md,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: theme.colors.accent,
+    borderColor: theme.colors.primary,
     ...theme.shadow.button,
   },
   createButtonText: {
@@ -351,9 +351,9 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.gray[300],
   },
   saveModalButton: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.feesAccent,
     borderWidth: 2,
-    borderColor: theme.colors.accent,
+    borderColor: theme.colors.primary,
   },
   modalButtonDisabled: {
     opacity: 0.6,
@@ -415,13 +415,13 @@ const styles = StyleSheet.create({
     color: theme.colors.white,
   },
   saveButton: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.feesAccent,
     borderRadius: theme.radius.button,
     padding: theme.spacing.lg,
     alignItems: 'center',
     marginTop: theme.spacing.md,
     borderWidth: 2,
-    borderColor: theme.colors.accent,
+    borderColor: theme.colors.primary,
     ...theme.shadow.button,
   },
   saveButtonDisabled: {

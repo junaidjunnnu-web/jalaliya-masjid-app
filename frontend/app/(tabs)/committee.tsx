@@ -400,7 +400,7 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
   },
   addButton: {
-    backgroundColor: theme.colors.accent,
+    backgroundColor: theme.colors.committeeAccent,
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.sm,
     borderRadius: theme.radius.pill,
@@ -408,7 +408,7 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.primary,
   },
   addButtonText: {
-    color: theme.colors.white,
+    color: theme.colors.textPrimary,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -496,7 +496,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.gray[200],
   },
   saveModalButton: {
-    backgroundColor: theme.colors.accent,
+    backgroundColor: theme.colors.committeeAccent,
     borderWidth: 2,
     borderColor: theme.colors.primary,
   },

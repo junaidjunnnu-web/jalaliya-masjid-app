@@ -1,11 +1,11 @@
 export const theme = {
   colors: {
-    primary: '#0F3D3E',      // Deep Teal — Members/Families section
-    accent: '#C9A24B',       // Warm Gold — Committee section
-    eventsAccent: '#2C5F7A',  // Muted Navy — Events section
-    announcementsAccent: '#C15C3D',  // Terracotta — Announcements section
-    galleryAccent: '#9B7EBD', // Soft Plum — Gallery section
-    feesAccent: '#3D5A3D',    // Deep Forest Green — Fees/Collections/Expenses section
+    primary: '#0F3D3E',      // Deep green — Members/Families section
+    committeeAccent: '#E8B923',  // Yellow — Committee section
+    eventsAccent: '#E0722E',     // Orange — Events section
+    announcementsAccent: '#C4304E',  // Rose red — Announcements section
+    galleryAccent: '#6E6E68',    // Gray — Gallery section
+    feesAccent: '#E02E2E',       // Bright red — Fees/Collections/Expenses section
     background: '#FAF6EE',   // Soft Ivory
     textPrimary: '#2B2B2B',  // Charcoal Ink
     success: '#6B9080',      // Sage — paid/approved badges
