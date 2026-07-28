@@ -75,7 +75,7 @@ router.post('/', async (req, res) => {
 });
 
 // Update namaz timings (committee only)
-router.put('/:id', auth, committeeOnly, async (req, res) => {
+router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const {
