@@ -246,38 +246,34 @@ export default function FamilyDetailScreen() {
                   <Text style={styles.memberOccupation}>{member.occupation}</Text>
                 )}
               </View>
-              {true && (
-                <View style={styles.memberActions}>
-                  <TouchableOpacity
-                    style={styles.memberActionButton}
-                    onPress={() => openEditMemberModal(member)}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.memberActionText}>Edit</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.memberActionButton, styles.deleteButton]}
-                    onPress={() => handleDeleteMember(member)}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.memberActionText}>Delete</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-              {true && (
-                <View style={styles.memberDetails}>
-                  {member.age && <Text style={styles.memberDetail}>Age: {member.age}</Text>}
-                  {member.gender && <Text style={styles.memberDetail}>{member.gender.charAt(0).toUpperCase() + member.gender.slice(1)}</Text>}
-                  {member.maritalStatus && (
-                    <Text style={styles.memberDetail}>{member.maritalStatus.charAt(0).toUpperCase() + member.maritalStatus.slice(1)}</Text>
-                  )}
-                  {member.isFeeApplicable && (
-                    <View style={styles.feeApplicableBadge}>
-                      <Text style={styles.feeApplicableText}>Fee Applicable</Text>
-                    </View>
-                  )}
-                </View>
-              )}
+              <View style={styles.memberActions}>
+                <TouchableOpacity
+                  style={styles.memberActionButton}
+                  onPress={() => openEditMemberModal(member)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.memberActionText}>Edit</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.memberActionButton, styles.deleteButton]}
+                  onPress={() => handleDeleteMember(member)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.memberActionText}>Delete</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.memberDetails}>
+                {member.age && <Text style={styles.memberDetail}>Age: {member.age}</Text>}
+                {member.gender && <Text style={styles.memberDetail}>{member.gender.charAt(0).toUpperCase() + member.gender.slice(1)}</Text>}
+                {member.maritalStatus && (
+                  <Text style={styles.memberDetail}>{member.maritalStatus.charAt(0).toUpperCase() + member.maritalStatus.slice(1)}</Text>
+                )}
+                {member.isFeeApplicable && (
+                  <View style={styles.feeApplicableBadge}>
+                    <Text style={styles.feeApplicableText}>Fee Applicable</Text>
+                  </View>
+                )}
+              </View>
             </View>
           ))
         )}
@@ -705,7 +701,6 @@ const styles = StyleSheet.create({
     ...theme.shadow.card,
   },
   modalScrollView: {
-    flex: 1,
     marginBottom: theme.spacing.md,
   },
   modalTitle: {

@@ -73,7 +73,7 @@ const committeeMembers = pgTable('committee_members', {
   designation: varchar('designation', { length: 100 }).notNull(),
   phone: varchar('phone', { length: 15 }).notNull(),
   photoUrl: varchar('photo_url', { length: 500 }),
-  tenureStart: date('tenure_start').notNull(),
+  tenureStart: date('tenure_start'),
   tenureEnd: date('tenure_end'),
 });
 
