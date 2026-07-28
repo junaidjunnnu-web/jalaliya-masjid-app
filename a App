@@ -1,0 +1,19 @@
+warning: in the working copy of 'frontend/app/(tabs)/committee.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/app/(tabs)/madrasa.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/app/(tabs)/members.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/app/(tabs)/namaz.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/app/family/[id].tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/app/more/announcements.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/app/more/events.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/app/more/fees.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/app/more/gallery.tsx', LF will be replaced by CRLF the next time Git touches it
+ frontend/app/(tabs)/committee.tsx   | 348 [32m+++++++++++++++++++++++++++[m[31m-[m
+ frontend/app/(tabs)/madrasa.tsx     | 442 [32m+++++++++++++++++++++++++++++++++++[m[31m-[m
+ frontend/app/(tabs)/members.tsx     |  58 [32m++++[m[31m-[m
+ frontend/app/(tabs)/namaz.tsx       | 217 [32m+++++++++++++++++[m[31m-[m
+ frontend/app/family/[id].tsx        | 403 [32m+++++++++++++++++++++++++++++++[m[31m-[m
+ frontend/app/more/announcements.tsx | 210 [32m++++++++++++++++[m[31m-[m
+ frontend/app/more/events.tsx        | 288 [32m++++++++++++++++++++++[m[31m-[m
+ frontend/app/more/fees.tsx          | 194 [32m+++++++++++++++[m[31m-[m
+ frontend/app/more/gallery.tsx       | 260 [32m++++++++++++++++++++[m[31m-[m
+ 9 files changed, 2370 insertions(+), 50 deletions(-)

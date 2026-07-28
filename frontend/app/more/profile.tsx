@@ -5,7 +5,7 @@ import { useAuth } from '../../lib/auth-context';
 import { api } from '../../lib/api';
 
 export default function ProfileScreen() {
-  const { user, family, refreshUser } = useAuth();
+  const { user, family, refreshUser, logout } = useAuth();
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState({
     headName: '',
@@ -36,6 +36,21 @@ export default function ProfileScreen() {
     } else {
       Alert.alert('Error', error || 'Failed to update family information');
     }
+  };
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Logout',
+          style: 'destructive',
+          onPress: () => logout(),
+        },
+      ]
+    );
   };
 
   if (!family) {
@@ -170,6 +185,9 @@ export default function ProfileScreen() {
           <Text style={styles.infoLabel}>Role:</Text>
           <Text style={styles.infoValue}>{user?.role}</Text>
         </View>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Text style={styles.logoutButtonText}>Logout</Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
@@ -327,5 +345,17 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  logoutButton: {
+    backgroundColor: theme.colors.alert,
+    borderRadius: theme.radius.button,
+    padding: theme.spacing.md,
+    alignItems: 'center',
+    marginTop: theme.spacing.md,
+  },
+  logoutButtonText: {
+    color: theme.colors.white,
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

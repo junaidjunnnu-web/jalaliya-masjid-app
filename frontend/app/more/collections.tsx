@@ -4,74 +4,78 @@ import { theme } from '../../theme';
 import { api } from '../../lib/api';
 import { useAuth } from '../../lib/auth-context';
 
-export default function AnnouncementsScreen() {
+export default function CollectionsScreen() {
   const { user } = useAuth();
-  const [announcements, setAnnouncements] = useState<any[]>([]);
+  const [collections, setCollections] = useState<any[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
-    title: '',
-    message: '',
+    type: 'Zakat',
+    amount: '',
+    donorName: '',
+    notes: '',
   });
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    loadAnnouncements();
+    loadCollections();
   }, []);
 
-  const loadAnnouncements = async () => {
-    const { data } = await api.announcements.getAll();
+  const loadCollections = async () => {
+    const { data } = await api.collections.getAll();
     if (data) {
-      setAnnouncements(data);
+      setCollections(data);
     }
   };
 
   const openAddModal = () => {
-    setFormData({ title: '', message: '' });
+    setFormData({ type: 'Zakat', amount: '', donorName: '', notes: '' });
     setShowModal(true);
   };
 
   const handleSave = async () => {
-    const { title, message } = formData;
-    if (!title || !message) {
-      Alert.alert('Error', 'Please fill all fields');
+    const { type, amount, donorName } = formData;
+    if (!amount || !donorName) {
+      Alert.alert('Error', 'Please fill all required fields');
       return;
     }
 
     setLoading(true);
     try {
-      const { data, error } = await api.announcements.create({
-        title: formData.title,
-        message: formData.message,
+      const { data, error } = await api.collections.create({
+        type: formData.type,
+        amount: parseFloat(formData.amount),
+        donor_name: formData.donorName,
+        notes: formData.notes,
       });
       if (error) {
         Alert.alert('Error', error);
       } else {
-        await loadAnnouncements();
+        await loadCollections();
         setShowModal(false);
-        Alert.alert('Success', 'Announcement created');
+        Alert.alert('Success', 'Collection added');
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to create announcement');
+      Alert.alert('Error', 'Failed to add collection');
     }
     setLoading(false);
   };
 
-  const handleDelete = (announcement: any) => {
+  const handleDelete = (collection: any) => {
     Alert.alert(
-      'Delete Announcement',
-      'Delete this announcement?',
+      'Delete Collection',
+      `Delete this collection of ₹${collection.amount}?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Delete',
           style: 'destructive',
           onPress: async () => {
-            const { error } = await api.announcements.delete(announcement.id);
+            const { error } = await api.collections.delete(collection.id);
             if (error) {
               Alert.alert('Error', error);
             } else {
-              await loadAnnouncements();
-              Alert.alert('Success', 'Announcement deleted');
+              await loadCollections();
+              Alert.alert('Success', 'Collection deleted');
             }
           }
         }
@@ -79,58 +83,59 @@ export default function AnnouncementsScreen() {
     );
   };
 
+  const collectionTypes = ['Zakat', 'Sadaqah', 'Fitrah', 'General Fund'];
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Announcements</Text>
+        <Text style={styles.headerTitle}>Collections</Text>
       </View>
 
-      {/* Create Button - Committee Only */}
+      {/* Add Button - Committee Only */}
       {user?.role === 'committee' && (
         <TouchableOpacity style={styles.createButton} onPress={openAddModal}>
-          <Text style={styles.createButtonText}>+ New Announcement</Text>
+          <Text style={styles.createButtonText}>+ Add Collection</Text>
         </TouchableOpacity>
       )}
 
-      {/* Announcements List */}
-      <View style={styles.announcementsList}>
-        {announcements.length === 0 ? (
+      {/* Collections List */}
+      <View style={styles.collectionsList}>
+        {collections.length === 0 ? (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>No announcements yet</Text>
+            <Text style={styles.emptyText}>No collections yet</Text>
           </View>
         ) : (
-          announcements.map((announcement) => (
-            <View key={announcement.id} style={styles.announcementCard}>
-              <View style={styles.announcementHeader}>
-                <Text style={styles.announcementTitle}>{announcement.title}</Text>
+          collections.map((collection) => (
+            <View key={collection.id} style={styles.collectionCard}>
+              <View style={styles.collectionHeader}>
+                <Text style={styles.collectionType}>{collection.type}</Text>
                 {user?.role === 'committee' && (
                   <TouchableOpacity
                     style={styles.deleteButton}
-                    onPress={() => handleDelete(announcement)}
+                    onPress={() => handleDelete(collection)}
                   >
                     <Text style={styles.deleteButtonText}>Delete</Text>
                   </TouchableOpacity>
                 )}
               </View>
-              <Text style={styles.announcementDate}>
-                {new Date(announcement.createdAt).toLocaleDateString('en-US', {
+              <Text style={styles.collectionAmount}>₹{collection.amount}</Text>
+              <Text style={styles.collectionDonor}>Donor: {collection.donorName}</Text>
+              {collection.notes && (
+                <Text style={styles.collectionNotes}>{collection.notes}</Text>
+              )}
+              <Text style={styles.collectionDate}>
+                {new Date(collection.createdAt).toLocaleDateString('en-US', {
                   month: 'short',
                   day: 'numeric',
                   year: 'numeric',
                 })}
               </Text>
-              <Text style={styles.announcementMessage}>{announcement.message}</Text>
-              {announcement.committeeMemberName && (
-                <Text style={styles.announcementPostedBy}>
-                  Posted by: {announcement.committeeMemberName}
-                </Text>
-              )}
             </View>
           ))
         )}
       </View>
 
-      {/* Create Announcement Modal */}
+      {/* Add Collection Modal */}
       <Modal
         visible={showModal}
         animationType="slide"
@@ -139,24 +144,56 @@ export default function AnnouncementsScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>New Announcement</Text>
+            <Text style={styles.modalTitle}>Add Collection</Text>
 
-            <Text style={styles.modalLabel}>Title *</Text>
+            <Text style={styles.modalLabel}>Type</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.typeContainer}>
+              {collectionTypes.map((type) => (
+                <TouchableOpacity
+                  key={type}
+                  style={[
+                    styles.typeButton,
+                    formData.type === type && styles.typeButtonActive,
+                  ]}
+                  onPress={() => setFormData({ ...formData, type })}
+                >
+                  <Text
+                    style={[
+                      styles.typeButtonText,
+                      formData.type === type && styles.typeButtonTextActive,
+                    ]}
+                  >
+                    {type}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <Text style={styles.modalLabel}>Amount *</Text>
             <TextInput
               style={styles.modalInput}
-              placeholder="Enter announcement title"
-              value={formData.title}
-              onChangeText={(text) => setFormData({ ...formData, title: text })}
+              placeholder="Enter amount"
+              value={formData.amount}
+              onChangeText={(text) => setFormData({ ...formData, amount: text })}
+              keyboardType="numeric"
             />
 
-            <Text style={styles.modalLabel}>Message *</Text>
+            <Text style={styles.modalLabel}>Donor Name *</Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Enter donor name"
+              value={formData.donorName}
+              onChangeText={(text) => setFormData({ ...formData, donorName: text })}
+            />
+
+            <Text style={styles.modalLabel}>Notes</Text>
             <TextInput
               style={[styles.modalInput, styles.textArea]}
-              placeholder="Enter announcement message"
-              value={formData.message}
-              onChangeText={(text) => setFormData({ ...formData, message: text })}
+              placeholder="Enter notes"
+              value={formData.notes}
+              onChangeText={(text) => setFormData({ ...formData, notes: text })}
               multiline
-              numberOfLines={4}
+              numberOfLines={3}
             />
 
             <TouchableOpacity
@@ -165,7 +202,7 @@ export default function AnnouncementsScreen() {
               disabled={loading}
             >
               <Text style={styles.saveButtonText}>
-                {loading ? 'Creating)' : 'Create Announcement'}
+                {loading ? 'Adding...' : 'Add Collection'}
               </Text>
             </TouchableOpacity>
 
@@ -213,52 +250,48 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  announcementsList: {
+  collectionsList: {
     padding: theme.spacing.md,
   },
-  announcementCard: {
+  collectionCard: {
     backgroundColor: theme.colors.white,
     borderRadius: theme.radius.card,
     padding: theme.spacing.lg,
     marginBottom: theme.spacing.md,
     ...theme.shadow.card,
   },
-  announcementTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: theme.colors.textPrimary,
-    marginBottom: theme.spacing.xs,
-    fontFamily: theme.typography.display,
-  },
-  announcementDate: {
-    fontSize: 12,
-    color: theme.colors.gray[500],
-    marginBottom: theme.spacing.sm,
-  },
-  announcementMessage: {
-    fontSize: 14,
-    color: theme.colors.textPrimary,
-    lineHeight: 22,
-    marginBottom: theme.spacing.sm,
-  },
-  announcementPostedBy: {
-    fontSize: 12,
-    color: theme.colors.gray[500],
-    fontStyle: 'italic',
-  },
-  emptyState: {
-    padding: theme.spacing.xxl,
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: 16,
-    color: theme.colors.gray[500],
-  },
-  announcementHeader: {
+  collectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: theme.spacing.sm,
+  },
+  collectionType: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: theme.colors.textPrimary,
+    fontFamily: theme.typography.display,
+  },
+  collectionAmount: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: theme.colors.primary,
+    marginBottom: theme.spacing.sm,
+  },
+  collectionDonor: {
+    fontSize: 14,
+    color: theme.colors.gray[500],
     marginBottom: theme.spacing.xs,
+  },
+  collectionNotes: {
+    fontSize: 14,
+    color: theme.colors.textPrimary,
+    marginBottom: theme.spacing.xs,
+    fontStyle: 'italic',
+  },
+  collectionDate: {
+    fontSize: 12,
+    color: theme.colors.gray[400],
   },
   deleteButton: {
     paddingHorizontal: theme.spacing.sm,
@@ -270,6 +303,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: theme.colors.white,
     fontWeight: '600',
+  },
+  emptyState: {
+    padding: theme.spacing.xxl,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 16,
+    color: theme.colors.gray[500],
   },
   modalOverlay: {
     flex: 1,
@@ -309,8 +350,33 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.gray[300],
   },
   textArea: {
-    height: 100,
+    height: 80,
     textAlignVertical: 'top',
+  },
+  typeContainer: {
+    marginBottom: theme.spacing.md,
+    flexGrow: 0,
+  },
+  typeButton: {
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.radius.pill,
+    backgroundColor: theme.colors.white,
+    borderWidth: 1,
+    borderColor: theme.colors.gray[300],
+    marginRight: theme.spacing.sm,
+  },
+  typeButtonActive: {
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
+  },
+  typeButtonText: {
+    fontSize: 14,
+    color: theme.colors.gray[500],
+    fontWeight: '600',
+  },
+  typeButtonTextActive: {
+    color: theme.colors.white,
   },
   saveButton: {
     backgroundColor: theme.colors.primary,

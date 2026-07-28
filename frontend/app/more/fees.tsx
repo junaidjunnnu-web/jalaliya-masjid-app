@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert, Modal } from 'react-native';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
 import { useAuth } from '../../lib/auth-context';
+import * as Linking from 'expo-linking';
 
 export default function FeesScreen() {
   const { user, family } = useAuth();
@@ -11,6 +12,10 @@ export default function FeesScreen() {
   const [selectedMonth, setSelectedMonth] = useState<string>(
     new Date().toISOString().slice(0, 7)
   );
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedFee, setSelectedFee] = useState<any>(null);
+  const [paymentAmount, setPaymentAmount] = useState('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (user?.role === 'committee') {
@@ -56,6 +61,74 @@ Balance: ₹${fee.closingBalance}
 JazakAllah Khair`;
   };
 
+  const handleGenerateFees = async () => {
+    Alert.alert(
+      'Generate Fees',
+      `Generate fees for ${selectedMonth}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Generate',
+          style: 'destructive',
+          onPress: async () => {
+            setLoading(true);
+            try {
+              const { data, error } = await api.fees.generate(selectedMonth);
+              if (error) {
+                Alert.alert('Error', error);
+              } else {
+                await loadCommitteeView();
+                Alert.alert('Success', 'Fees generated successfully');
+              }
+            } catch (error) {
+              Alert.alert('Error', 'Failed to generate fees');
+            }
+            setLoading(false);
+          }
+        }
+      ]
+    );
+  };
+
+  const openPaymentModal = (fee: any) => {
+    setSelectedFee(fee);
+    setPaymentAmount('');
+    setShowPaymentModal(true);
+  };
+
+  const handleUpdatePayment = async () => {
+    const amount = parseFloat(paymentAmount);
+    if (!amount || amount <= 0) {
+      Alert.alert('Error', 'Please enter a valid amount');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data, error } = await api.fees.updatePayment(selectedFee.id, {
+        amount_paid: amount,
+      });
+      if (error) {
+        Alert.alert('Error', error);
+      } else {
+        await loadCommitteeView();
+        setShowPaymentModal(false);
+        Alert.alert('Success', 'Payment updated');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update payment');
+    }
+    setLoading(false);
+  };
+
+  const handleShareStatement = (fee: any) => {
+    const message = formatWhatsAppMessage(fee);
+    const whatsappUrl = `whatsapp://send?text=${encodeURIComponent(message)}`;
+    Linking.openURL(whatsappUrl).catch(() => {
+      Alert.alert('Error', 'WhatsApp not installed');
+    });
+  };
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -89,7 +162,7 @@ JazakAllah Khair`;
 
       {/* Generate Fees Button - Committee Only */}
       {user?.role === 'committee' && (
-        <TouchableOpacity style={styles.generateButton}>
+        <TouchableOpacity style={styles.generateButton} onPress={handleGenerateFees}>
           <Text style={styles.generateButtonText}>Generate This Month's Fees</Text>
         </TouchableOpacity>
       )}
@@ -141,10 +214,16 @@ JazakAllah Khair`;
 
               {user?.role === 'committee' && (
                 <View style={styles.feeActions}>
-                  <TouchableOpacity style={styles.actionButton}>
+                  <TouchableOpacity
+                    style={styles.actionButton}
+                    onPress={() => openPaymentModal(fee)}
+                  >
                     <Text style={styles.actionButtonText}>Update Payment</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={[styles.actionButton, styles.shareButton]}>
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.shareButton]}
+                    onPress={() => handleShareStatement(fee)}
+                  >
                     <Text style={styles.actionButtonText}>Share Statement</Text>
                   </TouchableOpacity>
                 </View>
@@ -153,6 +232,49 @@ JazakAllah Khair`;
           ))
         )}
       </View>
+
+      {/* Update Payment Modal */}
+      <Modal
+        visible={showPaymentModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowPaymentModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Update Payment</Text>
+            {selectedFee && (
+              <>
+                <Text style={styles.modalLabel}>Family: {selectedFee.familyHeadName}</Text>
+                <Text style={styles.modalLabel}>Balance Due: ₹{selectedFee.closingBalance}</Text>
+                <Text style={styles.modalLabel}>Payment Amount *</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="Enter amount"
+                  value={paymentAmount}
+                  onChangeText={setPaymentAmount}
+                  keyboardType="numeric"
+                />
+                <TouchableOpacity
+                  style={[styles.saveButton, loading && styles.saveButtonDisabled]}
+                  onPress={handleUpdatePayment}
+                  disabled={loading}
+                >
+                  <Text style={styles.saveButtonText}>
+                    {loading ? 'Updating...' : 'Update Payment'}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={() => setShowPaymentModal(false)}
+                >
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -311,5 +433,69 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     color: theme.colors.gray[500],
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: theme.spacing.xl,
+  },
+  modalContent: {
+    backgroundColor: theme.colors.white,
+    borderRadius: theme.radius.card,
+    padding: theme.spacing.xl,
+    width: '100%',
+    maxHeight: '90%',
+    ...theme.shadow.card,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: theme.colors.textPrimary,
+    marginBottom: theme.spacing.lg,
+    fontFamily: theme.typography.display,
+  },
+  modalLabel: {
+    fontSize: 14,
+    color: theme.colors.textPrimary,
+    marginBottom: theme.spacing.sm,
+    fontWeight: '600',
+  },
+  modalInput: {
+    backgroundColor: theme.colors.background,
+    borderRadius: theme.radius.button,
+    padding: theme.spacing.md,
+    marginBottom: theme.spacing.md,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: theme.colors.gray[300],
+  },
+  saveButton: {
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.radius.button,
+    padding: theme.spacing.lg,
+    alignItems: 'center',
+    marginTop: theme.spacing.md,
+    borderWidth: 2,
+    borderColor: theme.colors.accent,
+    ...theme.shadow.button,
+  },
+  saveButtonDisabled: {
+    opacity: 0.6,
+  },
+  saveButtonText: {
+    color: theme.colors.white,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  cancelButton: {
+    marginTop: theme.spacing.md,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    color: theme.colors.gray[500],
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

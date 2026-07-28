@@ -76,6 +76,13 @@ export default function MoreScreen() {
       description: 'App settings and preferences',
       onPress: () => router.push('/more/settings'),
     },
+    {
+      id: 'debug',
+      title: 'Debug Info',
+      icon: '🔍',
+      description: 'View current user and session info',
+      onPress: () => router.push('/more/debug'),
+    },
   ];
 
   return (

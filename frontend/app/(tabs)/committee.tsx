@@ -1,12 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking, TextInput, Alert, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
+import { useAuth } from '../../lib/auth-context';
 
 export default function CommitteeScreen() {
   const router = useRouter();
+  const { user } = useAuth();
   const [members, setMembers] = useState<any[]>([]);
+  const [showModal, setShowModal] = useState(false);
+  const [editingMember, setEditingMember] = useState<any>(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    designation: '',
+    phone: '',
+    photoUrl: '',
+    tenureStart: '',
+    tenureEnd: '',
+  });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     loadCommitteeMembers();
@@ -27,6 +40,98 @@ export default function CommitteeScreen() {
     Linking.openURL(`whatsapp://send?phone=${phone}`);
   };
 
+  const openAddModal = () => {
+    setEditingMember(null);
+    setFormData({
+      name: '',
+      designation: '',
+      phone: '',
+      photoUrl: '',
+      tenureStart: '',
+      tenureEnd: '',
+    });
+    setShowModal(true);
+  };
+
+  const openEditModal = (member: any) => {
+    setEditingMember(member);
+    setFormData({
+      name: member.name,
+      designation: member.designation,
+      phone: member.phone,
+      photoUrl: member.photoUrl || '',
+      tenureStart: member.tenureStart,
+      tenureEnd: member.tenureEnd || '',
+    });
+    setShowModal(true);
+  };
+
+  const handleSave = async () => {
+    const { name, designation, phone, tenureStart } = formData;
+    if (!name || !designation || !phone || !tenureStart) {
+      Alert.alert('Error', 'Please fill all required fields');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      if (editingMember) {
+        const { data, error } = await api.committee.update(editingMember.id, {
+          name: formData.name,
+          designation: formData.designation,
+          phone: formData.phone,
+          photo_url: formData.photoUrl,
+          tenure_start: formData.tenureStart,
+          tenure_end: formData.tenureEnd || null,
+        });
+        if (error) {
+          Alert.alert('Error', error);
+        }
+      } else {
+        const { data, error } = await api.committee.create({
+          name: formData.name,
+          designation: formData.designation,
+          phone: formData.phone,
+          photo_url: formData.photoUrl,
+          tenure_start: formData.tenureStart,
+          tenure_end: formData.tenureEnd || null,
+        });
+        if (error) {
+          Alert.alert('Error', error);
+        }
+      }
+      await loadCommitteeMembers();
+      setShowModal(false);
+      Alert.alert('Success', editingMember ? 'Member updated' : 'Member added');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to save member');
+    }
+    setLoading(false);
+  };
+
+  const handleDelete = (member: any) => {
+    Alert.alert(
+      'Delete Member',
+      `Delete ${member.name}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            const { error } = await api.committee.delete(member.id);
+            if (error) {
+              Alert.alert('Error', error);
+            } else {
+              await loadCommitteeMembers();
+              Alert.alert('Success', 'Member deleted');
+            }
+          }
+        }
+      ]
+    );
+  };
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -45,7 +150,14 @@ export default function CommitteeScreen() {
 
       {/* Committee Directory */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Committee Members</Text>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Committee Members</Text>
+          {user?.role === 'committee' && (
+            <TouchableOpacity style={styles.addButton} onPress={openAddModal}>
+              <Text style={styles.addButtonText}>+ Add</Text>
+            </TouchableOpacity>
+          )}
+        </View>
         {members.map((member) => (
           <View key={member.id} style={styles.memberCard}>
             <View style={styles.memberInfo}>
@@ -62,23 +174,125 @@ export default function CommitteeScreen() {
                 </Text>
               </View>
             </View>
-            <View style={styles.contactButtons}>
-              <TouchableOpacity
-                style={[styles.contactButton, styles.callButton]}
-                onPress={() => handleCall(member.phone)}
-              >
-                <Text style={styles.contactButtonText}>📞</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.contactButton, styles.whatsappButton]}
-                onPress={() => handleWhatsApp(member.phone)}
-              >
-                <Text style={styles.contactButtonText}>💬</Text>
-              </TouchableOpacity>
+            <View style={styles.memberActions}>
+              {user?.role === 'committee' && (
+                <View style={styles.editDeleteButtons}>
+                  <TouchableOpacity
+                    style={styles.editButton}
+                    onPress={() => openEditModal(member)}
+                  >
+                    <Text style={styles.editButtonText}>Edit</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.deleteButton}
+                    onPress={() => handleDelete(member)}
+                  >
+                    <Text style={styles.deleteButtonText}>Delete</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+              <View style={styles.contactButtons}>
+                <TouchableOpacity
+                  style={[styles.contactButton, styles.callButton]}
+                  onPress={() => handleCall(member.phone)}
+                >
+                  <Text style={styles.contactButtonText}>📞</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.contactButton, styles.whatsappButton]}
+                  onPress={() => handleWhatsApp(member.phone)}
+                >
+                  <Text style={styles.contactButtonText}>💬</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         ))}
       </View>
+
+      {/* Add/Edit Committee Member Modal */}
+      <Modal
+        visible={showModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>
+              {editingMember ? 'Edit Committee Member' : 'Add Committee Member'}
+            </Text>
+
+            <Text style={styles.modalLabel}>Name *</Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Enter full name"
+              value={formData.name}
+              onChangeText={(text) => setFormData({ ...formData, name: text })}
+            />
+
+            <Text style={styles.modalLabel}>Designation *</Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="e.g., President, Secretary"
+              value={formData.designation}
+              onChangeText={(text) => setFormData({ ...formData, designation: text })}
+            />
+
+            <Text style={styles.modalLabel}>Phone *</Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Enter phone number"
+              value={formData.phone}
+              onChangeText={(text) => setFormData({ ...formData, phone: text })}
+              keyboardType="phone-pad"
+              maxLength={15}
+            />
+
+            <Text style={styles.modalLabel}>Photo URL</Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Enter photo URL"
+              value={formData.photoUrl}
+              onChangeText={(text) => setFormData({ ...formData, photoUrl: text })}
+            />
+
+            <Text style={styles.modalLabel}>Tenure Start *</Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="YYYY-MM-DD"
+              value={formData.tenureStart}
+              onChangeText={(text) => setFormData({ ...formData, tenureStart: text })}
+            />
+
+            <Text style={styles.modalLabel}>Tenure End</Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="YYYY-MM-DD (optional)"
+              value={formData.tenureEnd}
+              onChangeText={(text) => setFormData({ ...formData, tenureEnd: text })}
+            />
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelModalButton]}
+                onPress={() => setShowModal(false)}
+              >
+                <Text style={styles.modalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.saveModalButton, loading && styles.modalButtonDisabled]}
+                onPress={handleSave}
+                disabled={loading}
+              >
+                <Text style={styles.modalButtonText}>
+                  {loading ? 'Saving...' : 'Save'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -193,5 +407,117 @@ const styles = StyleSheet.create({
   },
   contactButtonText: {
     fontSize: 20,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: theme.spacing.md,
+  },
+  addButton: {
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.radius.pill,
+    borderWidth: 2,
+    borderColor: theme.colors.accent,
+  },
+  addButtonText: {
+    color: theme.colors.white,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  memberActions: {
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+  },
+  editDeleteButtons: {
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+  },
+  editButton: {
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.radius.pill,
+    backgroundColor: theme.colors.gray[200],
+  },
+  editButtonText: {
+    fontSize: 12,
+    color: theme.colors.textPrimary,
+    fontWeight: '600',
+  },
+  deleteButton: {
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.radius.pill,
+    backgroundColor: theme.colors.alert,
+  },
+  deleteButtonText: {
+    fontSize: 12,
+    color: theme.colors.white,
+    fontWeight: '600',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: theme.spacing.xl,
+  },
+  modalContent: {
+    backgroundColor: theme.colors.white,
+    borderRadius: theme.radius.card,
+    padding: theme.spacing.xl,
+    width: '100%',
+    maxHeight: '90%',
+    ...theme.shadow.card,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: theme.colors.textPrimary,
+    marginBottom: theme.spacing.lg,
+    fontFamily: theme.typography.display,
+  },
+  modalLabel: {
+    fontSize: 14,
+    color: theme.colors.textPrimary,
+    marginBottom: theme.spacing.sm,
+    fontWeight: '600',
+  },
+  modalInput: {
+    backgroundColor: theme.colors.background,
+    borderRadius: theme.radius.button,
+    padding: theme.spacing.md,
+    marginBottom: theme.spacing.md,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: theme.colors.gray[300],
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+  },
+  modalButton: {
+    flex: 1,
+    padding: theme.spacing.md,
+    borderRadius: theme.radius.button,
+    alignItems: 'center',
+  },
+  cancelModalButton: {
+    backgroundColor: theme.colors.gray[200],
+  },
+  saveModalButton: {
+    backgroundColor: theme.colors.primary,
+    borderWidth: 2,
+    borderColor: theme.colors.accent,
+  },
+  modalButtonDisabled: {
+    opacity: 0.6,
+  },
+  modalButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: theme.colors.textPrimary,
   },
 });

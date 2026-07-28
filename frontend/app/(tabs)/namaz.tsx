@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert, Modal } from 'react-native';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
 import { useAuth } from '../../lib/auth-context';
@@ -8,6 +8,23 @@ export default function NamazScreen() {
   const { user } = useAuth();
   const [timings, setTimings] = useState<any>(null);
   const [isRamadan, setIsRamadan] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    fajrAzan: '',
+    fajrIqamah: '',
+    zuhrAzan: '',
+    zuhrIqamah: '',
+    asrAzan: '',
+    asrIqamah: '',
+    maghribAzan: '',
+    maghribIqamah: '',
+    ishaAzan: '',
+    ishaIqamah: '',
+    jummaKhutbahTime: '',
+    sehriTime: '',
+    iftarTime: '',
+  });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     loadTimings();
@@ -31,6 +48,44 @@ export default function NamazScreen() {
     { key: 'maghrib', label: 'Maghrib' },
     { key: 'isha', label: 'Isha' },
   ];
+
+  const openEditModal = () => {
+    if (!timings) return;
+    setEditFormData({
+      fajrAzan: timings.fajrAzan || '',
+      fajrIqamah: timings.fajrIqamah || '',
+      zuhrAzan: timings.zuhrAzan || '',
+      zuhrIqamah: timings.zuhrIqamah || '',
+      asrAzan: timings.asrAzan || '',
+      asrIqamah: timings.asrIqamah || '',
+      maghribAzan: timings.maghribAzan || '',
+      maghribIqamah: timings.maghribIqamah || '',
+      ishaAzan: timings.ishaAzan || '',
+      ishaIqamah: timings.ishaIqamah || '',
+      jummaKhutbahTime: timings.jummaKhutbahTime || '',
+      sehriTime: timings.sehriTime || '',
+      iftarTime: timings.iftarTime || '',
+    });
+    setShowEditModal(true);
+  };
+
+  const handleSaveTimings = async () => {
+    setLoading(true);
+    try {
+      const effectiveFrom = Date.now();
+      const { data, error } = await api.namaz.updateTimings(effectiveFrom, editFormData);
+      if (error) {
+        Alert.alert('Error', error);
+      } else {
+        await loadTimings();
+        setShowEditModal(false);
+        Alert.alert('Success', 'Prayer times updated');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update prayer times');
+    }
+    setLoading(false);
+  };
 
   if (!timings) {
     return (
@@ -101,10 +156,85 @@ export default function NamazScreen() {
 
       {/* Edit Button for Committee */}
       {user?.role === 'committee' && (
-        <TouchableOpacity style={styles.editButton}>
+        <TouchableOpacity style={styles.editButton} onPress={openEditModal}>
           <Text style={styles.editButtonText}>Edit Timings</Text>
         </TouchableOpacity>
       )}
+
+      {/* Edit Timings Modal */}
+      <Modal
+        visible={showEditModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowEditModal(false)}
+      >
+        <ScrollView style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Edit Prayer Times</Text>
+
+            {prayers.map((prayer) => (
+              <View key={prayer.key} style={styles.prayerEditRow}>
+                <Text style={styles.prayerEditLabel}>{prayer.label}</Text>
+                <View style={styles.timeInputs}>
+                  <TextInput
+                    style={styles.timeInput}
+                    placeholder="Azan"
+                    value={editFormData[`${prayer.key}Azan` as keyof typeof editFormData]}
+                    onChangeText={(text) => setEditFormData({ ...editFormData, [`${prayer.key}Azan`]: text })}
+                  />
+                  <TextInput
+                    style={styles.timeInput}
+                    placeholder="Iqamah"
+                    value={editFormData[`${prayer.key}Iqamah` as keyof typeof editFormData]}
+                    onChangeText={(text) => setEditFormData({ ...editFormData, [`${prayer.key}Iqamah`]: text })}
+                  />
+                </View>
+              </View>
+            ))}
+
+            <Text style={styles.modalLabel}>Jumma Khutbah Time</Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="e.g., 13:30"
+              value={editFormData.jummaKhutbahTime}
+              onChangeText={(text) => setEditFormData({ ...editFormData, jummaKhutbahTime: text })}
+            />
+
+            <Text style={styles.modalLabel}>Sehri Time (Ramadan)</Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="e.g., 04:30"
+              value={editFormData.sehriTime}
+              onChangeText={(text) => setEditFormData({ ...editFormData, sehriTime: text })}
+            />
+
+            <Text style={styles.modalLabel}>Iftar Time (Ramadan)</Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="e.g., 18:45"
+              value={editFormData.iftarTime}
+              onChangeText={(text) => setEditFormData({ ...editFormData, iftarTime: text })}
+            />
+
+            <TouchableOpacity
+              style={[styles.saveButton, loading && styles.saveButtonDisabled]}
+              onPress={handleSaveTimings}
+              disabled={loading}
+            >
+              <Text style={styles.saveButtonText}>
+                {loading ? 'Saving...' : 'Save Timings'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => setShowEditModal(false)}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </Modal>
     </ScrollView>
   );
 }
@@ -219,6 +349,89 @@ const styles = StyleSheet.create({
   editButtonText: {
     color: theme.colors.white,
     fontSize: 16,
+    fontWeight: '600',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: theme.colors.white,
+    margin: theme.spacing.xl,
+    marginTop: theme.spacing.xl * 2,
+    borderRadius: theme.radius.card,
+    padding: theme.spacing.xl,
+    ...theme.shadow.card,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: theme.colors.textPrimary,
+    marginBottom: theme.spacing.lg,
+    fontFamily: theme.typography.display,
+  },
+  prayerEditRow: {
+    marginBottom: theme.spacing.md,
+  },
+  prayerEditLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: theme.colors.textPrimary,
+    marginBottom: theme.spacing.sm,
+  },
+  timeInputs: {
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+  },
+  timeInput: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+    borderRadius: theme.radius.button,
+    padding: theme.spacing.md,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: theme.colors.gray[300],
+  },
+  modalLabel: {
+    fontSize: 14,
+    color: theme.colors.textPrimary,
+    marginBottom: theme.spacing.sm,
+    fontWeight: '600',
+  },
+  modalInput: {
+    backgroundColor: theme.colors.background,
+    borderRadius: theme.radius.button,
+    padding: theme.spacing.md,
+    marginBottom: theme.spacing.md,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: theme.colors.gray[300],
+  },
+  saveButton: {
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.radius.button,
+    padding: theme.spacing.lg,
+    alignItems: 'center',
+    marginTop: theme.spacing.md,
+    borderWidth: 2,
+    borderColor: theme.colors.accent,
+    ...theme.shadow.button,
+  },
+  saveButtonDisabled: {
+    opacity: 0.6,
+  },
+  saveButtonText: {
+    color: theme.colors.white,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  cancelButton: {
+    marginTop: theme.spacing.md,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    color: theme.colors.gray[500],
+    fontSize: 14,
     fontWeight: '600',
   },
 });

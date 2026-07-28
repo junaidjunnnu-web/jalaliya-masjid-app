@@ -1,118 +1,96 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { theme } from '../../theme';
-import { useAuth } from '../../lib/auth-context';
 import { api } from '../../lib/api';
+import { useAuth } from '../../lib/auth-context';
 
-export default function RegisterScreen() {
+export default function AddFamilyScreen() {
   const router = useRouter();
-  const { register } = useAuth();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [places, setPlaces] = useState<any[]>([]);
   const [formData, setFormData] = useState({
-    phone: '',
-    pin: '',
-    confirmPin: '',
     headName: '',
+    headPhone: '',
     placeId: '',
     address: '',
+    monthlyFeeMarried: '300',
+    monthlyFeeUnmarried: '200',
   });
 
-  const handleRegister = async () => {
-    const { phone, pin, confirmPin, headName, placeId, address } = formData;
+  useEffect(() => {
+    loadPlaces();
+  }, []);
 
-    if (!phone || !pin || !headName || !placeId) {
+  const loadPlaces = async () => {
+    const { data } = await api.families.getAll();
+    if (data && data.length > 0) {
+      setPlaces(data.map((pg: any) => ({ id: pg.placeId, name: pg.place })));
+    }
+  };
+
+  const handleSave = async () => {
+    const { headName, headPhone, placeId, monthlyFeeMarried, monthlyFeeUnmarried } = formData;
+
+    if (!headName || !headPhone || !placeId) {
       Alert.alert('Error', 'Please fill all required fields');
       return;
     }
 
-    if (pin !== confirmPin) {
-      Alert.alert('Error', 'PINs do not match');
-      return;
-    }
-
-    if (pin.length < 4) {
-      Alert.alert('Error', 'PIN must be at least 4 digits');
+    if (headPhone.length < 10) {
+      Alert.alert('Error', 'Please enter a valid phone number');
       return;
     }
 
     setLoading(true);
-    const success = await register({ phone, pin, headName, placeId: parseInt(placeId), address });
+    const { data, error } = await api.families.create({
+      head_name: headName,
+      head_phone: headPhone,
+      place_id: parseInt(placeId),
+      address: formData.address,
+      monthly_fee_married: parseInt(monthlyFeeMarried),
+      monthly_fee_unmarried: parseInt(monthlyFeeUnmarried),
+    });
     setLoading(false);
 
-    if (success) {
-      Alert.alert(
-        'Registration Successful',
-        'Your family registration is pending approval from the committee.',
-        [{ text: 'OK' }]
-      );
+    if (data) {
+      Alert.alert('Success', 'Family added successfully', [
+        { text: 'OK', onPress: () => router.back() }
+      ]);
     } else {
-      Alert.alert('Error', 'Registration failed. Phone number may already be registered.');
+      Alert.alert('Error', error || 'Failed to add family');
     }
-    // Navigation is handled by auth-context on successful registration
   };
-
-  const places = [
-    { id: 1, name: 'Ghandinagara' },
-    { id: 2, name: 'Alekatte' },
-    { id: 3, name: 'MD Block' },
-    { id: 4, name: 'Ranger Block' },
-    { id: 5, name: 'Near Manasa Hall' },
-    { id: 6, name: 'Somwarpet Town' },
-    { id: 7, name: 'Other' },
-  ];
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Register Family</Text>
-        <Text style={styles.headerSubtitle}>Join Jalaliya Juma Masjid Community</Text>
+        <Text style={styles.headerTitle}>Add Family</Text>
       </View>
 
       <View style={styles.form}>
+        <Text style={styles.label}>Family Head Name *</Text>
         <TextInput
           style={styles.input}
-          placeholder="Family Head Name *"
-          placeholderTextColor={theme.colors.gray[400]}
+          placeholder="Enter full name"
           value={formData.headName}
           onChangeText={(text) => setFormData({ ...formData, headName: text })}
         />
 
+        <Text style={styles.label}>Phone Number *</Text>
         <TextInput
           style={styles.input}
-          placeholder="Phone Number *"
-          placeholderTextColor={theme.colors.gray[400]}
-          value={formData.phone}
-          onChangeText={(text) => setFormData({ ...formData, phone: text })}
+          placeholder="Enter phone number"
+          value={formData.headPhone}
+          onChangeText={(text) => setFormData({ ...formData, headPhone: text })}
           keyboardType="phone-pad"
           maxLength={15}
         />
 
-        <TextInput
-          style={styles.input}
-          placeholder="PIN (4-6 digits) *"
-          placeholderTextColor={theme.colors.gray[400]}
-          value={formData.pin}
-          onChangeText={(text) => setFormData({ ...formData, pin: text })}
-          keyboardType="number-pad"
-          maxLength={6}
-          secureTextEntry
-        />
-
-        <TextInput
-          style={styles.input}
-          placeholder="Confirm PIN *"
-          placeholderTextColor={theme.colors.gray[400]}
-          value={formData.confirmPin}
-          onChangeText={(text) => setFormData({ ...formData, confirmPin: text })}
-          keyboardType="number-pad"
-          maxLength={6}
-          secureTextEntry
-        />
-
         <Text style={styles.label}>Place *</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.placesContainer}>
-          {places.map((place) => (
+          {places.length > 0 ? places.map((place) => (
             <TouchableOpacity
               key={place.id}
               style={[
@@ -130,31 +108,51 @@ export default function RegisterScreen() {
                 {place.name}
               </Text>
             </TouchableOpacity>
-          ))}
+          )) : (
+            <Text style={styles.noPlaces}>No places available</Text>
+          )}
         </ScrollView>
 
+        <Text style={styles.label}>Address</Text>
         <TextInput
           style={[styles.input, styles.textArea]}
-          placeholder="Address"
-          placeholderTextColor={theme.colors.gray[400]}
+          placeholder="Enter address"
           value={formData.address}
           onChangeText={(text) => setFormData({ ...formData, address: text })}
           multiline
           numberOfLines={3}
         />
 
+        <Text style={styles.label}>Monthly Fee (Married) *</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="300"
+          value={formData.monthlyFeeMarried}
+          onChangeText={(text) => setFormData({ ...formData, monthlyFeeMarried: text })}
+          keyboardType="number-pad"
+        />
+
+        <Text style={styles.label}>Monthly Fee (Unmarried) *</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="200"
+          value={formData.monthlyFeeUnmarried}
+          onChangeText={(text) => setFormData({ ...formData, monthlyFeeUnmarried: text })}
+          keyboardType="number-pad"
+        />
+
         <TouchableOpacity
           style={[styles.button, loading && styles.buttonDisabled]}
-          onPress={handleRegister}
+          onPress={handleSave}
           disabled={loading}
         >
           <Text style={styles.buttonText}>
-            {loading ? 'Registering...' : 'Register'}
+            {loading ? 'Saving...' : 'Save Family'}
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.loginLink} onPress={() => router.back()}>
-          <Text style={styles.loginText}>Already registered? Login</Text>
+        <TouchableOpacity style={styles.cancelButton} onPress={() => router.back()}>
+          <Text style={styles.cancelButtonText}>Cancel</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -168,25 +166,24 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: theme.colors.primary,
-    padding: theme.spacing.xl,
-    paddingTop: theme.spacing.xxl,
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
+    padding: theme.spacing.lg,
+    paddingTop: theme.spacing.xl,
   },
   headerTitle: {
     fontSize: 28,
     fontWeight: 'bold',
     color: theme.colors.white,
     fontFamily: theme.typography.display,
-    marginBottom: theme.spacing.sm,
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: theme.colors.accent,
   },
   form: {
     padding: theme.spacing.xl,
     marginTop: theme.spacing.lg,
+  },
+  label: {
+    fontSize: 14,
+    color: theme.colors.textPrimary,
+    marginBottom: theme.spacing.sm,
+    fontWeight: '600',
   },
   input: {
     backgroundColor: theme.colors.white,
@@ -200,12 +197,6 @@ const styles = StyleSheet.create({
   textArea: {
     height: 80,
     textAlignVertical: 'top',
-  },
-  label: {
-    fontSize: 14,
-    color: theme.colors.textPrimary,
-    marginBottom: theme.spacing.sm,
-    fontWeight: '600',
   },
   placesContainer: {
     marginBottom: theme.spacing.md,
@@ -232,6 +223,11 @@ const styles = StyleSheet.create({
   placeButtonTextActive: {
     color: theme.colors.white,
   },
+  noPlaces: {
+    fontSize: 14,
+    color: theme.colors.gray[500],
+    padding: theme.spacing.md,
+  },
   button: {
     backgroundColor: theme.colors.primary,
     borderRadius: theme.radius.button,
@@ -250,12 +246,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  loginLink: {
+  cancelButton: {
     marginTop: theme.spacing.lg,
     alignItems: 'center',
   },
-  loginText: {
-    color: theme.colors.primary,
+  cancelButtonText: {
+    color: theme.colors.gray[500],
     fontSize: 14,
     fontWeight: '600',
   },

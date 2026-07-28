@@ -21,11 +21,10 @@ export default function LoginScreen() {
     const success = await login(phone, pin);
     setLoading(false);
 
-    if (success) {
-      router.replace('/(tabs)');
-    } else {
+    if (!success) {
       Alert.alert('Error', 'Invalid phone number or PIN');
     }
+    // Navigation is handled by auth-context on successful login
   };
 
   const handleRegister = () => {

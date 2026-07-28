@@ -1,3 +1,5 @@
+import * as SecureStore from 'expo-secure-store';
+
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 interface ApiResponse<T> {
@@ -39,21 +41,27 @@ async function request<T>(
 }
 
 async function getToken(): Promise<string | null> {
-  if (typeof window !== 'undefined' && window.localStorage) {
-    return localStorage.getItem('token');
-  }
-  return null;
-}
-
-export function setToken(token: string): void {
-  if (typeof window !== 'undefined' && window.localStorage) {
-    localStorage.setItem('token', token);
+  try {
+    return await SecureStore.getItemAsync('token');
+  } catch (error) {
+    console.error('Error getting token:', error);
+    return null;
   }
 }
 
-export function clearToken(): void {
-  if (typeof window !== 'undefined' && window.localStorage) {
-    localStorage.removeItem('token');
+export async function setToken(token: string): Promise<void> {
+  try {
+    await SecureStore.setItemAsync('token', token);
+  } catch (error) {
+    console.error('Error setting token:', error);
+  }
+}
+
+export async function clearToken(): Promise<void> {
+  try {
+    await SecureStore.deleteItemAsync('token');
+  } catch (error) {
+    console.error('Error clearing token:', error);
   }
 }
 

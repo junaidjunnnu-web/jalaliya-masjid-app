@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert, Modal } from 'react-native';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
 import { useAuth } from '../../lib/auth-context';
@@ -7,6 +7,16 @@ import { useAuth } from '../../lib/auth-context';
 export default function EventsScreen() {
   const { user } = useAuth();
   const [events, setEvents] = useState<any[]>([]);
+  const [showModal, setShowModal] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<any>(null);
+  const [formData, setFormData] = useState({
+    title: '',
+    eventDate: '',
+    eventTime: '',
+    location: '',
+    description: '',
+  });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     loadEvents();
@@ -19,6 +29,88 @@ export default function EventsScreen() {
     }
   };
 
+  const openAddModal = () => {
+    setEditingEvent(null);
+    setFormData({ title: '', eventDate: '', eventTime: '', location: '', description: '' });
+    setShowModal(true);
+  };
+
+  const openEditModal = (event: any) => {
+    setEditingEvent(event);
+    setFormData({
+      title: event.title,
+      eventDate: event.eventDate,
+      eventTime: event.eventTime,
+      location: event.location || '',
+      description: event.description || '',
+    });
+    setShowModal(true);
+  };
+
+  const handleSave = async () => {
+    const { title, eventDate, eventTime } = formData;
+    if (!title || !eventDate || !eventTime) {
+      Alert.alert('Error', 'Please fill all required fields');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      if (editingEvent) {
+        const { data, error } = await api.events.update(editingEvent.id, {
+          title: formData.title,
+          event_date: formData.eventDate,
+          event_time: formData.eventTime,
+          location: formData.location,
+          description: formData.description,
+        });
+        if (error) {
+          Alert.alert('Error', error);
+        }
+      } else {
+        const { data, error } = await api.events.create({
+          title: formData.title,
+          event_date: formData.eventDate,
+          event_time: formData.eventTime,
+          location: formData.location,
+          description: formData.description,
+        });
+        if (error) {
+          Alert.alert('Error', error);
+        }
+      }
+      await loadEvents();
+      setShowModal(false);
+      Alert.alert('Success', editingEvent ? 'Event updated' : 'Event created');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to save event');
+    }
+    setLoading(false);
+  };
+
+  const handleDelete = (event: any) => {
+    Alert.alert(
+      'Delete Event',
+      `Delete ${event.title}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            const { error } = await api.events.delete(event.id);
+            if (error) {
+              Alert.alert('Error', error);
+            } else {
+              await loadEvents();
+              Alert.alert('Success', 'Event deleted');
+            }
+          }
+        }
+      ]
+    );
+  };
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -27,7 +119,7 @@ export default function EventsScreen() {
 
       {/* Create Button - Committee Only */}
       {user?.role === 'committee' && (
-        <TouchableOpacity style={styles.createButton}>
+        <TouchableOpacity style={styles.createButton} onPress={openAddModal}>
           <Text style={styles.createButtonText}>+ New Event</Text>
         </TouchableOpacity>
       )}
@@ -41,7 +133,25 @@ export default function EventsScreen() {
         ) : (
           events.map((event) => (
             <View key={event.id} style={styles.eventCard}>
-              <Text style={styles.eventTitle}>{event.title}</Text>
+              <View style={styles.eventHeader}>
+                <Text style={styles.eventTitle}>{event.title}</Text>
+                {user?.role === 'committee' && (
+                  <View style={styles.eventActions}>
+                    <TouchableOpacity
+                      style={styles.editButton}
+                      onPress={() => openEditModal(event)}
+                    >
+                      <Text style={styles.editButtonText}>Edit</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.deleteButton}
+                      onPress={() => handleDelete(event)}
+                    >
+                      <Text style={styles.deleteButtonText}>Delete</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
               <View style={styles.eventMeta}>
                 <Text style={styles.eventDate}>
                   📅 {new Date(event.eventDate).toLocaleDateString('en-US', {
@@ -62,6 +172,81 @@ export default function EventsScreen() {
           ))
         )}
       </View>
+
+      {/* Add/Edit Event Modal */}
+      <Modal
+        visible={showModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowModal(false)}
+      >
+        <ScrollView style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>
+              {editingEvent ? 'Edit Event' : 'New Event'}
+            </Text>
+
+            <Text style={styles.modalLabel}>Title *</Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Enter event title"
+              value={formData.title}
+              onChangeText={(text) => setFormData({ ...formData, title: text })}
+            />
+
+            <Text style={styles.modalLabel}>Date *</Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="YYYY-MM-DD"
+              value={formData.eventDate}
+              onChangeText={(text) => setFormData({ ...formData, eventDate: text })}
+            />
+
+            <Text style={styles.modalLabel}>Time *</Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="e.g., 14:30"
+              value={formData.eventTime}
+              onChangeText={(text) => setFormData({ ...formData, eventTime: text })}
+            />
+
+            <Text style={styles.modalLabel}>Location</Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Enter location"
+              value={formData.location}
+              onChangeText={(text) => setFormData({ ...formData, location: text })}
+            />
+
+            <Text style={styles.modalLabel}>Description</Text>
+            <TextInput
+              style={[styles.modalInput, styles.textArea]}
+              placeholder="Enter event description"
+              value={formData.description}
+              onChangeText={(text) => setFormData({ ...formData, description: text })}
+              multiline
+              numberOfLines={3}
+            />
+
+            <TouchableOpacity
+              style={[styles.saveButton, loading && styles.saveButtonDisabled]}
+              onPress={handleSave}
+              disabled={loading}
+            >
+              <Text style={styles.saveButtonText}>
+                {loading ? 'Saving...' : 'Save Event'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => setShowModal(false)}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </Modal>
     </ScrollView>
   );
 }
@@ -146,5 +331,102 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     color: theme.colors.gray[500],
+  },
+  eventHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: theme.spacing.sm,
+  },
+  eventActions: {
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+  },
+  editButton: {
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.radius.pill,
+    backgroundColor: theme.colors.gray[200],
+  },
+  editButtonText: {
+    fontSize: 12,
+    color: theme.colors.textPrimary,
+    fontWeight: '600',
+  },
+  deleteButton: {
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.radius.pill,
+    backgroundColor: theme.colors.alert,
+  },
+  deleteButtonText: {
+    fontSize: 12,
+    color: theme.colors.white,
+    fontWeight: '600',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: theme.colors.white,
+    margin: theme.spacing.xl,
+    marginTop: theme.spacing.xl * 2,
+    borderRadius: theme.radius.card,
+    padding: theme.spacing.xl,
+    ...theme.shadow.card,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: theme.colors.textPrimary,
+    marginBottom: theme.spacing.lg,
+    fontFamily: theme.typography.display,
+  },
+  modalLabel: {
+    fontSize: 14,
+    color: theme.colors.textPrimary,
+    marginBottom: theme.spacing.sm,
+    fontWeight: '600',
+  },
+  modalInput: {
+    backgroundColor: theme.colors.background,
+    borderRadius: theme.radius.button,
+    padding: theme.spacing.md,
+    marginBottom: theme.spacing.md,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: theme.colors.gray[300],
+  },
+  textArea: {
+    height: 80,
+    textAlignVertical: 'top',
+  },
+  saveButton: {
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.radius.button,
+    padding: theme.spacing.lg,
+    alignItems: 'center',
+    marginTop: theme.spacing.md,
+    borderWidth: 2,
+    borderColor: theme.colors.accent,
+    ...theme.shadow.button,
+  },
+  saveButtonDisabled: {
+    opacity: 0.6,
+  },
+  saveButtonText: {
+    color: theme.colors.white,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  cancelButton: {
+    marginTop: theme.spacing.md,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    color: theme.colors.gray[500],
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

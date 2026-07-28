@@ -38,6 +38,28 @@ export default function MembersScreen() {
     router.push(`/family/${familyId}`);
   };
 
+  const handleApproveFamily = async (familyId: number, familyName: string) => {
+    Alert.alert(
+      'Approve Family',
+      `Approve ${familyName}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Approve',
+          onPress: async () => {
+            const { data, error } = await api.families.approve(familyId);
+            if (data) {
+              Alert.alert('Success', 'Family approved successfully');
+              loadFamilies();
+            } else {
+              Alert.alert('Error', error || 'Failed to approve family');
+            }
+          }
+        }
+      ]
+    );
+  };
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -84,12 +106,11 @@ export default function MembersScreen() {
           {expandedPlaces.has(placeGroup.place) && (
             <View style={styles.familiesList}>
               {placeGroup.families.map((family: any) => (
-                <TouchableOpacity
-                  key={family.id}
-                  style={styles.familyCard}
-                  onPress={() => handleFamilyPress(family.id)}
-                >
-                  <View style={styles.familyInfo}>
+                <View key={family.id} style={styles.familyCard}>
+                  <TouchableOpacity
+                    style={styles.familyInfo}
+                    onPress={() => handleFamilyPress(family.id)}
+                  >
                     <View style={styles.avatarPlaceholder}>
                       <Text style={styles.avatarText}>
                         {family.headName.charAt(0).toUpperCase()}
@@ -101,13 +122,21 @@ export default function MembersScreen() {
                         <Text style={styles.familyPhone}>{family.headPhone}</Text>
                       )}
                     </View>
-                  </View>
-                  {family.status === 'pending' && (
+                  </TouchableOpacity>
+                  {family.status === 'pending' && user?.role === 'committee' && (
+                    <TouchableOpacity
+                      style={styles.approveButton}
+                      onPress={() => handleApproveFamily(family.id, family.headName)}
+                    >
+                      <Text style={styles.approveButtonText}>Approve</Text>
+                    </TouchableOpacity>
+                  )}
+                  {family.status === 'pending' && user?.role !== 'committee' && (
                     <View style={styles.pendingBadge}>
                       <Text style={styles.pendingText}>Pending</Text>
                     </View>
                   )}
-                </TouchableOpacity>
+                </View>
               ))}
             </View>
           )}
@@ -240,6 +269,17 @@ const styles = StyleSheet.create({
     borderRadius: theme.radius.pill,
   },
   pendingText: {
+    fontSize: 12,
+    color: theme.colors.white,
+    fontWeight: '600',
+  },
+  approveButton: {
+    backgroundColor: theme.colors.success,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.radius.pill,
+  },
+  approveButtonText: {
     fontSize: 12,
     color: theme.colors.white,
     fontWeight: '600',

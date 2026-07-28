@@ -4,74 +4,76 @@ import { theme } from '../../theme';
 import { api } from '../../lib/api';
 import { useAuth } from '../../lib/auth-context';
 
-export default function AnnouncementsScreen() {
+export default function ExpensesScreen() {
   const { user } = useAuth();
-  const [announcements, setAnnouncements] = useState<any[]>([]);
+  const [expenses, setExpenses] = useState<any[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
-    title: '',
-    message: '',
+    category: 'Maintenance',
+    amount: '',
+    description: '',
   });
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    loadAnnouncements();
+    loadExpenses();
   }, []);
 
-  const loadAnnouncements = async () => {
-    const { data } = await api.announcements.getAll();
+  const loadExpenses = async () => {
+    const { data } = await api.expenses.getAll();
     if (data) {
-      setAnnouncements(data);
+      setExpenses(data);
     }
   };
 
   const openAddModal = () => {
-    setFormData({ title: '', message: '' });
+    setFormData({ category: 'Maintenance', amount: '', description: '' });
     setShowModal(true);
   };
 
   const handleSave = async () => {
-    const { title, message } = formData;
-    if (!title || !message) {
-      Alert.alert('Error', 'Please fill all fields');
+    const { category, amount, description } = formData;
+    if (!amount || !description) {
+      Alert.alert('Error', 'Please fill all required fields');
       return;
     }
 
     setLoading(true);
     try {
-      const { data, error } = await api.announcements.create({
-        title: formData.title,
-        message: formData.message,
+      const { data, error } = await api.expenses.create({
+        category: formData.category,
+        amount: parseFloat(formData.amount),
+        description: formData.description,
       });
       if (error) {
         Alert.alert('Error', error);
       } else {
-        await loadAnnouncements();
+        await loadExpenses();
         setShowModal(false);
-        Alert.alert('Success', 'Announcement created');
+        Alert.alert('Success', 'Expense added');
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to create announcement');
+      Alert.alert('Error', 'Failed to add expense');
     }
     setLoading(false);
   };
 
-  const handleDelete = (announcement: any) => {
+  const handleDelete = (expense: any) => {
     Alert.alert(
-      'Delete Announcement',
-      'Delete this announcement?',
+      'Delete Expense',
+      `Delete this expense of ₹${expense.amount}?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Delete',
           style: 'destructive',
           onPress: async () => {
-            const { error } = await api.announcements.delete(announcement.id);
+            const { error } = await api.expenses.delete(expense.id);
             if (error) {
               Alert.alert('Error', error);
             } else {
-              await loadAnnouncements();
-              Alert.alert('Success', 'Announcement deleted');
+              await loadExpenses();
+              Alert.alert('Success', 'Expense deleted');
             }
           }
         }
@@ -79,58 +81,56 @@ export default function AnnouncementsScreen() {
     );
   };
 
+  const expenseCategories = ['Maintenance', 'Utilities', 'Salaries', 'Events', 'General', 'Construction'];
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Announcements</Text>
+        <Text style={styles.headerTitle}>Expenses</Text>
       </View>
 
-      {/* Create Button - Committee Only */}
+      {/* Add Button - Committee Only */}
       {user?.role === 'committee' && (
         <TouchableOpacity style={styles.createButton} onPress={openAddModal}>
-          <Text style={styles.createButtonText}>+ New Announcement</Text>
+          <Text style={styles.createButtonText}>+ Add Expense</Text>
         </TouchableOpacity>
       )}
 
-      {/* Announcements List */}
-      <View style={styles.announcementsList}>
-        {announcements.length === 0 ? (
+      {/* Expenses List */}
+      <View style={styles.expensesList}>
+        {expenses.length === 0 ? (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>No announcements yet</Text>
+            <Text style={styles.emptyText}>No expenses yet</Text>
           </View>
         ) : (
-          announcements.map((announcement) => (
-            <View key={announcement.id} style={styles.announcementCard}>
-              <View style={styles.announcementHeader}>
-                <Text style={styles.announcementTitle}>{announcement.title}</Text>
+          expenses.map((expense) => (
+            <View key={expense.id} style={styles.expenseCard}>
+              <View style={styles.expenseHeader}>
+                <Text style={styles.expenseCategory}>{expense.category}</Text>
                 {user?.role === 'committee' && (
                   <TouchableOpacity
                     style={styles.deleteButton}
-                    onPress={() => handleDelete(announcement)}
+                    onPress={() => handleDelete(expense)}
                   >
                     <Text style={styles.deleteButtonText}>Delete</Text>
                   </TouchableOpacity>
                 )}
               </View>
-              <Text style={styles.announcementDate}>
-                {new Date(announcement.createdAt).toLocaleDateString('en-US', {
+              <Text style={styles.expenseAmount}>₹{expense.amount}</Text>
+              <Text style={styles.expenseDescription}>{expense.description}</Text>
+              <Text style={styles.expenseDate}>
+                {new Date(expense.createdAt).toLocaleDateString('en-US', {
                   month: 'short',
                   day: 'numeric',
                   year: 'numeric',
                 })}
               </Text>
-              <Text style={styles.announcementMessage}>{announcement.message}</Text>
-              {announcement.committeeMemberName && (
-                <Text style={styles.announcementPostedBy}>
-                  Posted by: {announcement.committeeMemberName}
-                </Text>
-              )}
             </View>
           ))
         )}
       </View>
 
-      {/* Create Announcement Modal */}
+      {/* Add Expense Modal */}
       <Modal
         visible={showModal}
         animationType="slide"
@@ -139,24 +139,48 @@ export default function AnnouncementsScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>New Announcement</Text>
+            <Text style={styles.modalTitle}>Add Expense</Text>
 
-            <Text style={styles.modalLabel}>Title *</Text>
+            <Text style={styles.modalLabel}>Category</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryContainer}>
+              {expenseCategories.map((category) => (
+                <TouchableOpacity
+                  key={category}
+                  style={[
+                    styles.categoryButton,
+                    formData.category === category && styles.categoryButtonActive,
+                  ]}
+                  onPress={() => setFormData({ ...formData, category })}
+                >
+                  <Text
+                    style={[
+                      styles.categoryButtonText,
+                      formData.category === category && styles.categoryButtonTextActive,
+                    ]}
+                  >
+                    {category}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <Text style={styles.modalLabel}>Amount *</Text>
             <TextInput
               style={styles.modalInput}
-              placeholder="Enter announcement title"
-              value={formData.title}
-              onChangeText={(text) => setFormData({ ...formData, title: text })}
+              placeholder="Enter amount"
+              value={formData.amount}
+              onChangeText={(text) => setFormData({ ...formData, amount: text })}
+              keyboardType="numeric"
             />
 
-            <Text style={styles.modalLabel}>Message *</Text>
+            <Text style={styles.modalLabel}>Description *</Text>
             <TextInput
               style={[styles.modalInput, styles.textArea]}
-              placeholder="Enter announcement message"
-              value={formData.message}
-              onChangeText={(text) => setFormData({ ...formData, message: text })}
+              placeholder="Enter description"
+              value={formData.description}
+              onChangeText={(text) => setFormData({ ...formData, description: text })}
               multiline
-              numberOfLines={4}
+              numberOfLines={3}
             />
 
             <TouchableOpacity
@@ -165,7 +189,7 @@ export default function AnnouncementsScreen() {
               disabled={loading}
             >
               <Text style={styles.saveButtonText}>
-                {loading ? 'Creating)' : 'Create Announcement'}
+                {loading ? 'Adding...' : 'Add Expense'}
               </Text>
             </TouchableOpacity>
 
@@ -213,52 +237,42 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  announcementsList: {
+  expensesList: {
     padding: theme.spacing.md,
   },
-  announcementCard: {
+  expenseCard: {
     backgroundColor: theme.colors.white,
     borderRadius: theme.radius.card,
     padding: theme.spacing.lg,
     marginBottom: theme.spacing.md,
     ...theme.shadow.card,
   },
-  announcementTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: theme.colors.textPrimary,
-    marginBottom: theme.spacing.xs,
-    fontFamily: theme.typography.display,
-  },
-  announcementDate: {
-    fontSize: 12,
-    color: theme.colors.gray[500],
-    marginBottom: theme.spacing.sm,
-  },
-  announcementMessage: {
-    fontSize: 14,
-    color: theme.colors.textPrimary,
-    lineHeight: 22,
-    marginBottom: theme.spacing.sm,
-  },
-  announcementPostedBy: {
-    fontSize: 12,
-    color: theme.colors.gray[500],
-    fontStyle: 'italic',
-  },
-  emptyState: {
-    padding: theme.spacing.xxl,
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: 16,
-    color: theme.colors.gray[500],
-  },
-  announcementHeader: {
+  expenseHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: theme.spacing.sm,
+  },
+  expenseCategory: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: theme.colors.textPrimary,
+    fontFamily: theme.typography.display,
+  },
+  expenseAmount: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: theme.colors.alert,
+    marginBottom: theme.spacing.sm,
+  },
+  expenseDescription: {
+    fontSize: 14,
+    color: theme.colors.textPrimary,
     marginBottom: theme.spacing.xs,
+  },
+  expenseDate: {
+    fontSize: 12,
+    color: theme.colors.gray[400],
   },
   deleteButton: {
     paddingHorizontal: theme.spacing.sm,
@@ -270,6 +284,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: theme.colors.white,
     fontWeight: '600',
+  },
+  emptyState: {
+    padding: theme.spacing.xxl,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 16,
+    color: theme.colors.gray[500],
   },
   modalOverlay: {
     flex: 1,
@@ -309,8 +331,33 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.gray[300],
   },
   textArea: {
-    height: 100,
+    height: 80,
     textAlignVertical: 'top',
+  },
+  categoryContainer: {
+    marginBottom: theme.spacing.md,
+    flexGrow: 0,
+  },
+  categoryButton: {
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.radius.pill,
+    backgroundColor: theme.colors.white,
+    borderWidth: 1,
+    borderColor: theme.colors.gray[300],
+    marginRight: theme.spacing.sm,
+  },
+  categoryButtonActive: {
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
+  },
+  categoryButtonText: {
+    fontSize: 14,
+    color: theme.colors.gray[500],
+    fontWeight: '600',
+  },
+  categoryButtonTextActive: {
+    color: theme.colors.white,
   },
   saveButton: {
     backgroundColor: theme.colors.primary,
