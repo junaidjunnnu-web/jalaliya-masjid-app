@@ -1,13 +1,13 @@
 export const theme = {
   colors: {
-    primary: '#5F5E5A',      // Warm taupe — base color, headers
+    primary: '#A8927E',      // Warm tan — base color, headers
     addButtonColor: '#8C3B4A',  // Deep rose red — Add/Create buttons
-    membersAccent: '#5F5E5A',   // Warm taupe — unified across all sections
-    committeeAccent: '#5F5E5A',  // Warm taupe — unified across all sections
-    eventsAccent: '#5F5E5A',     // Warm taupe — unified across all sections
-    announcementsAccent: '#5F5E5A',  // Warm taupe — unified across all sections
-    galleryAccent: '#5F5E5A',    // Warm taupe — unified across all sections
-    feesAccent: '#5F5E5A',       // Warm taupe — unified across all sections
+    membersAccent: '#A8927E',   // Warm tan — unified across all sections
+    committeeAccent: '#A8927E',  // Warm tan — unified across all sections
+    eventsAccent: '#A8927E',     // Warm tan — unified across all sections
+    announcementsAccent: '#A8927E',  // Warm tan — unified across all sections
+    galleryAccent: '#A8927E',    // Warm tan — unified across all sections
+    feesAccent: '#A8927E',       // Warm tan — unified across all sections
     background: '#FAF6EE',   // Soft Ivory
     textPrimary: '#2B2B2B',  // Charcoal Ink
     success: '#6B9080',      // Sage — paid/approved badges

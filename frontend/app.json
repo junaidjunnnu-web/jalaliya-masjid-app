@@ -9,7 +9,7 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#5F5E5A"
+      "backgroundColor": "#A8927E"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -21,7 +21,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#5F5E5A"
+        "backgroundColor": "#A8927E"
       },
       "package": "com.jalaliya.masjid"
     },
