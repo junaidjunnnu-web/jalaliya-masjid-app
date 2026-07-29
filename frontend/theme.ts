@@ -15,11 +15,12 @@ export const theme = {
     whatsapp: '#25D366',     // WhatsApp brand green
     white: '#FFFFFF',
     gray: {
-      100: '#F5F5F5',
-      200: '#E5E5E5',
-      300: '#D4D4D4',
-      400: '#A3A3A3',
-      500: '#737373',
+      100: '#E8E0D8',
+      200: '#D4C8BC',
+      300: '#C0B0A0',
+      400: '#A8927E',
+      500: '#A8927E',
+      600: '#8B7355',
     },
   },
   typography: {
