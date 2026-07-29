@@ -40,6 +40,7 @@ interface PaymentHistoryEntry {
 export default function DuesScreen() {
   const router = useRouter();
   const [people, setPeople] = useState<Person[]>([]);
+  const [filteredPeople, setFilteredPeople] = useState<Person[]>([]);
   const [pendingEntries, setPendingEntries] = useState<PendingEntry[]>([]);
   const [committeeSession, setCommitteeSession] = useState<any>(null);
   const [showAddPersonModal, setShowAddPersonModal] = useState(false);
@@ -49,6 +50,7 @@ export default function DuesScreen() {
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
   const [paymentHistory, setPaymentHistory] = useState<PaymentHistoryEntry[]>([]);
   const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const [newPersonName, setNewPersonName] = useState('');
   const [newPersonPhone, setNewPersonPhone] = useState('');
@@ -74,6 +76,7 @@ export default function DuesScreen() {
 
       if (peopleRes.data) {
         setPeople(peopleRes.data as Person[]);
+        setFilteredPeople(peopleRes.data as Person[]);
       }
       if (pendingRes.data) {
         setPendingEntries(pendingRes.data as PendingEntry[]);
@@ -83,6 +86,54 @@ export default function DuesScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+      setFilteredPeople(people);
+    } else {
+      const filtered = people.filter(person =>
+        person.personName.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredPeople(filtered);
+    }
+  }, [searchQuery, people]);
+
+  const handleSearchResultPress = (person: Person) => {
+    setSelectedPerson(person);
+    setSearchQuery('');
+    setShowPaymentModal(true);
+  };
+
+  const handleDeletePerson = (person: Person) => {
+    Alert.alert(
+      'Delete Person',
+      `Are you sure you want to delete this entry for ${person.personName}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            setLoading(true);
+            try {
+              const { error } = await api.dues.deletePerson(person.personName, person.phone);
+              if (error) {
+                Alert.alert('Error', error);
+              } else {
+                Alert.alert('Success', 'Person deleted successfully');
+                await loadData();
+              }
+            } catch (error) {
+              Alert.alert('Error', 'Failed to delete person');
+              console.error('Delete error:', error);
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ]
+    );
   };
 
   const checkCommitteeSession = async () => {
@@ -351,6 +402,39 @@ export default function DuesScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* Search Bar */}
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search person..."
+          placeholderTextColor={theme.colors.gray[500]}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+      </View>
+
+      {/* Search Results */}
+      {searchQuery.trim() !== '' && filteredPeople.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Search Results</Text>
+          {filteredPeople.map((person) => (
+            <TouchableOpacity
+              key={`${person.personName}-${person.phone}`}
+              style={styles.personCard}
+              onPress={() => handleSearchResultPress(person)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.personInfo}>
+                <Text style={styles.personName}>{person.personName}</Text>
+                <Text style={styles.personPhone}>{person.phone}</Text>
+                <Text style={styles.personBalance}>Balance: ₹{person.currentBalance}</Text>
+              </View>
+              <Text style={styles.searchArrow}>→</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+
       {/* Pending Approvals Section */}
       {pendingEntries.length > 0 && (
         <View style={styles.section}>
@@ -406,21 +490,32 @@ export default function DuesScreen() {
           <Text style={styles.emptyText}>No people added yet</Text>
         ) : (
           people.map((person, index) => (
-            <TouchableOpacity
+            <View
               key={`${person.personName}-${person.phone}-${index}`}
               style={styles.personCard}
-              onPress={() => handleOpenPersonDetail(person)}
-              activeOpacity={0.7}
             >
-              <View style={styles.personInfo}>
-                <Text style={styles.personName}>{person.personName}</Text>
-                <Text style={styles.personPhone}>{person.phone}</Text>
-              </View>
-              <View style={styles.balanceContainer}>
-                <Text style={styles.balanceLabel}>Balance</Text>
-                <Text style={styles.balanceAmount}>₹{person.currentBalance}</Text>
-              </View>
-            </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.personCardContent}
+                onPress={() => handleOpenPersonDetail(person)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.personInfo}>
+                  <Text style={styles.personName}>{person.personName}</Text>
+                  <Text style={styles.personPhone}>{person.phone}</Text>
+                </View>
+                <View style={styles.balanceContainer}>
+                  <Text style={styles.balanceLabel}>Balance</Text>
+                  <Text style={styles.balanceAmount}>₹{person.currentBalance}</Text>
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => handleDeletePerson(person)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.deleteButtonText}>🗑️</Text>
+              </TouchableOpacity>
+            </View>
           ))
         )}
       </View>
@@ -969,5 +1064,41 @@ const styles = StyleSheet.create({
     color: theme.colors.textPrimary,
     fontSize: 16,
     fontWeight: '600',
+  },
+  personCardContent: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  personBalance: {
+    fontSize: 14,
+    color: theme.colors.gray[500],
+  },
+  deleteButton: {
+    marginLeft: theme.spacing.sm,
+    padding: theme.spacing.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  deleteButtonText: {
+    fontSize: 20,
+  },
+  searchContainer: {
+    margin: theme.spacing.md,
+  },
+  searchInput: {
+    backgroundColor: theme.colors.white,
+    padding: theme.spacing.md,
+    borderRadius: theme.radius.card,
+    borderWidth: 1,
+    borderColor: theme.colors.gray[300],
+    fontSize: 16,
+    ...theme.shadow.card,
+  },
+  searchArrow: {
+    fontSize: 24,
+    color: theme.colors.gray[400],
+    marginLeft: theme.spacing.md,
   },
 });

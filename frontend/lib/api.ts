@@ -215,6 +215,10 @@ export const api = {
       request(`/dues/${id}/reject`, {
         method: 'POST',
       }),
+    deletePerson: (personName: string, phone?: string) =>
+      request(`/dues/${encodeURIComponent(personName)}${phone ? `?phone=${encodeURIComponent(phone)}` : ''}`, {
+        method: 'DELETE',
+      }),
   },
   announcements: {
     getAll: () => request('/announcements'),

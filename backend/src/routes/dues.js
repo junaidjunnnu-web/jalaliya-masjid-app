@@ -318,6 +318,33 @@ router.post('/:id/reject', async (req, res) => {
   }
 });
 
+// Delete a person (all their entries)
+router.delete('/:personName', async (req, res) => {
+  try {
+    const { personName } = req.params;
+    const { phone } = req.query;
+
+    console.log('🗑️ DELETE /api/dues/:personName - Deleting person:', personName, phone);
+
+    // Build the where conditions
+    const conditions = [eq(duesEntries.personName, personName)];
+    if (phone) {
+      conditions.push(eq(duesEntries.phone, phone));
+    }
+
+    // Delete all entries for this person
+    const deletedEntries = await db.delete(duesEntries)
+      .where(and(...conditions))
+      .returning();
+
+    console.log(`✅ Deleted ${deletedEntries.length} entries for person:`, personName);
+    res.json({ message: 'Person deleted successfully', deletedCount: deletedEntries.length });
+  } catch (error) {
+    console.error('❌ DELETE /api/dues/:personName ERROR:', error);
+    res.status(500).json({ error: 'Failed to delete person' });
+  }
+});
+
 // Get a specific entry by ID (must come after specific routes to avoid conflicts)
 router.get('/:id', async (req, res) => {
   try {
