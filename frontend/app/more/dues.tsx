@@ -4,6 +4,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
+import { formatPhoneNumber } from '../../lib/utils';
 
 const COMMITTEE_SESSION_KEY = '@committee_session';
 
@@ -279,7 +280,7 @@ export default function DuesScreen() {
                 } else {
                   message = `Balance updated from ₹${entry.oldBalance} to ₹${entry.amount}. Thank you - Jalaliya Juma Masjid`;
                 }
-                const whatsappUrl = `whatsapp://send?phone=${entry.phone}&text=${encodeURIComponent(message)}`;
+                const whatsappUrl = `whatsapp://send?phone=${formatPhoneNumber(entry.phone)}&text=${encodeURIComponent(message)}`;
                 Linking.openURL(whatsappUrl).catch(() => {
                   console.log('WhatsApp not available');
                 });
@@ -343,7 +344,7 @@ export default function DuesScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Dues</Text>
+        <Text style={styles.headerTitle}>Monthly Fees</Text>
         <TouchableOpacity style={styles.addButton} onPress={() => setShowAddPersonModal(true)} activeOpacity={0.7}>
           <Text style={styles.addButtonText}>+ Add Person</Text>
         </TouchableOpacity>

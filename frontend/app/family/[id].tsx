@@ -3,6 +3,7 @@ import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking, TextInpu
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
+import { formatPhoneNumber } from '../../lib/utils';
 
 export default function FamilyDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -40,7 +41,7 @@ export default function FamilyDetailScreen() {
   };
 
   const handleWhatsApp = (phone: string) => {
-    Linking.openURL(`whatsapp://send?phone=${phone}`);
+    Linking.openURL(`whatsapp://send?phone=${formatPhoneNumber(phone)}`);
   };
 
   const openAddMemberModal = () => {

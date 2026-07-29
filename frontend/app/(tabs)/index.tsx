@@ -305,7 +305,7 @@ export default function HomeScreen() {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.actionButton}
-              onPress={() => router.push('/more/fees')}
+              onPress={() => router.push('/more/dues')}
               activeOpacity={0.7}
             >
               <Text style={styles.actionButtonText}>💰 Manage Fees</Text>

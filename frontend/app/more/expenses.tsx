@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert, Modal, SafeAreaView } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
+
+const COMMITTEE_SESSION_KEY = '@committee_session';
 
 export default function ExpensesScreen() {
   const [expenses, setExpenses] = useState<any[]>([]);
@@ -12,14 +15,23 @@ export default function ExpensesScreen() {
     description: '',
   });
   const [loading, setLoading] = useState(false);
+  const [committeeSession, setCommitteeSession] = useState<any>(null);
 
   useEffect(() => {
+    loadCommitteeSession();
     loadExpenses();
   }, []);
 
+  const loadCommitteeSession = async () => {
+    const sessionStr = await AsyncStorage.getItem(COMMITTEE_SESSION_KEY);
+    if (sessionStr) {
+      setCommitteeSession(JSON.parse(sessionStr));
+    }
+  };
+
   const loadExpenses = async () => {
     const { data } = await api.expenses.getAll();
-    if (data) {
+    if (data && Array.isArray(data)) {
       setExpenses(data);
     }
   };
@@ -36,24 +48,34 @@ export default function ExpensesScreen() {
       return;
     }
 
+    if (!committeeSession) {
+      Alert.alert('Error', 'You must be logged in as committee to add expenses');
+      return;
+    }
+
     setLoading(true);
     try {
       const { data, error } = await api.expenses.create({
         category: formData.category,
         amount: parseFloat(formData.amount),
-        description: formData.description,
+        date: new Date().toISOString().split('T')[0],
+        note: formData.description,
+        enteredBy: committeeSession.committeeMemberId,
       });
       if (error) {
         Alert.alert('Error', error);
       } else {
         await loadExpenses();
         setShowModal(false);
-        Alert.alert('Success', 'Expense added');
+        setFormData({ category: 'Maintenance', amount: '', description: '' });
+        Alert.alert('Success', 'Expense added successfully');
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to add expense');
+      console.error('Add expense error:', error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleDelete = (expense: any) => {

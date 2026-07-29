@@ -5,6 +5,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
+import { formatPhoneNumber } from '../../lib/utils';
 
 const COMMITTEE_SESSION_KEY = '@committee_session';
 
@@ -73,7 +74,7 @@ export default function CommitteeScreen() {
   };
 
   const handleWhatsApp = (phone: string) => {
-    Linking.openURL(`whatsapp://send?phone=${phone}`);
+    Linking.openURL(`whatsapp://send?phone=${formatPhoneNumber(phone)}`);
   };
 
   const openAddModal = () => {
@@ -211,7 +212,7 @@ export default function CommitteeScreen() {
                 } else {
                   message = `Balance updated from ₹${entry.oldBalance} to ₹${entry.amount}. Thank you - Jalaliya Juma Masjid`;
                 }
-                const whatsappUrl = `whatsapp://send?phone=${entry.phone}&text=${encodeURIComponent(message)}`;
+                const whatsappUrl = `whatsapp://send?phone=${formatPhoneNumber(entry.phone)}&text=${encodeURIComponent(message)}`;
                 Linking.openURL(whatsappUrl).catch(() => {
                   console.log('WhatsApp not available');
                 });

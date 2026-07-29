@@ -1,15 +1,8 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
 import { theme } from '../../theme';
-import { useAuth } from '../../lib/auth-context';
 
 export default function SettingsScreen() {
-  const { logout } = useAuth();
-
-  const handleLogout = () => {
-    logout();
-  };
-
   const settingsItems = [
     {
       id: 'notifications',
@@ -65,10 +58,6 @@ export default function SettingsScreen() {
         ))}
       </View>
 
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Text style={styles.logoutButtonText}>Logout</Text>
-      </TouchableOpacity>
-
       <View style={styles.footer}>
         <Text style={styles.footerText}>Jalaliya Juma Masjid App</Text>
         <Text style={styles.footerVersion}>Version 1.0.0</Text>
@@ -122,19 +111,6 @@ const styles = StyleSheet.create({
   settingArrow: {
     fontSize: 24,
     color: theme.colors.gray[400],
-  },
-  logoutButton: {
-    backgroundColor: theme.colors.alert,
-    margin: theme.spacing.md,
-    borderRadius: theme.radius.button,
-    padding: theme.spacing.lg,
-    alignItems: 'center',
-    ...theme.shadow.button,
-  },
-  logoutButtonText: {
-    color: theme.colors.white,
-    fontSize: 16,
-    fontWeight: '600',
   },
   footer: {
     padding: theme.spacing.xl,
