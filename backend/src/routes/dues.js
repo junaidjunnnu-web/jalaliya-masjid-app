@@ -326,11 +326,13 @@ router.delete('/:personName', async (req, res) => {
 
     console.log('🗑️ DELETE /api/dues/:personName - Deleting person:', personName, phone);
 
-    // Build the where conditions
-    const conditions = [eq(duesEntries.personName, personName)];
-    if (phone) {
-      conditions.push(eq(duesEntries.phone, phone));
+    // Require phone parameter for safety - prevents deleting multiple people with same name
+    if (!phone) {
+      return res.status(400).json({ error: 'Phone parameter is required for safe deletion' });
     }
+
+    // Build the where conditions
+    const conditions = [eq(duesEntries.personName, personName), eq(duesEntries.phone, phone)];
 
     // Delete all entries for this person
     const deletedEntries = await db.delete(duesEntries)
