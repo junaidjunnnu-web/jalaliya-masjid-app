@@ -123,6 +123,17 @@ export const api = {
   committee: {
     getAll: () => request('/committee'),
     getById: (id: number) => request(`/committee/${id}`),
+    getByPhone: (phone: string) => request(`/committee/by-phone/${phone}`),
+    login: (phone: string, pin: string) =>
+      request('/committee/login', {
+        method: 'POST',
+        body: JSON.stringify({ phone, pin }),
+      }),
+    setPin: (phone: string, pin: string) =>
+      request('/committee/set-pin', {
+        method: 'POST',
+        body: JSON.stringify({ phone, pin }),
+      }),
     create: (data: any) =>
       request('/committee', {
         method: 'POST',

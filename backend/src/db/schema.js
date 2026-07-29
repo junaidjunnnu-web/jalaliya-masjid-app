@@ -75,7 +75,10 @@ const committeeMembers = pgTable('committee_members', {
   photoUrl: varchar('photo_url', { length: 500 }),
   tenureStart: date('tenure_start'),
   tenureEnd: date('tenure_end'),
-});
+  pinHash: varchar('pin_hash', { length: 255 }),
+}, (table) => ({
+  phoneIdx: index('committee_members_phone_idx').on(table.phone),
+}));
 
 // Madrasa students table
 const madrasaStudents = pgTable('madrasa_students', {
@@ -212,6 +215,23 @@ const monthlyFees = pgTable('monthly_fees', {
   statusIdx: index('monthly_fees_status_idx').on(table.status),
 }));
 
+// Dues entries table (balance ledger)
+const duesEntries = pgTable('dues_entries', {
+  id: serial('id').primaryKey(),
+  personName: varchar('person_name', { length: 100 }).notNull(),
+  phone: varchar('phone', { length: 15 }),
+  oldBalance: integer('old_balance').notNull().default(0),
+  paymentAmount: integer('payment_amount').notNull().default(0),
+  newBalance: integer('new_balance').notNull().default(0),
+  status: varchar('status', { length: 20 }).notNull().default('pending'), // pending, approved, rejected
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  approvedBy: integer('approved_by').references(() => committeeMembers.id, { onDelete: 'set null' }),
+  approvedAt: timestamp('approved_at'),
+}, (table) => ({
+  statusIdx: index('dues_entries_status_idx').on(table.status),
+  createdAtIdx: index('dues_entries_created_at_idx').on(table.createdAt),
+}));
+
 module.exports = {
   users,
   places,
@@ -227,4 +247,5 @@ module.exports = {
   collections,
   expenses,
   monthlyFees,
+  duesEntries,
 };

@@ -103,6 +103,13 @@ export default function MoreScreen() {
           </TouchableOpacity>
         ))}
       </View>
+
+      <TouchableOpacity
+        style={styles.committeeLoginLink}
+        onPress={() => router.push('/committee-login')}
+      >
+        <Text style={styles.committeeLoginText}>Committee Login (Testing)</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -161,5 +168,15 @@ const styles = StyleSheet.create({
   menuArrow: {
     fontSize: 24,
     color: theme.colors.gray[400],
+  },
+  committeeLoginLink: {
+    alignItems: 'center',
+    padding: theme.spacing.lg,
+    marginTop: theme.spacing.md,
+  },
+  committeeLoginText: {
+    fontSize: 14,
+    color: theme.colors.gray[500],
+    textDecorationLine: 'underline',
   },
 });
