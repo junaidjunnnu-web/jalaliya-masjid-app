@@ -329,16 +329,14 @@ const styles = StyleSheet.create({
     borderRadius: theme.radius.card,
     padding: theme.spacing.lg,
     marginBottom: theme.spacing.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
     ...theme.shadow.card,
   },
   memberInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
-    flexShrink: 1,
+    marginBottom: theme.spacing.md,
   },
   avatarPlaceholder: {
     width: 60,
@@ -419,7 +417,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 4,
     alignItems: 'center',
-    flexShrink: 0,
+    flexWrap: 'wrap',
   },
   actionButton: {
     paddingHorizontal: theme.spacing.sm,

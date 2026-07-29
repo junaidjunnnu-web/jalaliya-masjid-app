@@ -92,13 +92,20 @@ router.get('/', async (req, res) => {
     // Group by place
     const grouped = {};
     allFamilies.forEach(family => {
+      const memberCount = countMap[family.id] || 0;
+      
+      // Skip families with 0 members
+      if (memberCount === 0) {
+        return;
+      }
+      
       const placeName = family.placeName || 'Other';
       if (!grouped[placeName]) {
         grouped[placeName] = [];
       }
       grouped[placeName].push({
         ...family,
-        memberCount: countMap[family.id] || 0,
+        memberCount,
         firstMember: memberMap[family.id] || null,
       });
     });
