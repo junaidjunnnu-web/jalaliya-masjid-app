@@ -9,7 +9,7 @@ const attendanceStatusEnum = pgEnum('attendance_status', ['present', 'absent']);
 const collectionTypeEnum = pgEnum('collection_type', ['zakat', 'sadaqah', 'eid', 'madrasa_fund', 'other']);
 const expenseCategoryEnum = pgEnum('expense_category', ['electricity', 'imam_salary', 'maintenance', 'construction', 'other']);
 const feeStatusEnum = pgEnum('fee_status', ['paid', 'partial', 'unpaid']);
-const galleryCategoryEnum = pgEnum('gallery_category', ['Construction', 'Events', 'Facilities']);
+const galleryCategoryEnum = pgEnum('gallery_category', ['Construction', 'Events', 'Facilities', 'Home Banner']);
 
 // Users table
 const users = pgTable('users', {
