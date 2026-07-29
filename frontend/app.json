@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Jalaliya Juma Masjid",
+    "name": "Jalaliya Juma Masjid Somwarpet",
     "slug": "jalaliya-juma-masjid",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -29,7 +29,7 @@
       "favicon": "./assets/favicon.png",
       "bundler": "metro",
       "output": "single",
-      "title": "Jalaliya Juma Masjid"
+      "title": "Jalaliya Juma Masjid Somwarpet"
     },
     "plugins": [
       "expo-router",

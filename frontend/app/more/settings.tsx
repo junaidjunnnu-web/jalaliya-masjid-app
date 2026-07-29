@@ -59,7 +59,7 @@ export default function SettingsScreen() {
       </View>
 
       <View style={styles.footer}>
-        <Text style={styles.footerText}>Jalaliya Juma Masjid App</Text>
+        <Text style={styles.footerText}>Jalaliya Juma Masjid Somwarpet App</Text>
         <Text style={styles.footerVersion}>Version 1.0.0</Text>
       </View>
     </ScrollView>
