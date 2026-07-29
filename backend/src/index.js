@@ -2,7 +2,6 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 
-const authRoutes = require('./routes/auth');
 const familyRoutes = require('./routes/families');
 const committeeRoutes = require('./routes/committee');
 const madrasaRoutes = require('./routes/madrasa');
@@ -25,7 +24,6 @@ app.get('/health', (req, res) => {
 });
 
 // Routes
-app.use('/api/auth', authRoutes);
 app.use('/api/families', familyRoutes);
 app.use('/api/committee', committeeRoutes);
 app.use('/api/madrasa', madrasaRoutes);

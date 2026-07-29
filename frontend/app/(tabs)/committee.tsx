@@ -2,8 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking, TextInput, Alert, Modal, KeyboardAvoidingView, Platform, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
+
+const COMMITTEE_SESSION_KEY = '@committee_session';
 
 export default function CommitteeScreen() {
   const router = useRouter();
@@ -16,10 +19,34 @@ export default function CommitteeScreen() {
     phone: '',
   });
   const [loading, setLoading] = useState(false);
+  const [committeeSession, setCommitteeSession] = useState<any>(null);
 
   useEffect(() => {
     loadCommitteeMembers();
+    checkCommitteeSession();
   }, []);
+
+  const checkCommitteeSession = async () => {
+    try {
+      const sessionJson = await AsyncStorage.getItem(COMMITTEE_SESSION_KEY);
+      if (sessionJson) {
+        setCommitteeSession(JSON.parse(sessionJson));
+      }
+    } catch (error) {
+      console.error('Error checking committee session:', error);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem(COMMITTEE_SESSION_KEY);
+      setCommitteeSession(null);
+      Alert.alert('Success', 'Logged out successfully');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to logout');
+      console.error('Logout error:', error);
+    }
+  };
 
   const loadCommitteeMembers = async () => {
     const { data } = await api.committee.getAll();
@@ -150,6 +177,30 @@ export default function CommitteeScreen() {
           and maintaining the masjid. Feel free to reach out to any committee member 
           for assistance or inquiries.
         </Text>
+      </View>
+
+      {/* Committee Login Section */}
+      <View style={styles.loginSection}>
+        {committeeSession ? (
+          <View style={styles.loggedInCard}>
+            <View style={styles.loggedInInfo}>
+              <Text style={styles.loggedInLabel}>Logged in as:</Text>
+              <Text style={styles.loggedInName}>{committeeSession.name}</Text>
+              <Text style={styles.loggedInDesignation}>{committeeSession.designation}</Text>
+            </View>
+            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.7}>
+              <Text style={styles.logoutButtonText}>Log Out</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <TouchableOpacity 
+            style={styles.loginButton} 
+            onPress={() => router.push('/committee-login')}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.loginButtonText}>Committee Login</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Committee Directory */}
@@ -313,6 +364,57 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: theme.colors.gray[500],
     lineHeight: 22,
+  },
+  loginSection: {
+    margin: theme.spacing.md,
+  },
+  loginButton: {
+    backgroundColor: theme.colors.addButtonColor,
+    borderRadius: theme.radius.button,
+    padding: theme.spacing.lg,
+    alignItems: 'center',
+    ...theme.shadow.button,
+  },
+  loginButtonText: {
+    color: theme.colors.white,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  loggedInCard: {
+    backgroundColor: theme.colors.white,
+    borderRadius: theme.radius.card,
+    padding: theme.spacing.lg,
+    ...theme.shadow.card,
+  },
+  loggedInInfo: {
+    marginBottom: theme.spacing.md,
+  },
+  loggedInLabel: {
+    fontSize: 12,
+    color: theme.colors.gray[500],
+    marginBottom: theme.spacing.xs,
+  },
+  loggedInName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: theme.colors.textPrimary,
+    marginBottom: 2,
+  },
+  loggedInDesignation: {
+    fontSize: 14,
+    color: theme.colors.primary,
+  },
+  logoutButton: {
+    backgroundColor: theme.colors.alert,
+    borderRadius: theme.radius.button,
+    padding: theme.spacing.md,
+    alignItems: 'center',
+    ...theme.shadow.button,
+  },
+  logoutButtonText: {
+    color: theme.colors.white,
+    fontSize: 14,
+    fontWeight: '600',
   },
   section: {
     margin: theme.spacing.md,

@@ -17,6 +17,23 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Get committee member by phone (must come before /:id to avoid route conflict)
+router.get('/by-phone/:phone', async (req, res) => {
+  try {
+    const { phone } = req.params;
+    const [member] = await db.select().from(committeeMembers).where(eq(committeeMembers.phone, phone));
+    
+    if (!member) {
+      return res.status(404).json({ error: 'Committee member not found' });
+    }
+    
+    res.json([member]);
+  } catch (error) {
+    console.error('Get committee member by phone error:', error);
+    res.status(500).json({ error: 'Failed to fetch committee member' });
+  }
+});
+
 // Get single committee member
 router.get('/:id', async (req, res) => {
   try {
@@ -30,23 +47,6 @@ router.get('/:id', async (req, res) => {
     res.json(member);
   } catch (error) {
     console.error('Get committee member error:', error);
-    res.status(500).json({ error: 'Failed to fetch committee member' });
-  }
-});
-
-// Get committee member by phone
-router.get('/by-phone/:phone', async (req, res) => {
-  try {
-    const { phone } = req.params;
-    const [member] = await db.select().from(committeeMembers).where(eq(committeeMembers.phone, phone));
-    
-    if (!member) {
-      return res.status(404).json({ error: 'Committee member not found' });
-    }
-    
-    res.json([member]);
-  } catch (error) {
-    console.error('Get committee member by phone error:', error);
     res.status(500).json({ error: 'Failed to fetch committee member' });
   }
 });
