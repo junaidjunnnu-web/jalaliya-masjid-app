@@ -275,8 +275,9 @@ export default function DuesScreen() {
                 // Open WhatsApp with pre-filled message
                 let message = '';
                 if (entry.type === 'payment') {
-                  const paymentDate = new Date(entry.createdAt).toLocaleDateString();
-                  message = `Payment of ₹${entry.amount} received on ${paymentDate}. Current balance on record: ₹${entry.oldBalance}. Thank you - Jalaliya Juma Masjid`;
+                  const paymentDate = new Date(entry.createdAt);
+                  const formattedDate = paymentDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                  message = `Assalamu Alaikum,\n\nPayment received - Jalaliya Juma Masjid Monthly Fees\n\nAmount: ₹${entry.amount}\nDate: ${formattedDate}\nCurrent Balance: ₹${entry.oldBalance}\n\nJazakAllah Khair for your contribution.\n\nJalaliya Juma Masjid Committee`;
                 } else {
                   message = `Balance updated from ₹${entry.oldBalance} to ₹${entry.amount}. Thank you - Jalaliya Juma Masjid`;
                 }

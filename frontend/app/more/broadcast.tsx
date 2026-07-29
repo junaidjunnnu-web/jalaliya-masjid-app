@@ -1,11 +1,30 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, SafeAreaView, Linking, Alert } from 'react-native';
 import { theme } from '../../theme';
+import { api } from '../../lib/api';
+import { formatPhoneNumber } from '../../lib/utils';
 
 export default function BroadcastScreen() {
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
   const [customMessage, setCustomMessage] = useState('');
   const [selectedPlace, setSelectedPlace] = useState<string>('all');
+  const [families, setFamilies] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    loadFamilies();
+  }, []);
+
+  const loadFamilies = async () => {
+    try {
+      const { data } = await api.families.getAll();
+      if (data && Array.isArray(data)) {
+        setFamilies(data);
+      }
+    } catch (error) {
+      console.error('Error loading families:', error);
+    }
+  };
 
   const templates = [
     {
@@ -65,10 +84,41 @@ Jalaliya Juma Masjid Committee`,
     }
   };
 
-  const handleSendBroadcast = () => {
-    // This will open WhatsApp share intent for each family head
-    // The actual implementation will fetch family phone numbers and loop through them
-    console.log('Sending broadcast:', customMessage, 'to place:', selectedPlace);
+  const handleSendBroadcast = async () => {
+    if (!customMessage.trim()) {
+      Alert.alert('Error', 'Please enter a message to send');
+      return;
+    }
+
+    // Filter families by place if not "all"
+    let filteredFamilies = families;
+    if (selectedPlace !== 'all') {
+      filteredFamilies = families.filter(family => family.placeId === selectedPlace);
+    }
+
+    if (filteredFamilies.length === 0) {
+      Alert.alert('Error', 'No families found for the selected place');
+      return;
+    }
+
+    setLoading(true);
+    
+    // Open WhatsApp for each family head
+    for (const family of filteredFamilies) {
+      if (family.headPhone) {
+        const whatsappUrl = `whatsapp://send?phone=${formatPhoneNumber(family.headPhone)}&text=${encodeURIComponent(customMessage)}`;
+        try {
+          await Linking.openURL(whatsappUrl);
+          // Add a small delay between opens to avoid rate limiting
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        } catch (error) {
+          console.error('Failed to open WhatsApp for:', family.headPhone);
+        }
+      }
+    }
+
+    setLoading(false);
+    Alert.alert('Broadcast Sent', `Opened WhatsApp for ${filteredFamilies.length} family heads`);
   };
 
   return (
@@ -142,8 +192,12 @@ Jalaliya Juma Masjid Committee`,
       </View>
 
       {/* Send Button */}
-      <TouchableOpacity style={styles.sendButton} onPress={handleSendBroadcast}>
-        <Text style={styles.sendButtonText}>Send Broadcast</Text>
+      <TouchableOpacity 
+        style={styles.sendButton} 
+        onPress={handleSendBroadcast}
+        disabled={loading}
+      >
+        <Text style={styles.sendButtonText}>{loading ? 'Sending...' : 'Send Broadcast'}</Text>
       </TouchableOpacity>
 
       <View style={styles.infoBox}>
