@@ -1,7 +1,7 @@
 const express = require('express');
 const { db } = require('../db');
 const { families, familyMembers, places, users } = require('../db/schema');
-const { eq, and, like, or, inArray } = require('drizzle-orm');
+const { eq, and, like, or, inArray, orderBy } = require('drizzle-orm');
 
 const router = express.Router();
 
@@ -324,7 +324,57 @@ router.put('/:id/members/:memberId', async (req, res) => {
 router.delete('/:id/members/:memberId', async (req, res) => {
   try {
     const { id, memberId } = req.params;
+
+    // Get the member being deleted to check if they match headName/headPhone
+    const [memberToDelete] = await db.select()
+      .from(familyMembers)
+      .where(eq(familyMembers.id, memberId));
+
+    if (!memberToDelete) {
+      return res.status(404).json({ error: 'Member not found' });
+    }
+
+    // Get the current family to check headName/headPhone
+    const [currentFamily] = await db.select()
+      .from(families)
+      .where(eq(families.id, id));
+
+    if (!currentFamily) {
+      return res.status(404).json({ error: 'Family not found' });
+    }
+
+    // Delete the member
     await db.delete(familyMembers).where(eq(familyMembers.id, memberId));
+
+    // If the deleted member matches headName/headPhone, update the family to use the next member
+    if (currentFamily.headName === memberToDelete.name && currentFamily.headPhone === memberToDelete.phone) {
+      // Get remaining members for this family
+      const remainingMembers = await db.select()
+        .from(familyMembers)
+        .where(eq(familyMembers.familyId, id))
+        .orderBy(familyMembers.id)
+        .limit(1);
+
+      if (remainingMembers.length > 0) {
+        // Update family to use the next member as head
+        const nextMember = remainingMembers[0];
+        await db.update(families)
+          .set({
+            headName: nextMember.name,
+            headPhone: nextMember.phone || null
+          })
+          .where(eq(families.id, id));
+      } else {
+        // No members left, clear headName/headPhone
+        await db.update(families)
+          .set({
+            headName: null,
+            headPhone: null
+          })
+          .where(eq(families.id, id));
+      }
+    }
+
     res.json({ message: 'Member deleted' });
   } catch (error) {
     console.error('Delete member error:', error);
