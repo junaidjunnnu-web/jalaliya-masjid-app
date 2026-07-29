@@ -220,15 +220,19 @@ const duesEntries = pgTable('dues_entries', {
   id: serial('id').primaryKey(),
   personName: varchar('person_name', { length: 100 }).notNull(),
   phone: varchar('phone', { length: 15 }),
-  oldBalance: integer('old_balance').notNull().default(0),
-  paymentAmount: integer('payment_amount').notNull().default(0),
-  newBalance: integer('new_balance').notNull().default(0),
+  type: varchar('type', { length: 20 }).notNull().default('payment'), // 'balance_edit' or 'payment'
+  amount: integer('amount').notNull().default(0), // For balance_edit: new balance value; for payment: payment amount
+  oldBalance: integer('old_balance').notNull().default(0), // Previous balance before this action
+  newBalance: integer('new_balance').notNull().default(0), // For balance_edit: same as amount; for payment: oldBalance - amount
   status: varchar('status', { length: 20 }).notNull().default('pending'), // pending, approved, rejected
   createdAt: timestamp('created_at').defaultNow().notNull(),
   approvedBy: integer('approved_by').references(() => committeeMembers.id, { onDelete: 'set null' }),
   approvedAt: timestamp('approved_at'),
+  // Legacy field for backward compatibility during migration
+  paymentAmount: integer('payment_amount').notNull().default(0),
 }, (table) => ({
   statusIdx: index('dues_entries_status_idx').on(table.status),
+  typeIdx: index('dues_entries_type_idx').on(table.type),
   createdAtIdx: index('dues_entries_created_at_idx').on(table.createdAt),
 }));
 

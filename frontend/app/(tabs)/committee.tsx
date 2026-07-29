@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking, TextInput, Alert, Modal, KeyboardAvoidingView, Platform, SafeAreaView } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { theme } from '../../theme';
@@ -11,6 +11,7 @@ const COMMITTEE_SESSION_KEY = '@committee_session';
 export default function CommitteeScreen() {
   const router = useRouter();
   const [members, setMembers] = useState<any[]>([]);
+  const [pendingDues, setPendingDues] = useState<any[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [editingMember, setEditingMember] = useState<any>(null);
   const [formData, setFormData] = useState({
@@ -21,10 +22,15 @@ export default function CommitteeScreen() {
   const [loading, setLoading] = useState(false);
   const [committeeSession, setCommitteeSession] = useState<any>(null);
 
-  useEffect(() => {
-    loadCommitteeMembers();
-    checkCommitteeSession();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      loadCommitteeMembers();
+      checkCommitteeSession();
+      if (committeeSession) {
+        loadPendingDues();
+      }
+    }, [committeeSession])
+  );
 
   const checkCommitteeSession = async () => {
     try {
@@ -52,6 +58,13 @@ export default function CommitteeScreen() {
     const { data } = await api.committee.getAll();
     if (data) {
       setMembers(data as any[]);
+    }
+  };
+
+  const loadPendingDues = async () => {
+    const { data } = await api.dues.getPending();
+    if (data) {
+      setPendingDues(data as any[]);
     }
   };
 
@@ -163,6 +176,92 @@ export default function CommitteeScreen() {
     );
   };
 
+  const handleApproveDues = async (entry: any) => {
+    const entryType = entry.type === 'balance_edit' ? 'balance edit' : 'payment';
+    const entryTypeLabel = entry.type === 'balance_edit' ? 'Balance Edit' : 'Payment';
+
+    Alert.alert(
+      `Approve ${entryTypeLabel}`,
+      entry.type === 'balance_edit'
+        ? `Approve balance change from ₹${entry.oldBalance} to ₹${entry.amount} for ${entry.personName}?`
+        : `Approve payment of ₹${entry.amount} from ${entry.personName}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Approve',
+          onPress: async () => {
+            setLoading(true);
+            try {
+              const { data, error } = await api.dues.approve(
+                entry.id,
+                committeeSession.committeeMemberId
+              );
+
+              if (error) {
+                Alert.alert('Error', error);
+              } else {
+                Alert.alert('Success', `${entryTypeLabel} approved`);
+                await loadPendingDues();
+
+                // Open WhatsApp with pre-filled message
+                let message = '';
+                if (entry.type === 'payment') {
+                  const paymentDate = new Date(entry.createdAt).toLocaleDateString();
+                  message = `Payment of ₹${entry.amount} received on ${paymentDate}. Current balance on record: ₹${entry.oldBalance}. Thank you - Jalaliya Juma Masjid`;
+                } else {
+                  message = `Balance updated from ₹${entry.oldBalance} to ₹${entry.amount}. Thank you - Jalaliya Juma Masjid`;
+                }
+                const whatsappUrl = `whatsapp://send?phone=${entry.phone}&text=${encodeURIComponent(message)}`;
+                Linking.openURL(whatsappUrl).catch(() => {
+                  console.log('WhatsApp not available');
+                });
+              }
+            } catch (error) {
+              Alert.alert('Error', `Failed to approve ${entryType}`);
+              console.error('Approve error:', error);
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleRejectDues = async (entry: any) => {
+    const entryType = entry.type === 'balance_edit' ? 'balance edit' : 'payment';
+
+    Alert.alert(
+      `Reject ${entryType}`,
+      `Reject ${entry.type === 'balance_edit' ? 'balance change' : 'payment of ₹' + entry.amount} from ${entry.personName}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Reject',
+          style: 'destructive',
+          onPress: async () => {
+            setLoading(true);
+            try {
+              const { data, error } = await api.dues.reject(entry.id);
+
+              if (error) {
+                Alert.alert('Error', error);
+              } else {
+                Alert.alert('Success', `${entryType} rejected`);
+                await loadPendingDues();
+              }
+            } catch (error) {
+              Alert.alert('Error', `Failed to reject ${entryType}`);
+              console.error('Reject error:', error);
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       <SafeAreaView style={styles.header}>
@@ -202,6 +301,46 @@ export default function CommitteeScreen() {
           </TouchableOpacity>
         )}
       </View>
+
+      {/* Pending Approvals Section - Only shown when logged in */}
+      {committeeSession && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Pending Approvals</Text>
+          {pendingDues.length === 0 ? (
+            <Text style={styles.emptyText}>No pending approvals</Text>
+          ) : (
+            pendingDues.map((entry) => (
+              <View key={entry.id} style={styles.pendingCard}>
+                <View style={styles.pendingInfo}>
+                  <Text style={styles.pendingPersonName}>{entry.personName}</Text>
+                  <Text style={styles.pendingPhone}>{entry.phone}</Text>
+                  <Text style={styles.pendingType}>{entry.type === 'balance_edit' ? 'Balance Edit' : 'Payment'}</Text>
+                  <View style={styles.pendingAmounts}>
+                    <Text style={styles.pendingLabel}>Current Balance: ₹{entry.oldBalance}</Text>
+                    <Text style={styles.pendingLabel}>{entry.type === 'balance_edit' ? 'New Balance: ' : 'Payment: '}₹{entry.amount}</Text>
+                  </View>
+                </View>
+                <View style={styles.pendingActions}>
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.approveButton]}
+                    onPress={() => handleApproveDues(entry)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.approveButtonText}>Approve</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.rejectButton]}
+                    onPress={() => handleRejectDues(entry)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.rejectButtonText}>Reject</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))
+          )}
+        </View>
+      )}
 
       {/* Committee Directory */}
       <View style={styles.section}>
@@ -610,5 +749,74 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: theme.colors.textPrimary,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: theme.colors.gray[500],
+    textAlign: 'center',
+    padding: theme.spacing.lg,
+  },
+  pendingCard: {
+    backgroundColor: theme.colors.white,
+    borderRadius: theme.radius.card,
+    padding: theme.spacing.lg,
+    marginBottom: theme.spacing.md,
+    ...theme.shadow.card,
+  },
+  pendingInfo: {
+    marginBottom: theme.spacing.md,
+  },
+  pendingPersonName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: theme.colors.textPrimary,
+    marginBottom: 2,
+  },
+  pendingPhone: {
+    fontSize: 14,
+    color: theme.colors.gray[500],
+    marginBottom: theme.spacing.xs,
+  },
+  pendingType: {
+    fontSize: 12,
+    color: theme.colors.primary,
+    fontWeight: '600',
+    marginBottom: theme.spacing.xs,
+  },
+  pendingAmounts: {
+    flexDirection: 'row',
+    gap: theme.spacing.md,
+  },
+  pendingLabel: {
+    fontSize: 12,
+    color: theme.colors.gray[600],
+  },
+  pendingActions: {
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+  },
+  approveButton: {
+    flex: 1,
+    backgroundColor: theme.colors.success,
+    padding: theme.spacing.md,
+    borderRadius: theme.radius.button,
+    alignItems: 'center',
+  },
+  approveButtonText: {
+    color: theme.colors.white,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  rejectButton: {
+    flex: 1,
+    backgroundColor: theme.colors.alert,
+    padding: theme.spacing.md,
+    borderRadius: theme.radius.button,
+    alignItems: 'center',
+  },
+  rejectButtonText: {
+    color: theme.colors.white,
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

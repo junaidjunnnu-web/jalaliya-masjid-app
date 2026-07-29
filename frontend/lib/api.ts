@@ -1,6 +1,6 @@
 import * as SecureStore from 'expo-secure-store';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3001/api';
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://jalaliya-masjid-backend.onrender.com/api';
 
 interface ApiResponse<T> {
   data?: T;
@@ -190,6 +190,7 @@ export const api = {
   dues: {
     getAll: () => request('/dues'),
     getPending: () => request('/dues/pending'),
+    getHistory: (personName: string) => request(`/dues/history/${encodeURIComponent(personName)}`),
     addPerson: (data: any) =>
       request('/dues', {
         method: 'POST',
@@ -197,6 +198,11 @@ export const api = {
       }),
     submitPayment: (data: any) =>
       request('/dues/payment', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    submitBalanceEdit: (data: any) =>
+      request('/dues/balance-edit', {
         method: 'POST',
         body: JSON.stringify(data),
       }),

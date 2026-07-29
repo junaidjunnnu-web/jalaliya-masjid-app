@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert, Modal, KeyboardAvoidingView, Platform, Linking } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
@@ -18,11 +18,22 @@ interface PendingEntry {
   id: number;
   personName: string;
   phone: string;
+  type: string;
+  amount: number;
   oldBalance: number;
-  paymentAmount: number;
   newBalance: number;
   status: string;
   createdAt: string;
+}
+
+interface PaymentHistoryEntry {
+  id: number;
+  personName: string;
+  phone: string;
+  amount: number;
+  oldBalance: number;
+  newBalance: number;
+  approvedAt: string;
 }
 
 export default function DuesScreen() {
@@ -32,7 +43,10 @@ export default function DuesScreen() {
   const [committeeSession, setCommitteeSession] = useState<any>(null);
   const [showAddPersonModal, setShowAddPersonModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showBalanceEditModal, setShowBalanceEditModal] = useState(false);
+  const [showPersonDetailModal, setShowPersonDetailModal] = useState(false);
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
+  const [paymentHistory, setPaymentHistory] = useState<PaymentHistoryEntry[]>([]);
   const [loading, setLoading] = useState(false);
 
   const [newPersonName, setNewPersonName] = useState('');
@@ -40,11 +54,14 @@ export default function DuesScreen() {
   const [newPersonBalance, setNewPersonBalance] = useState('');
 
   const [paymentAmount, setPaymentAmount] = useState('');
+  const [newBalanceAmount, setNewBalanceAmount] = useState('');
 
-  useEffect(() => {
-    loadData();
-    checkCommitteeSession();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      loadData();
+      checkCommitteeSession();
+    }, [])
+  );
 
   const loadData = async () => {
     setLoading(true);
@@ -118,6 +135,29 @@ export default function DuesScreen() {
     setShowPaymentModal(true);
   };
 
+  const handleOpenBalanceEdit = (person: Person) => {
+    setSelectedPerson(person);
+    setNewBalanceAmount(person.currentBalance.toString());
+    setShowBalanceEditModal(true);
+  };
+
+  const handleOpenPersonDetail = async (person: Person) => {
+    setSelectedPerson(person);
+    setLoading(true);
+    try {
+      const { data, error } = await api.dues.getHistory(person.personName);
+      if (data) {
+        setPaymentHistory(data as PaymentHistoryEntry[]);
+      }
+      setShowPersonDetailModal(true);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to load payment history');
+      console.error('Load history error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmitPayment = async () => {
     if (!selectedPerson || !paymentAmount) {
       Alert.alert('Error', 'Please enter a payment amount');
@@ -135,7 +175,7 @@ export default function DuesScreen() {
       const { data, error } = await api.dues.submitPayment({
         personName: selectedPerson.personName,
         phone: selectedPerson.phone,
-        paymentAmount: amount,
+        amount: amount,
       });
 
       if (error) {
@@ -155,6 +195,43 @@ export default function DuesScreen() {
     }
   };
 
+  const handleSubmitBalanceEdit = async () => {
+    if (!selectedPerson || newBalanceAmount === '') {
+      Alert.alert('Error', 'Please enter a new balance amount');
+      return;
+    }
+
+    const amount = parseInt(newBalanceAmount);
+    if (isNaN(amount)) {
+      Alert.alert('Error', 'Please enter a valid balance amount');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data, error } = await api.dues.submitBalanceEdit({
+        personName: selectedPerson.personName,
+        phone: selectedPerson.phone,
+        amount: amount,
+      });
+
+      if (error) {
+        Alert.alert('Error', error);
+      } else {
+        Alert.alert('Success', 'Balance edit submitted for approval');
+        setShowBalanceEditModal(false);
+        setNewBalanceAmount('');
+        setSelectedPerson(null);
+        await loadData();
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to submit balance edit');
+      console.error('Submit balance edit error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleApprove = async (entry: PendingEntry) => {
     if (!committeeSession) {
       Alert.alert(
@@ -168,9 +245,14 @@ export default function DuesScreen() {
       return;
     }
 
+    const entryType = entry.type === 'balance_edit' ? 'balance edit' : 'payment';
+    const entryTypeLabel = entry.type === 'balance_edit' ? 'Balance Edit' : 'Payment';
+
     Alert.alert(
-      'Approve Payment',
-      `Approve payment of ₹${entry.paymentAmount} from ${entry.personName}?`,
+      `Approve ${entryTypeLabel}`,
+      entry.type === 'balance_edit'
+        ? `Approve balance change from ₹${entry.oldBalance} to ₹${entry.amount} for ${entry.personName}?`
+        : `Approve payment of ₹${entry.amount} from ${entry.personName}?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -186,18 +268,24 @@ export default function DuesScreen() {
               if (error) {
                 Alert.alert('Error', error);
               } else {
-                Alert.alert('Success', 'Payment approved');
+                Alert.alert('Success', `${entryTypeLabel} approved`);
                 await loadData();
 
                 // Open WhatsApp with pre-filled message
-                const message = `Payment of ₹${entry.paymentAmount} received. Previous balance: ₹${entry.oldBalance}. New balance: ₹${entry.newBalance}. Thank you - Jalaliya Juma Masjid`;
+                let message = '';
+                if (entry.type === 'payment') {
+                  const paymentDate = new Date(entry.createdAt).toLocaleDateString();
+                  message = `Payment of ₹${entry.amount} received on ${paymentDate}. Current balance on record: ₹${entry.oldBalance}. Thank you - Jalaliya Juma Masjid`;
+                } else {
+                  message = `Balance updated from ₹${entry.oldBalance} to ₹${entry.amount}. Thank you - Jalaliya Juma Masjid`;
+                }
                 const whatsappUrl = `whatsapp://send?phone=${entry.phone}&text=${encodeURIComponent(message)}`;
                 Linking.openURL(whatsappUrl).catch(() => {
                   console.log('WhatsApp not available');
                 });
               }
             } catch (error) {
-              Alert.alert('Error', 'Failed to approve payment');
+              Alert.alert('Error', `Failed to approve ${entryType}`);
               console.error('Approve error:', error);
             } finally {
               setLoading(false);
@@ -223,7 +311,7 @@ export default function DuesScreen() {
 
     Alert.alert(
       'Reject Payment',
-      `Reject payment of ₹${entry.paymentAmount} from ${entry.personName}?`,
+      `Reject payment of ₹${entry.amount} from ${entry.personName}?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -270,10 +358,10 @@ export default function DuesScreen() {
               <View style={styles.pendingInfo}>
                 <Text style={styles.pendingPersonName}>{entry.personName}</Text>
                 <Text style={styles.pendingPhone}>{entry.phone}</Text>
+                <Text style={styles.pendingType}>{entry.type === 'balance_edit' ? 'Balance Edit' : 'Payment'}</Text>
                 <View style={styles.pendingAmounts}>
-                  <Text style={styles.pendingLabel}>Old: ₹{entry.oldBalance}</Text>
-                  <Text style={styles.pendingLabel}>Payment: ₹{entry.paymentAmount}</Text>
-                  <Text style={styles.pendingLabel}>New: ₹{entry.newBalance}</Text>
+                  <Text style={styles.pendingLabel}>Current Balance: ₹{entry.oldBalance}</Text>
+                  <Text style={styles.pendingLabel}>{entry.type === 'balance_edit' ? 'New Balance: ' : 'Payment: '}₹{entry.amount}</Text>
                 </View>
               </View>
               <View style={styles.pendingActions}>
@@ -319,7 +407,7 @@ export default function DuesScreen() {
             <TouchableOpacity
               key={`${person.personName}-${person.phone}-${index}`}
               style={styles.personCard}
-              onPress={() => handleOpenPayment(person)}
+              onPress={() => handleOpenPersonDetail(person)}
               activeOpacity={0.7}
             >
               <View style={styles.personInfo}>
@@ -436,6 +524,125 @@ export default function DuesScreen() {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      {/* Balance Edit Modal */}
+      <Modal
+        visible={showBalanceEditModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowBalanceEditModal(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Edit Balance</Text>
+            {selectedPerson && (
+              <>
+                <Text style={styles.paymentPersonName}>{selectedPerson.personName}</Text>
+                <Text style={styles.paymentCurrentBalance}>Current Balance: ₹{selectedPerson.currentBalance}</Text>
+              </>
+            )}
+            <TextInput
+              style={styles.input}
+              placeholder="New Balance"
+              value={newBalanceAmount}
+              onChangeText={setNewBalanceAmount}
+              keyboardType="numeric"
+              autoFocus
+            />
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => setShowBalanceEditModal(false)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.saveButton]}
+                onPress={handleSubmitBalanceEdit}
+                disabled={loading}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.saveButtonText}>Submit</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Person Detail Modal */}
+      <Modal
+        visible={showPersonDetailModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowPersonDetailModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>{selectedPerson?.personName}</Text>
+            {selectedPerson && (
+              <>
+                <Text style={styles.detailPhone}>{selectedPerson.phone}</Text>
+                <View style={styles.detailBalanceRow}>
+                  <Text style={styles.detailBalanceLabel}>Current Balance:</Text>
+                  <Text style={styles.detailBalanceAmount}>₹{selectedPerson.currentBalance}</Text>
+                </View>
+
+                <View style={styles.detailActions}>
+                  <TouchableOpacity
+                    style={[styles.detailActionButton, styles.paymentButton]}
+                    onPress={() => {
+                      setShowPersonDetailModal(false);
+                      handleOpenPayment(selectedPerson);
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.detailActionButtonText}>Add Payment</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.detailActionButton, styles.balanceEditButton]}
+                    onPress={() => {
+                      setShowPersonDetailModal(false);
+                      handleOpenBalanceEdit(selectedPerson);
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.detailActionButtonText}>Edit Balance</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <Text style={styles.historyTitle}>Payment History</Text>
+                <ScrollView style={styles.historyList}>
+                  {paymentHistory.length === 0 ? (
+                    <Text style={styles.emptyHistoryText}>No payment history</Text>
+                  ) : (
+                    paymentHistory.map((entry) => (
+                      <View key={entry.id} style={styles.historyItem}>
+                        <Text style={styles.historyDate}>
+                          {new Date(entry.approvedAt).toLocaleDateString()}
+                        </Text>
+                        <Text style={styles.historyAmount}>₹{entry.amount}</Text>
+                        <Text style={styles.historyBalance}>Balance: ₹{entry.newBalance}</Text>
+                      </View>
+                    ))
+                  )}
+                </ScrollView>
+
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.closeButton]}
+                  onPress={() => setShowPersonDetailModal(false)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.closeButtonText}>Close</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -513,6 +720,12 @@ const styles = StyleSheet.create({
   pendingLabel: {
     fontSize: 12,
     color: theme.colors.gray[600],
+  },
+  pendingType: {
+    fontSize: 12,
+    color: theme.colors.primary,
+    fontWeight: '600',
+    marginBottom: theme.spacing.xs,
   },
   pendingActions: {
     flexDirection: 'row',
@@ -660,6 +873,98 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     color: theme.colors.white,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  detailPhone: {
+    fontSize: 14,
+    color: theme.colors.gray[500],
+    marginBottom: theme.spacing.md,
+  },
+  detailBalanceRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: theme.spacing.lg,
+    paddingBottom: theme.spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.gray[200],
+  },
+  detailBalanceLabel: {
+    fontSize: 16,
+    color: theme.colors.textPrimary,
+  },
+  detailBalanceAmount: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: theme.colors.textPrimary,
+  },
+  detailActions: {
+    flexDirection: 'row',
+    gap: theme.spacing.md,
+    marginBottom: theme.spacing.lg,
+  },
+  detailActionButton: {
+    flex: 1,
+    padding: theme.spacing.md,
+    borderRadius: theme.radius.button,
+    alignItems: 'center',
+    ...theme.shadow.button,
+  },
+  paymentButton: {
+    backgroundColor: theme.colors.addButtonColor,
+  },
+  balanceEditButton: {
+    backgroundColor: theme.colors.primary,
+  },
+  detailActionButtonText: {
+    color: theme.colors.white,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  historyTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: theme.colors.textPrimary,
+    marginBottom: theme.spacing.md,
+    fontFamily: theme.typography.display,
+  },
+  historyList: {
+    maxHeight: 200,
+    marginBottom: theme.spacing.lg,
+  },
+  emptyHistoryText: {
+    fontSize: 14,
+    color: theme.colors.gray[500],
+    textAlign: 'center',
+    padding: theme.spacing.lg,
+  },
+  historyItem: {
+    backgroundColor: theme.colors.gray[100],
+    borderRadius: theme.radius.button,
+    padding: theme.spacing.md,
+    marginBottom: theme.spacing.sm,
+  },
+  historyDate: {
+    fontSize: 12,
+    color: theme.colors.gray[500],
+    marginBottom: 2,
+  },
+  historyAmount: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: theme.colors.textPrimary,
+    marginBottom: 2,
+  },
+  historyBalance: {
+    fontSize: 12,
+    color: theme.colors.gray[600],
+  },
+  closeButton: {
+    backgroundColor: theme.colors.gray[200],
+  },
+  closeButtonText: {
+    color: theme.colors.textPrimary,
     fontSize: 16,
     fontWeight: '600',
   },

@@ -6,16 +6,19 @@ const { eq, desc, and, sql } = require('drizzle-orm');
 const router = express.Router();
 
 // Get all people with their current approved balance
-// Returns a list of unique people with their latest approved balance
+// Returns a list of unique people with their latest approved balance_edit entry
 router.get('/', async (req, res) => {
   try {
     console.log('📋 GET /api/dues - Fetching all people with approved balances');
 
-    // Get all approved entries, ordered by person name and then by date (newest first)
+    // Get all approved balance_edit entries, ordered by person name and then by date (newest first)
     const approvedEntries = await db
       .select()
       .from(duesEntries)
-      .where(eq(duesEntries.status, 'approved'))
+      .where(and(
+        eq(duesEntries.status, 'approved'),
+        eq(duesEntries.type, 'balance_edit')
+      ))
       .orderBy(duesEntries.personName, desc(duesEntries.approvedAt));
 
     // Group by person and get the latest approved balance for each
@@ -27,7 +30,7 @@ router.get('/', async (req, res) => {
         peopleMap.set(key, {
           personName: entry.personName,
           phone: entry.phone,
-          currentBalance: entry.newBalance,
+          currentBalance: entry.amount, // For balance_edit, amount = new balance value
           lastUpdated: entry.approvedAt,
         });
       } else {
@@ -37,7 +40,7 @@ router.get('/', async (req, res) => {
           peopleMap.set(key, {
             personName: entry.personName,
             phone: entry.phone,
-            currentBalance: entry.newBalance,
+            currentBalance: entry.amount,
             lastUpdated: entry.approvedAt,
           });
         }
@@ -77,7 +80,7 @@ router.get('/pending', async (req, res) => {
 });
 
 // Add a new person with starting balance
-// This creates an approved entry with paymentAmount=0 to establish the initial balance
+// This creates an approved balance_edit entry to establish the initial balance
 router.post('/', async (req, res) => {
   try {
     const { personName, phone, startingBalance } = req.body;
@@ -90,16 +93,18 @@ router.post('/', async (req, res) => {
 
     const balance = startingBalance || 0;
 
-    // Create an approved entry to establish the initial balance
+    // Create an approved balance_edit entry to establish the initial balance
     const [newEntry] = await db.insert(duesEntries).values({
       personName,
       phone: phone || null,
+      type: 'balance_edit',
+      amount: balance,
       oldBalance: 0,
-      paymentAmount: 0,
       newBalance: balance,
       status: 'approved',
       approvedBy: null, // System-created entry
       approvedAt: new Date(),
+      paymentAmount: 0, // Legacy field
     }).returning();
 
     console.log('✅ Person added successfully:', newEntry);
@@ -114,37 +119,41 @@ router.post('/', async (req, res) => {
 // Note: This uses the person's name/phone to identify them, not an ID
 router.post('/payment', async (req, res) => {
   try {
-    const { personName, phone, paymentAmount } = req.body;
+    const { personName, phone, amount } = req.body;
 
-    console.log('💰 POST /api/dues/payment - Submitting payment:', { personName, phone, paymentAmount });
+    console.log('💰 POST /api/dues/payment - Submitting payment:', { personName, phone, amount });
 
-    if (!personName || !paymentAmount) {
+    if (!personName || !amount) {
       return res.status(400).json({ error: 'Person name and payment amount are required' });
     }
 
-    // Get the current approved balance for this person
+    // Get the current approved balance for this person (from latest balance_edit)
     const approvedEntries = await db
       .select()
       .from(duesEntries)
       .where(and(
         eq(duesEntries.status, 'approved'),
+        eq(duesEntries.type, 'balance_edit'),
         eq(duesEntries.personName, personName)
       ))
       .orderBy(desc(duesEntries.approvedAt))
       .limit(1);
 
-    const currentBalance = approvedEntries.length > 0 ? approvedEntries[0].newBalance : 0;
+    const currentBalance = approvedEntries.length > 0 ? approvedEntries[0].amount : 0;
     const oldBalance = currentBalance;
-    const newBalance = currentBalance - paymentAmount;
 
-    // Create a pending entry
+    // Create a pending payment entry
+    // Note: Payments do NOT change oldBalance - only balance_edit actions do
+    // newBalance is set to oldBalance to indicate no balance change occurred
     const [newEntry] = await db.insert(duesEntries).values({
       personName,
       phone: phone || null,
+      type: 'payment',
+      amount,
       oldBalance,
-      paymentAmount,
-      newBalance,
+      newBalance: oldBalance, // Payments don't change the balance
       status: 'pending',
+      paymentAmount: amount, // Legacy field
     }).returning();
 
     console.log('✅ Payment submitted successfully:', newEntry);
@@ -152,6 +161,79 @@ router.post('/payment', async (req, res) => {
   } catch (error) {
     console.error('❌ POST /api/dues/payment ERROR:', error);
     res.status(500).json({ error: 'Failed to submit payment' });
+  }
+});
+
+// Submit a balance edit (creates a pending entry)
+// Note: This uses the person's name/phone to identify them, not an ID
+router.post('/balance-edit', async (req, res) => {
+  try {
+    const { personName, phone, amount } = req.body;
+
+    console.log('✏️ POST /api/dues/balance-edit - Submitting balance edit:', { personName, phone, amount });
+
+    if (!personName || amount === undefined || amount === null) {
+      return res.status(400).json({ error: 'Person name and new balance amount are required' });
+    }
+
+    // Get the current approved balance for this person (from latest balance_edit)
+    const approvedEntries = await db
+      .select()
+      .from(duesEntries)
+      .where(and(
+        eq(duesEntries.status, 'approved'),
+        eq(duesEntries.type, 'balance_edit'),
+        eq(duesEntries.personName, personName)
+      ))
+      .orderBy(desc(duesEntries.approvedAt))
+      .limit(1);
+
+    const oldBalance = approvedEntries.length > 0 ? approvedEntries[0].amount : 0;
+    const newBalance = amount;
+
+    // Create a pending balance_edit entry
+    const [newEntry] = await db.insert(duesEntries).values({
+      personName,
+      phone: phone || null,
+      type: 'balance_edit',
+      amount: newBalance,
+      oldBalance,
+      newBalance,
+      status: 'pending',
+      paymentAmount: 0, // Legacy field
+    }).returning();
+
+    console.log('✅ Balance edit submitted successfully:', newEntry);
+    res.status(201).json(newEntry);
+  } catch (error) {
+    console.error('❌ POST /api/dues/balance-edit ERROR:', error);
+    res.status(500).json({ error: 'Failed to submit balance edit' });
+  }
+});
+
+// Get payment history for a specific person
+router.get('/history/:personName', async (req, res) => {
+  try {
+    const { personName } = req.params;
+
+    console.log('📋 GET /api/dues/history/:personName - Fetching payment history for:', personName);
+
+    // Get all approved payment entries for this person, sorted by date (newest first)
+    const paymentHistory = await db
+      .select()
+      .from(duesEntries)
+      .where(and(
+        eq(duesEntries.status, 'approved'),
+        eq(duesEntries.type, 'payment'),
+        eq(duesEntries.personName, personName)
+      ))
+      .orderBy(desc(duesEntries.approvedAt));
+
+    console.log(`✅ Found ${paymentHistory.length} payment history entries`);
+    res.json(paymentHistory);
+  } catch (error) {
+    console.error('❌ GET /api/dues/history/:personName ERROR:', error);
+    res.status(500).json({ error: 'Failed to fetch payment history' });
   }
 });
 
