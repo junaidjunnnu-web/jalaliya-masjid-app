@@ -157,7 +157,7 @@ const galleryPhotos = pgTable('gallery_photos', {
   category: galleryCategoryEnum('category').notNull(),
   caption: varchar('caption', { length: 300 }),
   eventId: integer('event_id').references(() => events.id, { onDelete: 'set null' }),
-  uploadedBy: integer('uploaded_by').references(() => committeeMembers.id, { onDelete: 'set null' }).notNull(),
+  uploadedBy: integer('uploaded_by').references(() => committeeMembers.id, { onDelete: 'set null' }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (table) => ({
   categoryIdx: index('gallery_photos_category_idx').on(table.category),

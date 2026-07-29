@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: theme.colors.primary,
     padding: theme.spacing.lg,
-    paddingTop: theme.spacing.xl,
+    paddingTop: 60,
   },
   headerTitle: {
     fontSize: 28,
@@ -328,11 +328,15 @@ const styles = StyleSheet.create({
     borderRadius: theme.radius.card,
     padding: theme.spacing.lg,
     marginBottom: theme.spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     ...theme.shadow.card,
   },
   memberInfo: {
     flexDirection: 'row',
-    marginBottom: theme.spacing.md,
+    alignItems: 'center',
+    flex: 1,
   },
   avatarPlaceholder: {
     width: 60,

@@ -166,9 +166,13 @@ export default function GalleryScreen() {
         ) : (
           photos.map((photo) => (
             <View key={photo.id} style={styles.photoCard}>
-              <View style={styles.photoPlaceholder}>
-                <Text style={styles.photoPlaceholderText}>📷</Text>
-              </View>
+              {photo.photoUrl ? (
+                <Image source={{ uri: photo.photoUrl }} style={styles.photoImage} />
+              ) : (
+                <View style={styles.photoPlaceholder}>
+                  <Text style={styles.photoPlaceholderText}>📷</Text>
+                </View>
+              )}
               {!!photo.caption && (
                 <Text style={styles.photoCaption} numberOfLines={2}>
                   {photo.caption}
@@ -289,7 +293,7 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: theme.colors.primary,
     padding: theme.spacing.lg,
-    paddingTop: theme.spacing.xl,
+    paddingTop: 60,
   },
   headerTitle: {
     fontSize: 28,
@@ -357,6 +361,11 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.gray[200],
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  photoImage: {
+    height: 150,
+    width: '100%',
+    resizeMode: 'cover',
   },
   photoPlaceholderText: {
     fontSize: 40,

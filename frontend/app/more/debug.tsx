@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: theme.colors.primary,
     padding: theme.spacing.lg,
-    paddingTop: theme.spacing.xl,
+    paddingTop: 60,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
