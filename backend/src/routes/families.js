@@ -170,7 +170,7 @@ router.post('/', async (req, res) => {
       firstMember: members?.[0]
     });
 
-    // Get the first member's name/phone for backward compatibility with families table
+    // Get the first member's name for backward compatibility with families table
     const firstMember = members && members.length > 0 ? members[0] : null;
     const headName = firstMember?.name || 'Unknown';
     const headPhone = firstMember?.phone || '';
@@ -191,7 +191,7 @@ router.post('/', async (req, res) => {
 
     console.log('Family created successfully:', newFamily);
 
-    // Create members if provided
+    // Create ALL members if provided (including the first one)
     if (members && members.length > 0) {
       const memberData = members.map(member => ({
         familyId: newFamily.id,
@@ -206,7 +206,7 @@ router.post('/', async (req, res) => {
       }));
 
       const createdMembers = await db.insert(familyMembers).values(memberData).returning();
-      console.log('Members created successfully:', createdMembers);
+      console.log('All members created successfully (including first):', createdMembers);
 
       res.status(201).json({
         family: newFamily,

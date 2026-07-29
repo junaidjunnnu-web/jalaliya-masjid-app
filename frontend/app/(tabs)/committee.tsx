@@ -23,7 +23,7 @@ export default function CommitteeScreen() {
   const loadCommitteeMembers = async () => {
     const { data } = await api.committee.getAll();
     if (data) {
-      setMembers(data);
+      setMembers(data as any[]);
     }
   };
 
@@ -174,28 +174,28 @@ export default function CommitteeScreen() {
             </View>
             <View style={styles.memberActions}>
               <TouchableOpacity
-                style={styles.editButton}
+                style={[styles.actionButton, styles.editButton]}
                 onPress={() => openEditModal(member)}
                 activeOpacity={0.7}
               >
-                <Text style={styles.editButtonText}>Edit</Text>
+                <Text style={styles.actionButtonText}>Edit</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.deleteButton}
+                style={[styles.actionButton, styles.deleteButton]}
                 onPress={() => handleDelete(member)}
                 activeOpacity={0.7}
               >
                 <Text style={styles.deleteButtonText}>Delete</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.contactButton, styles.callButton]}
+                style={[styles.actionButton, styles.callButton]}
                 onPress={() => handleCall(member.phone)}
                 activeOpacity={0.7}
               >
                 <Text style={styles.contactButtonText}>📞</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.contactButton, styles.whatsappButton]}
+                style={[styles.actionButton, styles.whatsappButton]}
                 onPress={() => handleWhatsApp(member.phone)}
                 activeOpacity={0.7}
               >
@@ -417,21 +417,23 @@ const styles = StyleSheet.create({
     gap: 4,
     alignItems: 'center',
   },
-  editButton: {
+  actionButton: {
     paddingHorizontal: theme.spacing.sm,
     paddingVertical: theme.spacing.xs,
     borderRadius: theme.radius.pill,
+    minWidth: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  editButton: {
     backgroundColor: theme.colors.gray[200],
   },
-  editButtonText: {
+  actionButtonText: {
     fontSize: 12,
     color: theme.colors.textPrimary,
     fontWeight: '600',
   },
   deleteButton: {
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
-    borderRadius: theme.radius.pill,
     backgroundColor: theme.colors.alert,
   },
   deleteButtonText: {
