@@ -200,7 +200,7 @@ export default function HomeScreen() {
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       {/* Header */}
       <SafeAreaView style={styles.header}>
-        <Text style={styles.headerTitle}>Jalaliya Juma Masjid</Text>
+        <Text style={styles.headerTitle}>Jalaliya Juma Masjid Somwarpet</Text>
       </SafeAreaView>
 
       {/* Photo Banner Carousel */}
