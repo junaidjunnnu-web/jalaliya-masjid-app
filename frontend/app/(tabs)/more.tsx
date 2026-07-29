@@ -36,6 +36,13 @@ export default function MoreScreen() {
       onPress: () => router.push('/more/fees'),
     },
     {
+      id: 'dues',
+      title: 'Dues',
+      icon: '💳',
+      description: 'Manage dues and payments',
+      onPress: () => router.push('/more/dues'),
+    },
+    {
       id: 'broadcast',
             title: 'Broadcast',
             icon: '📨',

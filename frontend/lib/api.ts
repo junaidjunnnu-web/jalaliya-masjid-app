@@ -187,6 +187,29 @@ export const api = {
         body: JSON.stringify(data),
       }),
   },
+  dues: {
+    getAll: () => request('/dues'),
+    getPending: () => request('/dues/pending'),
+    addPerson: (data: any) =>
+      request('/dues', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    submitPayment: (data: any) =>
+      request('/dues/payment', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    approve: (id: number, committeeMemberId: number) =>
+      request(`/dues/${id}/approve`, {
+        method: 'POST',
+        body: JSON.stringify({ committeeMemberId }),
+      }),
+    reject: (id: number) =>
+      request(`/dues/${id}/reject`, {
+        method: 'POST',
+      }),
+  },
   announcements: {
     getAll: () => request('/announcements'),
     getById: (id: number) => request(`/announcements/${id}`),

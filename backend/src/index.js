@@ -12,6 +12,7 @@ const galleryRoutes = require('./routes/gallery');
 const collectionRoutes = require('./routes/collections');
 const expenseRoutes = require('./routes/expenses');
 const feeRoutes = require('./routes/fees');
+const duesRoutes = require('./routes/dues');
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use('/api/gallery', galleryRoutes);
 app.use('/api/collections', collectionRoutes);
 app.use('/api/expenses', expenseRoutes);
 app.use('/api/fees', feeRoutes);
+app.use('/api/dues', duesRoutes);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
