@@ -73,7 +73,9 @@ Jalaliya Juma Masjid Committee`,
     { id: '4', name: 'Ranger Block' },
     { id: '5', name: 'Near Manasa Hall' },
     { id: '6', name: 'Somwarpet Town' },
-    { id: '7', name: 'Other' },
+    { id: '7', name: 'Convent Bane' },
+    { id: '8', name: 'Karkalli' },
+    { id: '9', name: 'Other' },
   ];
 
   const handleTemplateSelect = (templateId: string) => {

@@ -12,6 +12,8 @@ async function seed() {
     'Ranger Block',
     'Near Manasa Hall',
     'Somwarpet Town',
+    'Convent Bane',
+    'Karkalli',
     'Other',
   ];
 

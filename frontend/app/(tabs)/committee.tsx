@@ -209,7 +209,7 @@ export default function CommitteeScreen() {
                 if (entry.type === 'payment') {
                   const paymentDate = new Date(entry.createdAt);
                   const formattedDate = paymentDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                  message = `Assalamu Alaikum,\n\nPayment received - Jalaliya Juma Masjid Monthly Fees\n\nAmount: ₹${entry.amount}\nDate: ${formattedDate}\nCurrent Balance: ₹${entry.oldBalance}\n\nJazakAllah Khair for your contribution.\n\nJalaliya Juma Masjid Committee`;
+                  message = `Assalamu Alaikum ${entry.personName},\n\nPayment received - Jalaliya Juma Masjid Monthly Fees\n\nAmount: ₹${entry.amount}\nDate: ${formattedDate}\nCurrent Balance: ₹${entry.oldBalance}\n\nJazakAllah Khair for your contribution.\n\nJalaliya Juma Masjid Committee`;
                 } else {
                   message = `Balance updated from ₹${entry.oldBalance} to ₹${entry.amount}. Thank you - Jalaliya Juma Masjid`;
                 }
