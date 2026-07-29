@@ -171,9 +171,6 @@ export default function FamilyDetailScreen() {
           </View>
           <View style={styles.familyInfo}>
             <Text style={styles.familyHead}>{family.headName}</Text>
-            {true && family.headPhone && (
-              <Text style={styles.familyPhone}>{family.headPhone}</Text>
-            )}
             <Text style={styles.familyPlace}>{family.placeName}</Text>
             {family.status === 'pending' && (
               <View style={styles.pendingBadge}>
@@ -196,25 +193,6 @@ export default function FamilyDetailScreen() {
             <Text style={styles.feeValue}>
               Married: ₹{family.monthlyFeeMarried} | Unmarried: ₹{family.monthlyFeeUnmarried}
             </Text>
-          </View>
-        )}
-
-        {family.headPhone && (
-          <View style={styles.contactButtons}>
-            <TouchableOpacity
-              style={[styles.contactButton, styles.callButton]}
-              onPress={() => handleCall(family.headPhone)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.contactButtonText}>📞 Call</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.contactButton, styles.whatsappButton]}
-              onPress={() => handleWhatsApp(family.headPhone)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.contactButtonText}>💬 WhatsApp</Text>
-            </TouchableOpacity>
           </View>
         )}
       </View>

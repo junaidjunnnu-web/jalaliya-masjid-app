@@ -384,7 +384,7 @@ const styles = StyleSheet.create({
     ...theme.shadow.button,
   },
   callButton: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: '#2E6BA8',
   },
   whatsappButton: {
     backgroundColor: theme.colors.whatsapp,
@@ -414,7 +414,8 @@ const styles = StyleSheet.create({
   },
   memberActions: {
     flexDirection: 'row',
-    gap: theme.spacing.sm,
+    gap: 4,
+    alignItems: 'center',
   },
   editButton: {
     paddingHorizontal: theme.spacing.sm,

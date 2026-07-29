@@ -376,6 +376,7 @@ const styles = StyleSheet.create({
     color: theme.colors.textPrimary,
   },
   shareButton: {
+    flex: 1,
     backgroundColor: theme.colors.whatsapp,
     padding: theme.spacing.sm,
     alignItems: 'center',

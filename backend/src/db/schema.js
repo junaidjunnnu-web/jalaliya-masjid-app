@@ -130,7 +130,7 @@ const announcements = pgTable('announcements', {
   id: serial('id').primaryKey(),
   title: varchar('title', { length: 200 }).notNull(),
   message: text('message').notNull(),
-  postedBy: integer('posted_by').references(() => committeeMembers.id, { onDelete: 'set null' }).notNull(),
+  postedBy: integer('posted_by').references(() => committeeMembers.id, { onDelete: 'set null' }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (table) => ({
   createdAtIdx: index('announcements_created_at_idx').on(table.createdAt),
@@ -144,7 +144,7 @@ const events = pgTable('events', {
   eventDate: date('event_date').notNull(),
   eventTime: varchar('event_time', { length: 10 }).notNull(),
   location: varchar('location', { length: 200 }),
-  createdBy: integer('created_by').references(() => committeeMembers.id, { onDelete: 'set null' }).notNull(),
+  createdBy: integer('created_by').references(() => committeeMembers.id, { onDelete: 'set null' }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (table) => ({
   eventDateIdx: index('events_event_date_idx').on(table.eventDate),
