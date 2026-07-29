@@ -1,9 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, SafeAreaView, Image, FlatList } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, SafeAreaView, Image, FlatList, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
 import { PrayerTimes, CalculationMethod, Coordinates } from 'adhan';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -337,7 +339,7 @@ const styles = StyleSheet.create({
     margin: theme.spacing.md,
   },
   bannerItem: {
-    width: '100%',
+    width: SCREEN_WIDTH - (theme.spacing.md * 2),
   },
   bannerImage: {
     height: 180,

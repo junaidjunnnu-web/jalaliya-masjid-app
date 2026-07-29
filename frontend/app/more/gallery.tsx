@@ -380,11 +380,15 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.whatsapp,
     padding: theme.spacing.sm,
     alignItems: 'center',
+    borderRadius: theme.radius.button,
+    minHeight: 36,
+    justifyContent: 'center',
   },
   shareButtonText: {
     color: theme.colors.white,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
+    textAlign: 'center',
   },
   emptyState: {
     padding: theme.spacing.xxl,
