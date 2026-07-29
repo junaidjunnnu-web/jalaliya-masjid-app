@@ -163,22 +163,12 @@ export default function FamilyDetailScreen() {
 
       {/* Family Card */}
       <View style={styles.familyCard}>
-        <View style={styles.familyHeader}>
-          <View style={styles.avatarPlaceholder}>
-            <Text style={styles.avatarText}>
-              {family.headName.charAt(0).toUpperCase()}
-            </Text>
+        <Text style={styles.familyPlace}>{family.placeName}</Text>
+        {family.status === 'pending' && (
+          <View style={styles.pendingBadge}>
+            <Text style={styles.pendingText}>Pending Approval</Text>
           </View>
-          <View style={styles.familyInfo}>
-            <Text style={styles.familyHead}>{family.headName}</Text>
-            <Text style={styles.familyPlace}>{family.placeName}</Text>
-            {family.status === 'pending' && (
-              <View style={styles.pendingBadge}>
-                <Text style={styles.pendingText}>Pending Approval</Text>
-              </View>
-            )}
-          </View>
-        </View>
+        )}
 
         {true && family.address && (
           <View style={styles.detailRow}>

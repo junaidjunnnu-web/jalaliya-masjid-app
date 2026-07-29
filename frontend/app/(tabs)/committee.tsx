@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking, TextInput, Alert, Modal, KeyboardAvoidingView, Platform, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
+import { FontAwesome } from '@expo/vector-icons';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
 
@@ -199,7 +200,7 @@ export default function CommitteeScreen() {
                 onPress={() => handleWhatsApp(member.phone)}
                 activeOpacity={0.7}
               >
-                <Text style={styles.contactButtonText}>💬</Text>
+                <FontAwesome name="whatsapp" size={18} color={theme.colors.white} />
               </TouchableOpacity>
             </View>
           </View>
@@ -337,6 +338,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
+    flexShrink: 1,
   },
   avatarPlaceholder: {
     width: 60,
@@ -346,6 +348,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: theme.spacing.md,
+    flexShrink: 0,
   },
   avatarText: {
     fontSize: 24,
@@ -416,6 +419,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 4,
     alignItems: 'center',
+    flexShrink: 0,
   },
   actionButton: {
     paddingHorizontal: theme.spacing.sm,
