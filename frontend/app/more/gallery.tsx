@@ -116,7 +116,7 @@ export default function GalleryScreen() {
     });
   };
 
-  const categories = ['all', 'Construction', 'Events', 'Facilities'];
+  const categories = ['all', 'Construction', 'Events', 'Facilities', 'Home Banner'];
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
@@ -235,7 +235,7 @@ export default function GalleryScreen() {
 
               <Text style={styles.modalLabel}>Category</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryContainer}>
-                {['Construction', 'Events', 'Facilities'].map((category) => (
+                {['Construction', 'Events', 'Facilities', 'Home Banner'].map((category) => (
                   <TouchableOpacity
                     key={category}
                     style={[

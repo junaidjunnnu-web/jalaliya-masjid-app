@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, SafeAreaView, Image, FlatList } from 'react-native';
 import { useRouter } from 'expo-router';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
@@ -10,26 +10,41 @@ export default function HomeScreen() {
   const [announcement, setAnnouncement] = useState<any>(null);
   const [event, setEvent] = useState<any>(null);
   const [nextPrayer, setNextPrayer] = useState<any>(null);
+  const [bannerPhotos, setBannerPhotos] = useState<any[]>([]);
+  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+  const flatListRef = useRef<FlatList>(null);
+  const autoSlideRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     loadHomeData();
     const interval = setInterval(() => {
       updateNextPrayer();
     }, 60000); // Update every minute
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      if (autoSlideRef.current) {
+        clearInterval(autoSlideRef.current);
+      }
+    };
   }, []);
 
   const loadHomeData = async () => {
     // Load latest announcement
     const { data: announcements } = await api.announcements.getAll();
-    if (announcements && announcements.length > 0) {
+    if (announcements && Array.isArray(announcements) && announcements.length > 0) {
       setAnnouncement(announcements[0]);
     }
 
     // Load upcoming event
     const { data: events } = await api.events.getAll('upcoming=true');
-    if (events && events.length > 0) {
+    if (events && Array.isArray(events) && events.length > 0) {
       setEvent(events[0]);
+    }
+
+    // Load Home Banner photos
+    const { data: photos } = await api.gallery.getAll('category=Home Banner');
+    if (photos && Array.isArray(photos)) {
+      setBannerPhotos(photos);
     }
 
     updateNextPrayer();
@@ -134,6 +149,51 @@ export default function HomeScreen() {
     return null;
   };
 
+  // Auto-slide carousel every 4 seconds
+  useEffect(() => {
+    if (bannerPhotos.length > 1) {
+      autoSlideRef.current = setInterval(() => {
+        setCurrentBannerIndex((prevIndex) => {
+          const nextIndex = (prevIndex + 1) % bannerPhotos.length;
+          flatListRef.current?.scrollToIndex({ index: nextIndex, animated: true });
+          return nextIndex;
+        });
+      }, 4000);
+    }
+
+    return () => {
+      if (autoSlideRef.current) {
+        clearInterval(autoSlideRef.current);
+      }
+    };
+  }, [bannerPhotos]);
+
+  const handleBannerScroll = (event: any) => {
+    const index = Math.round(event.nativeEvent.contentOffset.x / event.nativeEvent.layoutMeasurement.width);
+    setCurrentBannerIndex(index);
+  };
+
+  const handleBannerPress = () => {
+    if (bannerPhotos.length > 0) {
+      setCurrentBannerIndex((prevIndex) => {
+        const nextIndex = (prevIndex + 1) % bannerPhotos.length;
+        flatListRef.current?.scrollToIndex({ index: nextIndex, animated: true });
+        return nextIndex;
+      });
+      // Reset auto-slide timer on manual interaction
+      if (autoSlideRef.current) {
+        clearInterval(autoSlideRef.current);
+        autoSlideRef.current = setInterval(() => {
+          setCurrentBannerIndex((prevIndex) => {
+            const nextIndex = (prevIndex + 1) % bannerPhotos.length;
+            flatListRef.current?.scrollToIndex({ index: nextIndex, animated: true });
+            return nextIndex;
+          });
+        }, 4000);
+      }
+    }
+  };
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       {/* Header */}
@@ -143,9 +203,42 @@ export default function HomeScreen() {
 
       {/* Photo Banner Carousel */}
       <View style={styles.bannerContainer}>
-        <View style={styles.bannerPlaceholder}>
-          <Text style={styles.bannerText}>🕌</Text>
-        </View>
+        {bannerPhotos.length > 0 ? (
+          <TouchableOpacity onPress={handleBannerPress} activeOpacity={1}>
+            <FlatList
+              ref={flatListRef}
+              data={bannerPhotos}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              onMomentumScrollEnd={handleBannerScroll}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={({ item }) => (
+                <View style={styles.bannerItem}>
+                  <Image source={{ uri: item.photoUrl }} style={styles.bannerImage} />
+                </View>
+              )}
+            />
+            {/* Dot Indicators */}
+            {bannerPhotos.length > 1 && (
+              <View style={styles.dotContainer}>
+                {bannerPhotos.map((_, index) => (
+                  <View
+                    key={index}
+                    style={[
+                      styles.dot,
+                      index === currentBannerIndex && styles.dotActive,
+                    ]}
+                  />
+                ))}
+              </View>
+            )}
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.bannerPlaceholder}>
+            <Text style={styles.bannerText}>🕌</Text>
+          </View>
+        )}
       </View>
 
       {/* Next Prayer Countdown */}
@@ -243,6 +336,15 @@ const styles = StyleSheet.create({
   bannerContainer: {
     margin: theme.spacing.md,
   },
+  bannerItem: {
+    width: '100%',
+  },
+  bannerImage: {
+    height: 180,
+    width: '100%',
+    resizeMode: 'cover',
+    borderRadius: theme.radius.card,
+  },
   bannerPlaceholder: {
     height: 180,
     backgroundColor: theme.colors.primary,
@@ -253,6 +355,25 @@ const styles = StyleSheet.create({
   },
   bannerText: {
     fontSize: 64,
+  },
+  dotContainer: {
+    position: 'absolute',
+    bottom: theme.spacing.md,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: theme.spacing.sm,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+  },
+  dotActive: {
+    backgroundColor: theme.colors.white,
+    width: 20,
   },
   prayerCard: {
     marginHorizontal: theme.spacing.md,
