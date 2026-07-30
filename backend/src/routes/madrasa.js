@@ -1,31 +1,69 @@
 const express = require('express');
 const { db } = require('../db');
-const { madrasaStudents, madrasaAttendance, families } = require('../db/schema');
-const { eq, and, gte, lte } = require('drizzle-orm');
+const { ustads, madrasaStudents, madrasaAttendance } = require('../db/schema');
+const { eq, and, gte, lte, desc } = require('drizzle-orm');
+const bcrypt = require('bcrypt');
 
 const router = express.Router();
+
+// Get all ustads
+router.get('/ustads', async (req, res) => {
+  try {
+    const ustadsList = await db.select({
+      id: ustads.id,
+      name: ustads.name,
+      createdAt: ustads.createdAt,
+    }).from(ustads);
+    res.json(ustadsList);
+  } catch (error) {
+    console.error('Get ustads error:', error);
+    res.status(500).json({ error: 'Failed to fetch ustads' });
+  }
+});
+
+// Verify Ustad PIN
+router.post('/ustads/verify-pin', async (req, res) => {
+  try {
+    const { pin } = req.body;
+    
+    const ustadsList = await db.select().from(ustads);
+    
+    for (const ustad of ustadsList) {
+      const isValid = await bcrypt.compare(pin, ustad.pinHash);
+      if (isValid) {
+        return res.json({ valid: true, ustadId: ustad.id, ustadName: ustad.name });
+      }
+    }
+    
+    res.json({ valid: false });
+  } catch (error) {
+    console.error('Verify PIN error:', error);
+    res.status(500).json({ error: 'Failed to verify PIN' });
+  }
+});
 
 // Get all students
 router.get('/students', async (req, res) => {
   try {
-    const { classLevel } = req.query;
+    const { standard, search } = req.query;
     let query = db.select({
       id: madrasaStudents.id,
       name: madrasaStudents.name,
-      guardianName: madrasaStudents.guardianName,
-      guardianPhone: madrasaStudents.guardianPhone,
-      familyId: madrasaStudents.familyId,
-      classLevel: madrasaStudents.classLevel,
-      ustadName: madrasaStudents.ustadName,
-      progressNotes: madrasaStudents.progressNotes,
-      photoUrl: madrasaStudents.photoUrl,
+      standard: madrasaStudents.standard,
+      fatherName: madrasaStudents.fatherName,
+      fatherPhone: madrasaStudents.fatherPhone,
+      createdAt: madrasaStudents.createdAt,
     }).from(madrasaStudents);
 
-    if (classLevel) {
-      query = query.where(eq(madrasaStudents.classLevel, classLevel));
+    if (standard) {
+      query = query.where(eq(madrasaStudents.standard, standard));
     }
 
-    const students = await query;
+    if (search) {
+      query = query.where(eq(madrasaStudents.name, search));
+    }
+
+    const students = await query.orderBy(madrasaStudents.name);
     res.json(students);
   } catch (error) {
     console.error('Get students error:', error);
@@ -33,7 +71,33 @@ router.get('/students', async (req, res) => {
   }
 });
 
-// Get single student with attendance
+// Search students by name
+router.get('/students/search', async (req, res) => {
+  try {
+    const { q } = req.query;
+    
+    if (!q) {
+      return res.json([]);
+    }
+
+    const students = await db.select({
+      id: madrasaStudents.id,
+      name: madrasaStudents.name,
+      standard: madrasaStudents.standard,
+      fatherName: madrasaStudents.fatherName,
+      fatherPhone: madrasaStudents.fatherPhone,
+      createdAt: madrasaStudents.createdAt,
+    }).from(madrasaStudents)
+      .where(eq(madrasaStudents.name, q));
+
+    res.json(students);
+  } catch (error) {
+    console.error('Search students error:', error);
+    res.status(500).json({ error: 'Failed to search students' });
+  }
+});
+
+// Get single student with attendance history
 router.get('/students/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -44,12 +108,39 @@ router.get('/students/:id', async (req, res) => {
       return res.status(404).json({ error: 'Student not found' });
     }
 
-    // Get attendance
-    const attendance = await db.select().from(madrasaAttendance)
+    // Get attendance history
+    const attendance = await db.select({
+      id: madrasaAttendance.id,
+      date: madrasaAttendance.date,
+      status: madrasaAttendance.status,
+      markedByUstadId: madrasaAttendance.markedByUstadId,
+      createdAt: madrasaAttendance.createdAt,
+    }).from(madrasaAttendance)
       .where(eq(madrasaAttendance.studentId, id))
-      .orderBy(madrasaAttendance.date);
+      .orderBy(desc(madrasaAttendance.date));
 
-    res.json({ student, attendance });
+    // Calculate attendance summary for current month
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    
+    const monthAttendance = attendance.filter(a => {
+      const attDate = new Date(a.date);
+      return attDate.getMonth() === currentMonth && attDate.getFullYear() === currentYear;
+    });
+    
+    const presentCount = monthAttendance.filter(a => a.status === 'present').length;
+    const totalCount = monthAttendance.length;
+
+    res.json({ 
+      student, 
+      attendance,
+      attendanceSummary: {
+        present: presentCount,
+        total: totalCount,
+        month: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`
+      }
+    });
   } catch (error) {
     console.error('Get student error:', error);
     res.status(500).json({ error: 'Failed to fetch student' });
@@ -59,17 +150,13 @@ router.get('/students/:id', async (req, res) => {
 // Create student
 router.post('/students', async (req, res) => {
   try {
-    const { name, guardianName, guardianPhone, familyId, classLevel, ustadName, progressNotes, photoUrl } = req.body;
+    const { name, standard, fatherName, fatherPhone } = req.body;
 
     const [newStudent] = await db.insert(madrasaStudents).values({
       name,
-      guardianName,
-      guardianPhone,
-      familyId,
-      classLevel,
-      ustadName,
-      progressNotes,
-      photoUrl,
+      standard,
+      fatherName,
+      fatherPhone,
     }).returning();
 
     res.status(201).json(newStudent);
@@ -83,10 +170,10 @@ router.post('/students', async (req, res) => {
 router.put('/students/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, guardianName, guardianPhone, familyId, classLevel, ustadName, progressNotes, photoUrl } = req.body;
+    const { name, standard, fatherName, fatherPhone } = req.body;
 
     const [updatedStudent] = await db.update(madrasaStudents)
-      .set({ name, guardianName, guardianPhone, familyId, classLevel, ustadName, progressNotes, photoUrl })
+      .set({ name, standard, fatherName, fatherPhone })
       .where(eq(madrasaStudents.id, id))
       .returning();
 
@@ -108,10 +195,10 @@ router.delete('/students/:id', async (req, res) => {
   }
 });
 
-// Mark attendance
+// Mark attendance (requires Ustad PIN verification)
 router.post('/attendance', async (req, res) => {
   try {
-    const { studentId, date, status } = req.body;
+    const { studentId, date, status, ustadId } = req.body;
 
     // Check if attendance already exists
     const [existing] = await db.select().from(madrasaAttendance)
@@ -123,7 +210,7 @@ router.post('/attendance', async (req, res) => {
     if (existing) {
       // Update existing
       const [updated] = await db.update(madrasaAttendance)
-        .set({ status })
+        .set({ status, markedByUstadId: ustadId })
         .where(eq(madrasaAttendance.id, existing.id))
         .returning();
       res.json(updated);
@@ -133,6 +220,7 @@ router.post('/attendance', async (req, res) => {
         studentId,
         date,
         status,
+        markedByUstadId: ustadId,
       }).returning();
       res.status(201).json(newAttendance);
     }
@@ -145,9 +233,16 @@ router.post('/attendance', async (req, res) => {
 // Get attendance by date range
 router.get('/attendance', async (req, res) => {
   try {
-    const { startDate, endDate, studentId } = req.query;
+    const { startDate, endDate, studentId, standard } = req.query;
     
-    let query = db.select().from(madrasaAttendance);
+    let query = db.select({
+      id: madrasaAttendance.id,
+      studentId: madrasaAttendance.studentId,
+      date: madrasaAttendance.date,
+      status: madrasaAttendance.status,
+      markedByUstadId: madrasaAttendance.markedByUstadId,
+      createdAt: madrasaAttendance.createdAt,
+    }).from(madrasaAttendance);
     
     const conditions = [];
     if (startDate) conditions.push(gte(madrasaAttendance.date, startDate));
@@ -158,7 +253,7 @@ router.get('/attendance', async (req, res) => {
       query = query.where(and(...conditions));
     }
 
-    const attendance = await query.orderBy(madrasaAttendance.date);
+    const attendance = await query.orderBy(desc(madrasaAttendance.date));
     res.json(attendance);
   } catch (error) {
     console.error('Get attendance error:', error);
@@ -167,3 +262,4 @@ router.get('/attendance', async (req, res) => {
 });
 
 module.exports = router;
+

@@ -4,146 +4,102 @@ import { useRouter } from 'expo-router';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
 
+const STANDARDS = [
+  '1st Standard', '2nd Standard', '3rd Standard', '4th Standard', '5th Standard',
+  '6th Standard', '7th Standard', '8th Standard', '9th Standard', '10th Standard'
+];
+
 export default function MadrasaScreen() {
   const router = useRouter();
-  const [students, setStudents] = useState<any[]>([]);
-  const [selectedClass, setSelectedClass] = useState<string>('all');
-  const [showModal, setShowModal] = useState(false);
-  const [editingStudent, setEditingStudent] = useState<any>(null);
+  const [ustads, setUstads] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [showAddStudentModal, setShowAddStudentModal] = useState(false);
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [selectedStandard, setSelectedStandard] = useState<string | null>(null);
+  const [verifiedUstad, setVerifiedUstad] = useState<any>(null);
   const [formData, setFormData] = useState({
     name: '',
-    guardianName: '',
-    guardianPhone: '',
-    familyId: '',
-    classLevel: 'Qaida',
-    ustadName: '',
-    progressNotes: '',
+    standard: '1st Standard',
+    fatherName: '',
+    fatherPhone: '',
   });
   const [loading, setLoading] = useState(false);
-  const [families, setFamilies] = useState<any[]>([]);
 
   useEffect(() => {
-    loadStudents();
-    loadFamilies();
-  }, [selectedClass]);
+    loadUstads();
+  }, []);
 
-  const loadStudents = async () => {
-    const params = selectedClass !== 'all' ? `classLevel=${selectedClass}` : '';
-    const { data } = await api.madrasa.getStudents(params);
+  const loadUstads = async () => {
+    const { data } = await api.madrasa.getUstads();
     if (data) {
-      setStudents(data);
+      setUstads(data);
     }
   };
 
-  const loadFamilies = async () => {
-    const { data } = await api.families.getAll();
-    if (data && Array.isArray(data)) {
-      const allFamilies: any[] = [];
-      data.forEach((pg: any) => {
-        if (pg.families && Array.isArray(pg.families)) {
-          allFamilies.push(...pg.families);
-        }
-      });
-      setFamilies(allFamilies);
+  const handleSearch = async (query: string) => {
+    setSearchQuery(query);
+    if (query.trim()) {
+      const { data } = await api.madrasa.searchStudents(query);
+      if (data) {
+        setSearchResults(data);
+      }
+    } else {
+      setSearchResults([]);
     }
   };
 
-  const classLevels = ['all', 'Hifz', 'Qaida', 'Nazra', 'Islamic Studies'];
+  const openStandard = (standard: string) => {
+    setSelectedStandard(standard);
+    router.push(`/madrasa/standard/${encodeURIComponent(standard)}`);
+  };
 
-  const openAddModal = () => {
-    setEditingStudent(null);
+  const openAddStudentModal = () => {
     setFormData({
       name: '',
-      guardianName: '',
-      guardianPhone: '',
-      familyId: '',
-      classLevel: 'Qaida',
-      ustadName: '',
-      progressNotes: '',
+      standard: '1st Standard',
+      fatherName: '',
+      fatherPhone: '',
     });
-    setShowModal(true);
+    setShowAddStudentModal(true);
   };
 
-  const openEditModal = (student: any) => {
-    setEditingStudent(student);
-    setFormData({
-      name: student.name,
-      guardianName: student.guardianName,
-      guardianPhone: student.guardianPhone,
-      familyId: student.familyId?.toString() || '',
-      classLevel: student.classLevel,
-      ustadName: student.ustadName || '',
-      progressNotes: student.progressNotes || '',
-    });
-    setShowModal(true);
-  };
-
-  const handleSave = async () => {
-    const { name, guardianName, guardianPhone, classLevel } = formData;
-    if (!name || !guardianName || !guardianPhone || !classLevel) {
+  const handleAddStudent = async () => {
+    const { name, standard, fatherName, fatherPhone } = formData;
+    if (!name || !standard || !fatherName || !fatherPhone) {
       Alert.alert('Error', 'Please fill all required fields');
       return;
     }
 
     setLoading(true);
     try {
-      if (editingStudent) {
-        const { data, error } = await api.madrasa.updateStudent(editingStudent.id, {
-          name: formData.name,
-          guardianName: formData.guardianName,
-          guardianPhone: formData.guardianPhone,
-          familyId: formData.familyId ? parseInt(formData.familyId) : null,
-          classLevel: formData.classLevel,
-          ustadName: formData.ustadName,
-          progressNotes: formData.progressNotes,
-        });
-        if (error) {
-          Alert.alert('Error', error);
-        }
+      const { data, error } = await api.madrasa.createStudent({
+        name,
+        standard,
+        fatherName,
+        fatherPhone,
+      });
+      if (error) {
+        Alert.alert('Error', error);
       } else {
-        const { data, error } = await api.madrasa.createStudent({
-          name: formData.name,
-          guardianName: formData.guardianName,
-          guardianPhone: formData.guardianPhone,
-          familyId: formData.familyId ? parseInt(formData.familyId) : null,
-          classLevel: formData.classLevel,
-          ustadName: formData.ustadName,
-          progressNotes: formData.progressNotes,
-        });
-        if (error) {
-          Alert.alert('Error', error);
-        }
+        Alert.alert('Success', 'Student added successfully');
+        setShowAddStudentModal(false);
       }
-      await loadStudents();
-      setShowModal(false);
-      Alert.alert('Success', editingStudent ? 'Student updated' : 'Student added');
     } catch (error) {
-      Alert.alert('Error', 'Failed to save student');
+      Alert.alert('Error', 'Failed to add student');
     }
     setLoading(false);
   };
 
-  const handleDelete = (student: any) => {
-    Alert.alert(
-      'Delete Student',
-      `Delete ${student.name}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            const { error } = await api.madrasa.deleteStudent(student.id);
-            if (error) {
-              Alert.alert('Error', error);
-            } else {
-              await loadStudents();
-              Alert.alert('Success', 'Student deleted');
-            }
-          }
-        }
-      ]
-    );
+  const handlePinSubmit = async (pin: string) => {
+    const { data } = await api.madrasa.verifyPin(pin);
+    if (data && data.valid) {
+      setVerifiedUstad({ id: data.ustadId, name: data.ustadName });
+      setShowPinModal(false);
+      Alert.alert('Success', `Verified as ${data.ustadName}`);
+    } else {
+      Alert.alert('Error', 'Invalid PIN');
+    }
   };
 
   return (
@@ -152,85 +108,80 @@ export default function MadrasaScreen() {
         <Text style={styles.headerTitle}>Madrasa</Text>
       </SafeAreaView>
 
-      {/* Class Filter */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.filterContainer}
-      >
-        {classLevels.map((level) => (
-          <TouchableOpacity
-            key={level}
-            style={[
-              styles.filterButton,
-              selectedClass === level && styles.filterButtonActive,
-            ]}
-            onPress={() => setSelectedClass(level)}
-          >
-            <Text
-              style={[
-                styles.filterButtonText,
-                selectedClass === level && styles.filterButtonTextActive,
-              ]}
-            >
-              {level === 'all' ? 'All' : level}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+      {/* Search Bar */}
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search students by name..."
+          value={searchQuery}
+          onChangeText={handleSearch}
+          placeholderTextColor={theme.colors.gray[500]}
+        />
+      </View>
 
-      {/* Students List */}
-      <View style={styles.studentsList}>
-        {students.map((student) => (
-          <View key={student.id} style={styles.studentCard}>
+      {/* Search Results */}
+      {searchResults.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Search Results</Text>
+          {searchResults.map((student) => (
             <TouchableOpacity
-              style={styles.studentInfo}
+              key={student.id}
+              style={styles.studentCard}
               onPress={() => router.push(`/madrasa/student/${student.id}`)}
             >
               <View style={styles.avatarPlaceholder}>
-                <Text style={styles.avatarText}>
-                  {student.name.charAt(0).toUpperCase()}
-                </Text>
+                <Text style={styles.avatarText}>{student.name.charAt(0).toUpperCase()}</Text>
               </View>
               <View style={styles.studentDetails}>
                 <Text style={styles.studentName}>{student.name}</Text>
-                <Text style={styles.studentClass}>{student.classLevel}</Text>
-                <Text style={styles.studentGuardian}>
-                  Guardian: {student.guardianName}
-                </Text>
+                <Text style={styles.studentStandard}>{student.standard}</Text>
+                <Text style={styles.studentFather}>Father: {student.fatherName}</Text>
               </View>
             </TouchableOpacity>
-            <View style={styles.studentActions}>
-              <TouchableOpacity
-                style={styles.editButton}
-                onPress={() => openEditModal(student)}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.editButtonText}>Edit</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={() => handleDelete(student)}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.deleteButtonText}>Delete</Text>
-              </TouchableOpacity>
+          ))}
+        </View>
+      )}
+
+      {/* Ustad Cards */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Ustads</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.ustadsContainer}>
+          {ustads.map((ustad) => (
+            <View key={ustad.id} style={styles.ustadCard}>
+              <View style={styles.ustadAvatar}>
+                <Text style={styles.ustadAvatarText}>{ustad.name.charAt(0).toUpperCase()}</Text>
+              </View>
+              <Text style={styles.ustadName}>{ustad.name}</Text>
             </View>
-          </View>
+          ))}
+        </ScrollView>
+      </View>
+
+      {/* Standards List */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Standards</Text>
+        {STANDARDS.map((standard) => (
+          <TouchableOpacity
+            key={standard}
+            style={styles.standardCard}
+            onPress={() => openStandard(standard)}
+          >
+            <Text style={styles.standardText}>{standard}</Text>
+          </TouchableOpacity>
         ))}
       </View>
 
       {/* Add Student Button */}
-      <TouchableOpacity style={styles.addButton} onPress={openAddModal} activeOpacity={0.7}>
+      <TouchableOpacity style={styles.addButton} onPress={openAddStudentModal}>
         <Text style={styles.addButtonText}>+ Add Student</Text>
       </TouchableOpacity>
 
-      {/* Add/Edit Student Modal */}
+      {/* Add Student Modal */}
       <Modal
-        visible={showModal}
+        visible={showAddStudentModal}
         animationType="slide"
         transparent={true}
-        onRequestClose={() => setShowModal(false)}
+        onRequestClose={() => setShowAddStudentModal(false)}
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -239,9 +190,7 @@ export default function MadrasaScreen() {
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
               <ScrollView style={styles.modalScrollView} showsVerticalScrollIndicator={false}>
-                <Text style={styles.modalTitle}>
-                  {editingStudent ? 'Edit Student' : 'Add Student'}
-                </Text>
+                <Text style={styles.modalTitle}>Add Student</Text>
 
                 <Text style={styles.modalLabel}>Student Name *</Text>
                 <TextInput
@@ -251,122 +200,62 @@ export default function MadrasaScreen() {
                   onChangeText={(text) => setFormData({ ...formData, name: text })}
                 />
 
-                <Text style={styles.modalLabel}>Guardian Name *</Text>
+                <Text style={styles.modalLabel}>Standard *</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.standardContainer}>
+                  {STANDARDS.map((std) => (
+                    <TouchableOpacity
+                      key={std}
+                      style={[
+                        styles.standardButton,
+                        formData.standard === std && styles.standardButtonActive,
+                      ]}
+                      onPress={() => setFormData({ ...formData, standard: std })}
+                    >
+                      <Text
+                        style={[
+                          styles.standardButtonText,
+                          formData.standard === std && styles.standardButtonTextActive,
+                        ]}
+                      >
+                        {std}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+
+                <Text style={styles.modalLabel}>Father's Name *</Text>
                 <TextInput
                   style={styles.modalInput}
-                  placeholder="Enter guardian name"
-                  value={formData.guardianName}
-                  onChangeText={(text) => setFormData({ ...formData, guardianName: text })}
+                  placeholder="Enter father's name"
+                  value={formData.fatherName}
+                  onChangeText={(text) => setFormData({ ...formData, fatherName: text })}
                 />
 
-                <Text style={styles.modalLabel}>Guardian Phone *</Text>
+                <Text style={styles.modalLabel}>Father's Phone *</Text>
                 <TextInput
                   style={styles.modalInput}
                   placeholder="Enter phone number"
-                  value={formData.guardianPhone}
-                  onChangeText={(text) => setFormData({ ...formData, guardianPhone: text })}
+                  value={formData.fatherPhone}
+                  onChangeText={(text) => setFormData({ ...formData, fatherPhone: text })}
                   keyboardType="phone-pad"
                   maxLength={15}
-                />
-
-                <Text style={styles.modalLabel}>Family (Optional)</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.familiesContainer}>
-                  <TouchableOpacity
-                    style={[
-                      styles.familyButton,
-                      formData.familyId === '' && styles.familyButtonActive,
-                    ]}
-                    onPress={() => setFormData({ ...formData, familyId: '' })}
-                    activeOpacity={0.7}
-                  >
-                    <Text
-                      style={[
-                        styles.familyButtonText,
-                        formData.familyId === '' && styles.familyButtonTextActive,
-                      ]}
-                    >
-                      None
-                    </Text>
-                  </TouchableOpacity>
-                  {families.map((family) => (
-                    <TouchableOpacity
-                      key={family.id}
-                      style={[
-                        styles.familyButton,
-                        formData.familyId === family.id.toString() && styles.familyButtonActive,
-                      ]}
-                      onPress={() => setFormData({ ...formData, familyId: family.id.toString() })}
-                      activeOpacity={0.7}
-                    >
-                      <Text
-                        style={[
-                          styles.familyButtonText,
-                          formData.familyId === family.id.toString() && styles.familyButtonTextActive,
-                        ]}
-                      >
-                        {family.headName}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-
-                <Text style={styles.modalLabel}>Class Level *</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.classContainer}>
-                  {['Hifz', 'Qaida', 'Nazra', 'Islamic Studies'].map((level) => (
-                    <TouchableOpacity
-                      key={level}
-                      style={[
-                        styles.classButton,
-                        formData.classLevel === level && styles.classButtonActive,
-                      ]}
-                      onPress={() => setFormData({ ...formData, classLevel: level })}
-                      activeOpacity={0.7}
-                    >
-                      <Text
-                        style={[
-                          styles.classButtonText,
-                          formData.classLevel === level && styles.classButtonTextActive,
-                        ]}
-                      >
-                        {level}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-
-                <Text style={styles.modalLabel}>Ustad Name</Text>
-                <TextInput
-                  style={styles.modalInput}
-                  placeholder="Enter ustad name"
-                  value={formData.ustadName}
-                  onChangeText={(text) => setFormData({ ...formData, ustadName: text })}
-                />
-
-                <Text style={styles.modalLabel}>Progress Notes</Text>
-                <TextInput
-                  style={[styles.modalInput, styles.textArea]}
-                  placeholder="Enter progress notes"
-                  value={formData.progressNotes}
-                  onChangeText={(text) => setFormData({ ...formData, progressNotes: text })}
-                  multiline
-                  numberOfLines={3}
                 />
               </ScrollView>
 
               <View style={styles.modalActions}>
                 <TouchableOpacity
                   style={[styles.modalButton, styles.cancelModalButton]}
-                  onPress={() => setShowModal(false)}
+                  onPress={() => setShowAddStudentModal(false)}
                 >
                   <Text style={styles.modalButtonText} numberOfLines={1}>Cancel</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.modalButton, styles.saveModalButton, loading && styles.modalButtonDisabled]}
-                  onPress={handleSave}
+                  onPress={handleAddStudent}
                   disabled={loading}
                 >
                   <Text style={styles.modalButtonText} numberOfLines={1}>
-                    {loading ? 'Saving...' : 'Save'}
+                    {loading ? 'Adding...' : 'Add Student'}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -397,48 +286,73 @@ const styles = StyleSheet.create({
     color: theme.colors.white,
     fontFamily: theme.typography.display,
   },
-  filterContainer: {
+  searchContainer: {
     padding: theme.spacing.md,
-    flexGrow: 0,
   },
-  filterButton: {
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.sm,
-    borderRadius: theme.radius.pill,
+  searchInput: {
     backgroundColor: theme.colors.white,
+    borderRadius: theme.radius.button,
+    padding: theme.spacing.md,
+    fontSize: 16,
     borderWidth: 1,
     borderColor: theme.colors.gray[300],
-    marginRight: theme.spacing.sm,
   },
-  filterButtonActive: {
+  section: {
+    padding: theme.spacing.md,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: theme.colors.textPrimary,
+    marginBottom: theme.spacing.md,
+    fontFamily: theme.typography.display,
+  },
+  ustadsContainer: {
+    flexDirection: 'row',
+  },
+  ustadCard: {
+    alignItems: 'center',
+    marginRight: theme.spacing.md,
+  },
+  ustadAvatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: theme.spacing.sm,
   },
-  filterButtonText: {
-    fontSize: 14,
-    color: theme.colors.gray[500],
-    fontWeight: '600',
-  },
-  filterButtonTextActive: {
+  ustadAvatarText: {
+    fontSize: 24,
+    fontWeight: 'bold',
     color: theme.colors.white,
   },
-  studentsList: {
-    padding: theme.spacing.md,
+  ustadName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: theme.colors.textPrimary,
+  },
+  standardCard: {
+    backgroundColor: theme.colors.white,
+    padding: theme.spacing.lg,
+    borderRadius: theme.radius.card,
+    marginBottom: theme.spacing.sm,
+    ...theme.shadow.card,
+  },
+  standardText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: theme.colors.textPrimary,
   },
   studentCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     backgroundColor: theme.colors.white,
     padding: theme.spacing.lg,
     borderRadius: theme.radius.card,
-    marginBottom: theme.spacing.md,
+    marginBottom: theme.spacing.sm,
     ...theme.shadow.card,
-  },
-  studentInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
   },
   avatarPlaceholder: {
     width: 50,
@@ -463,19 +377,14 @@ const styles = StyleSheet.create({
     color: theme.colors.textPrimary,
     marginBottom: 2,
   },
-  studentClass: {
+  studentStandard: {
     fontSize: 14,
     color: theme.colors.primary,
     marginBottom: 2,
   },
-  studentGuardian: {
+  studentFather: {
     fontSize: 12,
     color: theme.colors.gray[500],
-  },
-  arrow: {
-    fontSize: 24,
-    color: theme.colors.gray[400],
-    marginLeft: theme.spacing.sm,
   },
   addButton: {
     backgroundColor: theme.colors.addButtonColor,
@@ -490,32 +399,6 @@ const styles = StyleSheet.create({
   addButtonText: {
     color: theme.colors.white,
     fontSize: 16,
-    fontWeight: '600',
-  },
-  studentActions: {
-    flexDirection: 'row',
-    gap: theme.spacing.sm,
-  },
-  editButton: {
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
-    borderRadius: theme.radius.pill,
-    backgroundColor: theme.colors.gray[200],
-  },
-  editButtonText: {
-    fontSize: 12,
-    color: theme.colors.textPrimary,
-    fontWeight: '600',
-  },
-  deleteButton: {
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
-    borderRadius: theme.radius.pill,
-    backgroundColor: theme.colors.alert,
-  },
-  deleteButtonText: {
-    fontSize: 12,
-    color: theme.colors.white,
     fontWeight: '600',
   },
   modalOverlay: {
@@ -558,15 +441,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.colors.gray[300],
   },
-  textArea: {
-    height: 80,
-    textAlignVertical: 'top',
-  },
-  familiesContainer: {
+  standardContainer: {
     marginBottom: theme.spacing.md,
     flexGrow: 0,
   },
-  familyButton: {
+  standardButton: {
     paddingHorizontal: theme.spacing.lg,
     paddingVertical: theme.spacing.sm,
     borderRadius: theme.radius.pill,
@@ -575,41 +454,16 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.gray[300],
     marginRight: theme.spacing.sm,
   },
-  familyButtonActive: {
+  standardButtonActive: {
     backgroundColor: theme.colors.primary,
     borderColor: theme.colors.primary,
   },
-  familyButtonText: {
+  standardButtonText: {
     fontSize: 14,
     color: theme.colors.gray[500],
     fontWeight: '600',
   },
-  familyButtonTextActive: {
-    color: theme.colors.white,
-  },
-  classContainer: {
-    marginBottom: theme.spacing.md,
-    flexGrow: 0,
-  },
-  classButton: {
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.sm,
-    borderRadius: theme.radius.pill,
-    backgroundColor: theme.colors.white,
-    borderWidth: 1,
-    borderColor: theme.colors.gray[300],
-    marginRight: theme.spacing.sm,
-  },
-  classButtonActive: {
-    backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.primary,
-  },
-  classButtonText: {
-    fontSize: 14,
-    color: theme.colors.gray[500],
-    fontWeight: '600',
-  },
-  classButtonTextActive: {
+  standardButtonTextActive: {
     color: theme.colors.white,
   },
   modalActions: {

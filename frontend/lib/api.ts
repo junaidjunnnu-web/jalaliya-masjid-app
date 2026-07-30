@@ -150,7 +150,14 @@ export const api = {
       }),
   },
   madrasa: {
+    getUstads: () => request('/madrasa/ustads'),
+    verifyPin: (pin: string) =>
+      request('/madrasa/ustads/verify-pin', {
+        method: 'POST',
+        body: JSON.stringify({ pin }),
+      }),
     getStudents: (params?: string) => request(`/madrasa/students${params ? `?${params}` : ''}`),
+    searchStudents: (query: string) => request(`/madrasa/students/search?q=${encodeURIComponent(query)}`),
     getStudent: (id: number) => request(`/madrasa/students/${id}`),
     createStudent: (data: any) =>
       request('/madrasa/students', {

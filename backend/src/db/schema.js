@@ -80,31 +80,39 @@ const committeeMembers = pgTable('committee_members', {
   phoneIdx: index('committee_members_phone_idx').on(table.phone),
 }));
 
-// Madrasa students table
+// Ustads table (Madrasa teachers)
+const ustads = pgTable('ustads', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 100 }).notNull(),
+  pinHash: varchar('pin_hash', { length: 255 }).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Madrasa students table (new structure)
 const madrasaStudents = pgTable('madrasa_students', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 100 }).notNull(),
-  guardianName: varchar('guardian_name', { length: 100 }).notNull(),
-  guardianPhone: varchar('guardian_phone', { length: 15 }).notNull(),
-  familyId: integer('family_id').references(() => families.id, { onDelete: 'set null' }),
-  classLevel: varchar('class_level', { length: 50 }).notNull(),
-  ustadName: varchar('ustad_name', { length: 100 }),
-  progressNotes: text('progress_notes'),
-  photoUrl: varchar('photo_url', { length: 500 }),
+  standard: varchar('standard', { length: 20 }).notNull(), // 1st Standard through 10th Standard
+  fatherName: varchar('father_name', { length: 100 }).notNull(),
+  fatherPhone: varchar('father_phone', { length: 15 }).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (table) => ({
-  familyIdIdx: index('madrasa_students_family_id_idx').on(table.familyId),
-  classLevelIdx: index('madrasa_students_class_level_idx').on(table.classLevel),
+  standardIdx: index('madrasa_students_standard_idx').on(table.standard),
+  fatherPhoneIdx: index('madrasa_students_father_phone_idx').on(table.fatherPhone),
 }));
 
-// Madrasa attendance table
+// Madrasa attendance table (new structure)
 const madrasaAttendance = pgTable('madrasa_attendance', {
   id: serial('id').primaryKey(),
   studentId: integer('student_id').references(() => madrasaStudents.id, { onDelete: 'cascade' }).notNull(),
   date: date('date').notNull(),
   status: attendanceStatusEnum('status').notNull(),
+  markedByUstadId: integer('marked_by_ustad_id').references(() => ustads.id, { onDelete: 'set null' }).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (table) => ({
   studentIdIdx: index('madrasa_attendance_student_id_idx').on(table.studentId),
   dateIdx: index('madrasa_attendance_date_idx').on(table.date),
+  markedByUstadIdIdx: index('madrasa_attendance_marked_by_ustad_id_idx').on(table.markedByUstadId),
 }));
 
 // Namaz timings table
@@ -242,6 +250,7 @@ module.exports = {
   families,
   familyMembers,
   committeeMembers,
+  ustads,
   madrasaStudents,
   madrasaAttendance,
   namazTimings,
