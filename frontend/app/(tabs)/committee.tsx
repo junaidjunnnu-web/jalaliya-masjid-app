@@ -732,9 +732,12 @@ const styles = StyleSheet.create({
   },
   modalButton: {
     flex: 1,
-    padding: theme.spacing.md,
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.lg,
     borderRadius: theme.radius.button,
     alignItems: 'center',
+    minHeight: 48,
+    minWidth: 100,
   },
   cancelModalButton: {
     backgroundColor: theme.colors.cancelButton,

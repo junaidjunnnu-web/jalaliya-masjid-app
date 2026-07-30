@@ -369,6 +369,7 @@ const styles = StyleSheet.create({
   },
   studentDetails: {
     flex: 1,
+    minWidth: 120,
   },
   studentName: {
     fontSize: 16,
@@ -465,7 +466,7 @@ const styles = StyleSheet.create({
     borderRadius: theme.radius.button,
     alignItems: 'center',
     minHeight: 48,
-    minWidth: 80,
+    minWidth: 100,
   },
   cancelModalButton: {
     backgroundColor: theme.colors.cancelButton,

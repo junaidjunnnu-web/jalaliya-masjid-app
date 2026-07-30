@@ -863,7 +863,7 @@ const styles = StyleSheet.create({
     borderRadius: theme.radius.button,
     alignItems: 'center',
     minHeight: 48,
-    minWidth: 80,
+    minWidth: 100,
   },
   cancelModalButton: {
     backgroundColor: theme.colors.cancelButton,
