@@ -32,7 +32,7 @@ export default function StudentScreen() {
       <View style={styles.container}>
         <SafeAreaView style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <Text style={styles.backButtonText}>← Back</Text>
+            <Text style={styles.backButtonText} numberOfLines={1}>← Back</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Loading...</Text>
         </SafeAreaView>
@@ -45,7 +45,7 @@ export default function StudentScreen() {
       <View style={styles.container}>
         <SafeAreaView style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <Text style={styles.backButtonText}>← Back</Text>
+            <Text style={styles.backButtonText} numberOfLines={1}>← Back</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Student not found</Text>
         </SafeAreaView>
@@ -57,7 +57,7 @@ export default function StudentScreen() {
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       <SafeAreaView style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Text style={styles.backButtonText}>← Back</Text>
+          <Text style={styles.backButtonText} numberOfLines={1}>← Back</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Student Details</Text>
       </SafeAreaView>

@@ -20,7 +20,7 @@ export default function StandardScreen() {
 
   const loadStudents = async () => {
     const { data } = await api.madrasa.getStudents(`standard=${encodeURIComponent(standard as string)}`);
-    if (data) {
+    if (data && Array.isArray(data)) {
       setStudents(data);
     }
   };
@@ -57,11 +57,11 @@ export default function StandardScreen() {
     }
 
     const { data } = await api.madrasa.verifyPin(pin);
-    if (data && data.valid) {
-      setVerifiedUstad({ id: data.ustadId, name: data.ustadName });
+    if (data && typeof data === 'object' && (data as any).valid) {
+      setVerifiedUstad({ id: (data as any).ustadId, name: (data as any).ustadName });
       setShowPinModal(false);
       setPin('');
-      Alert.alert('Success', `Verified as ${data.ustadName}`);
+      Alert.alert('Success', `Verified as ${(data as any).ustadName}`);
     } else {
       Alert.alert('Error', 'Invalid PIN');
     }
@@ -71,7 +71,7 @@ export default function StandardScreen() {
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       <SafeAreaView style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Text style={styles.backButtonText}>← Back</Text>
+          <Text style={styles.backButtonText} numberOfLines={1}>← Back</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{standard}</Text>
       </SafeAreaView>
@@ -117,14 +117,14 @@ export default function StandardScreen() {
                 onPress={() => handleMarkAttendance(student.id, 'present')}
                 disabled={loading}
               >
-                <Text style={styles.attendanceButtonText}>Present</Text>
+                <Text style={styles.attendanceButtonText} numberOfLines={1}>Present</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.attendanceButton, styles.absentButton]}
                 onPress={() => handleMarkAttendance(student.id, 'absent')}
                 disabled={loading}
               >
-                <Text style={styles.attendanceButtonText}>Absent</Text>
+                <Text style={styles.attendanceButtonText} numberOfLines={1}>Absent</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -311,6 +311,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: theme.colors.white,
+    flexShrink: 0,
   },
   modalOverlay: {
     flex: 1,
