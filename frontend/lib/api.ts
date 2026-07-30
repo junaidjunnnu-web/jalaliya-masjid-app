@@ -2,6 +2,10 @@ import * as SecureStore from 'expo-secure-store';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://jalaliya-masjid-backend.onrender.com/api';
 
+if (!process.env.EXPO_PUBLIC_API_URL) {
+  console.warn('⚠️ EXPO_PUBLIC_API_URL not set, using fallback:', API_URL);
+}
+
 interface ApiResponse<T> {
   data?: T;
   error?: string;
