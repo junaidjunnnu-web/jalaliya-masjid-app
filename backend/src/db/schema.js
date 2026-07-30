@@ -84,6 +84,7 @@ const committeeMembers = pgTable('committee_members', {
 const ustads = pgTable('ustads', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 100 }).notNull(),
+  phone: varchar('phone', { length: 15 }),
   pinHash: varchar('pin_hash', { length: 255 }).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });

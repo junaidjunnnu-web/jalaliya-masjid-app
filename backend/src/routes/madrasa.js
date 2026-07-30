@@ -12,6 +12,7 @@ router.get('/ustads', async (req, res) => {
     const ustadsList = await db.select({
       id: ustads.id,
       name: ustads.name,
+      phone: ustads.phone,
       createdAt: ustads.createdAt,
     }).from(ustads);
     res.json(ustadsList);
@@ -39,6 +40,40 @@ router.post('/ustads/verify-pin', async (req, res) => {
   } catch (error) {
     console.error('Verify PIN error:', error);
     res.status(500).json({ error: 'Failed to verify PIN' });
+  }
+});
+
+// Update Ustad (requires PIN verification)
+router.put('/ustads/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, phone, pin } = req.body;
+
+    // Verify PIN
+    const ustadsList = await db.select().from(ustads);
+    let verifiedUstad = null;
+    
+    for (const ustad of ustadsList) {
+      const isValid = await bcrypt.compare(pin, ustad.pinHash);
+      if (isValid) {
+        verifiedUstad = ustad;
+        break;
+      }
+    }
+
+    if (!verifiedUstad) {
+      return res.status(401).json({ error: 'Invalid PIN' });
+    }
+
+    const [updatedUstad] = await db.update(ustads)
+      .set({ name, phone })
+      .where(eq(ustads.id, id))
+      .returning();
+
+    res.json(updatedUstad);
+  } catch (error) {
+    console.error('Update ustad error:', error);
+    res.status(500).json({ error: 'Failed to update ustad' });
   }
 });
 
@@ -152,6 +187,8 @@ router.post('/students', async (req, res) => {
   try {
     const { name, standard, fatherName, fatherPhone } = req.body;
 
+    console.log('📝 Create student request:', { name, standard, fatherName, fatherPhone });
+
     const [newStudent] = await db.insert(madrasaStudents).values({
       name,
       standard,
@@ -159,10 +196,17 @@ router.post('/students', async (req, res) => {
       fatherPhone,
     }).returning();
 
+    console.log('✅ Student created successfully:', newStudent);
     res.status(201).json(newStudent);
   } catch (error) {
-    console.error('Create student error:', error);
-    res.status(500).json({ error: 'Failed to create student' });
+    console.error('❌ Create student error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      constraint: error.constraint,
+      detail: error.detail,
+    });
+    res.status(500).json({ error: 'Failed to create student', details: error.message });
   }
 });
 

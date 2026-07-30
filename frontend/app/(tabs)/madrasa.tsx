@@ -16,13 +16,20 @@ export default function MadrasaScreen() {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [showAddStudentModal, setShowAddStudentModal] = useState(false);
   const [showPinModal, setShowPinModal] = useState(false);
+  const [showUstadEditModal, setShowUstadEditModal] = useState(false);
   const [selectedStandard, setSelectedStandard] = useState<string | null>(null);
   const [verifiedUstad, setVerifiedUstad] = useState<any>(null);
+  const [selectedUstad, setSelectedUstad] = useState<any>(null);
   const [formData, setFormData] = useState({
     name: '',
     standard: '1st Standard',
     fatherName: '',
     fatherPhone: '',
+  });
+  const [ustadFormData, setUstadFormData] = useState({
+    name: '',
+    phone: '',
+    pin: '',
   });
   const [loading, setLoading] = useState(false);
 
@@ -102,6 +109,47 @@ export default function MadrasaScreen() {
     }
   };
 
+  const openUstadEditModal = (ustad: any) => {
+    setSelectedUstad(ustad);
+    setUstadFormData({
+      name: ustad.name,
+      phone: ustad.phone || '',
+      pin: '',
+    });
+    setShowUstadEditModal(true);
+  };
+
+  const handleUstadEdit = async () => {
+    const { name, phone, pin } = ustadFormData;
+    if (!name) {
+      Alert.alert('Error', 'Name is required');
+      return;
+    }
+    if (!pin) {
+      Alert.alert('Error', 'PIN is required for verification');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data, error } = await api.madrasa.updateUstad(selectedUstad.id, {
+        name,
+        phone,
+        pin,
+      });
+      if (error) {
+        Alert.alert('Error', error);
+      } else {
+        Alert.alert('Success', 'Ustad updated successfully');
+        setShowUstadEditModal(false);
+        await loadUstads();
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update ustad');
+    }
+    setLoading(false);
+  };
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       <SafeAreaView style={styles.header}>
@@ -147,12 +195,17 @@ export default function MadrasaScreen() {
         <Text style={styles.sectionTitle}>Ustads</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.ustadsContainer}>
           {ustads.map((ustad) => (
-            <View key={ustad.id} style={styles.ustadCard}>
+            <TouchableOpacity
+              key={ustad.id}
+              style={styles.ustadCard}
+              onPress={() => openUstadEditModal(ustad)}
+            >
               <View style={styles.ustadAvatar}>
                 <Text style={styles.ustadAvatarText}>{ustad.name.charAt(0).toUpperCase()}</Text>
               </View>
               <Text style={styles.ustadName}>{ustad.name}</Text>
-            </View>
+              {ustad.phone && <Text style={styles.ustadPhone}>{ustad.phone}</Text>}
+            </TouchableOpacity>
           ))}
         </ScrollView>
       </View>
@@ -263,6 +316,74 @@ export default function MadrasaScreen() {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      {/* Ustad Edit Modal */}
+      <Modal
+        visible={showUstadEditModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowUstadEditModal(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <ScrollView style={styles.modalScrollView} showsVerticalScrollIndicator={false}>
+                <Text style={styles.modalTitle}>Edit Ustad</Text>
+
+                <Text style={styles.modalLabel}>Ustad Name *</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="Enter ustad name"
+                  value={ustadFormData.name}
+                  onChangeText={(text) => setUstadFormData({ ...ustadFormData, name: text })}
+                />
+
+                <Text style={styles.modalLabel}>Phone Number</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="Enter phone number"
+                  value={ustadFormData.phone}
+                  onChangeText={(text) => setUstadFormData({ ...ustadFormData, phone: text })}
+                  keyboardType="phone-pad"
+                  maxLength={15}
+                />
+
+                <Text style={styles.modalLabel}>PIN (for verification) *</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="Enter 4-digit PIN"
+                  value={ustadFormData.pin}
+                  onChangeText={(text) => setUstadFormData({ ...ustadFormData, pin: text })}
+                  keyboardType="numeric"
+                  maxLength={4}
+                  secureTextEntry
+                />
+              </ScrollView>
+
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.cancelModalButton]}
+                  onPress={() => setShowUstadEditModal(false)}
+                >
+                  <Text style={styles.modalButtonText} numberOfLines={1}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.saveModalButton, loading && styles.modalButtonDisabled]}
+                  onPress={handleUstadEdit}
+                  disabled={loading}
+                >
+                  <Text style={styles.modalButtonText} numberOfLines={1}>
+                    {loading ? 'Saving...' : 'Save'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </ScrollView>
   );
 }
@@ -332,6 +453,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: theme.colors.textPrimary,
+  },
+  ustadPhone: {
+    fontSize: 12,
+    color: theme.colors.gray[500],
+    marginTop: 2,
   },
   standardCard: {
     backgroundColor: theme.colors.white,

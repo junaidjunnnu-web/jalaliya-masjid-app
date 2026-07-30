@@ -156,6 +156,11 @@ export const api = {
         method: 'POST',
         body: JSON.stringify({ pin }),
       }),
+    updateUstad: (id: number, data: any) =>
+      request(`/madrasa/ustads/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }),
     getStudents: (params?: string) => request(`/madrasa/students${params ? `?${params}` : ''}`),
     searchStudents: (query: string) => request(`/madrasa/students/search?q=${encodeURIComponent(query)}`),
     getStudent: (id: number) => request(`/madrasa/students/${id}`),
