@@ -56,16 +56,28 @@ export default function CommitteeScreen() {
   };
 
   const loadCommitteeMembers = async () => {
-    const { data } = await api.committee.getAll();
-    if (data) {
-      setMembers(data as any[]);
+    try {
+      const response = await api.committee.getAll();
+      if (response.data) {
+        setMembers(response.data as any[]);
+      } else if (response.error) {
+        console.error('Failed to load committee members:', response.error);
+      }
+    } catch (error) {
+      console.error('Error loading committee members:', error);
     }
   };
 
   const loadPendingDues = async () => {
-    const { data } = await api.dues.getPending();
-    if (data) {
-      setPendingDues(data as any[]);
+    try {
+      const response = await api.dues.getPending();
+      if (response.data) {
+        setPendingDues(response.data as any[]);
+      } else if (response.error) {
+        console.error('Failed to load pending dues:', response.error);
+      }
+    } catch (error) {
+      console.error('Error loading pending dues:', error);
     }
   };
 

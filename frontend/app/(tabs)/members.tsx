@@ -15,10 +15,16 @@ export default function MembersScreen() {
   }, [searchQuery]);
 
   const loadFamilies = async () => {
-    const params = searchQuery ? `search=${searchQuery}` : '';
-    const { data } = await api.families.getAll(params);
-    if (data) {
-      setFamiliesByPlace(data);
+    try {
+      const params = searchQuery ? `search=${searchQuery}` : '';
+      const response = await api.families.getAll(params);
+      if (response.data) {
+        setFamiliesByPlace(response.data);
+      } else if (response.error) {
+        console.error('Failed to load families:', response.error);
+      }
+    } catch (error) {
+      console.error('Error loading families:', error);
     }
   };
 

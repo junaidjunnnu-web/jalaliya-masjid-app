@@ -21,9 +21,15 @@ export default function StandardScreen() {
   }, [standard]);
 
   const loadStudents = async () => {
-    const { data } = await api.madrasa.getStudents(`standard=${encodeURIComponent(standard as string)}`);
-    if (data && Array.isArray(data)) {
-      setStudents(data);
+    try {
+      const response = await api.madrasa.getStudents(`standard=${encodeURIComponent(standard as string)}`);
+      if (response.data && Array.isArray(response.data)) {
+        setStudents(response.data);
+      } else if (response.error) {
+        console.error('Failed to load students:', response.error);
+      }
+    } catch (error) {
+      console.error('Error loading students:', error);
     }
   };
 
@@ -339,9 +345,7 @@ const styles = StyleSheet.create({
     padding: theme.spacing.md,
   },
   studentCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: 'column',
     backgroundColor: theme.colors.white,
     padding: theme.spacing.md,
     borderRadius: theme.radius.card,
@@ -351,7 +355,7 @@ const styles = StyleSheet.create({
   studentInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
+    marginBottom: theme.spacing.md,
   },
   avatarPlaceholder: {
     width: 44,

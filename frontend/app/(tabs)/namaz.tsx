@@ -64,11 +64,18 @@ export default function NamazScreen() {
   };
 
   const loadTimings = async () => {
-    const { data } = await api.namaz.getTimings();
-    if (data) {
-      setTimings(data);
-    } else {
-      // Fallback to calculated times if no manual override exists
+    try {
+      const response = await api.namaz.getTimings();
+      if (response.data) {
+        setTimings(response.data);
+      } else {
+        // Fallback to calculated times if no manual override exists
+        const calculated = calculatePrayerTimes(new Date());
+        setCalculatedTimings(calculated);
+      }
+    } catch (error) {
+      console.error('Error loading timings:', error);
+      // Fallback to calculated times on error
       const calculated = calculatePrayerTimes(new Date());
       setCalculatedTimings(calculated);
     }

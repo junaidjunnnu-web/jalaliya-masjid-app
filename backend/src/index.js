@@ -16,7 +16,19 @@ const duesRoutes = require('./routes/dues');
 
 const app = express();
 
-app.use(cors());
+// CORS configuration for Vercel web app and native app
+app.use(cors({
+  origin: [
+    'https://jalaliya-masjid-app.vercel.app',
+    'https://*.vercel.app',
+    'exp://*',
+    'http://localhost:*',
+    'http://192.168.*:*',
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 app.use(express.json());
 
 // Health check

@@ -42,18 +42,30 @@ export default function MadrasaScreen() {
   }, []);
 
   const loadUstads = async () => {
-    const { data } = await api.madrasa.getUstads();
-    if (data) {
-      setUstads(data);
+    try {
+      const response = await api.madrasa.getUstads();
+      if (response.data) {
+        setUstads(response.data);
+      } else if (response.error) {
+        console.error('Failed to load ustads:', response.error);
+      }
+    } catch (error) {
+      console.error('Error loading ustads:', error);
     }
   };
 
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
     if (query.trim()) {
-      const { data } = await api.madrasa.searchStudents(query);
-      if (data) {
-        setSearchResults(data);
+      try {
+        const response = await api.madrasa.searchStudents(query);
+        if (response.data) {
+          setSearchResults(response.data);
+        } else if (response.error) {
+          console.error('Failed to search students:', response.error);
+        }
+      } catch (error) {
+        console.error('Error searching students:', error);
       }
     } else {
       setSearchResults([]);

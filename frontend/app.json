@@ -29,7 +29,28 @@
       "favicon": "./assets/favicon.png",
       "bundler": "metro",
       "output": "single",
-      "title": "Jalaliya Juma Masjid Somwarpet"
+      "title": "Jalaliya Juma Masjid",
+      "shortName": "Jalaliya Masjid",
+      "themeColor": "#F5ECD9",
+      "backgroundColor": "#F5ECD9",
+      "meta": {
+        "apple-mobile-web-app-capable": "yes",
+        "apple-mobile-web-app-status-bar-style": "default",
+        "apple-mobile-web-app-title": "Jalaliya Masjid"
+      },
+      "icon": "./assets/icon-192.png",
+      "icons": [
+        {
+          "src": "./assets/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        },
+        {
+          "src": "./assets/icon-512.png",
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+      ]
     },
     "plugins": [
       "expo-router",
