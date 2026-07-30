@@ -1,8 +1,14 @@
-import React from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, SafeAreaView, Modal, Linking } from 'react-native';
 import { theme } from '../../theme';
 
 export default function SettingsScreen() {
+  const [showContactModal, setShowContactModal] = useState(false);
+
+  const handleCallSupport = () => {
+    Linking.openURL('tel:8951627414');
+  };
+
   const settingsItems = [
     {
       id: 'notifications',
@@ -32,7 +38,7 @@ export default function SettingsScreen() {
       id: 'contact',
       title: 'Contact Support',
       description: 'Get help with the app',
-      onPress: () => console.log('Contact'),
+      onPress: () => setShowContactModal(true),
     },
   ];
 
@@ -57,6 +63,51 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         ))}
       </View>
+
+      {/* Contact Support Modal */}
+      <Modal
+        visible={showContactModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowContactModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Contact Support</Text>
+            
+            <View style={styles.contactSection}>
+              <Text style={styles.greetingText}>
+                Assalamu Alaikum! This app was built and is maintained by me for our Masjid community.
+              </Text>
+              
+              <View style={styles.contactInfo}>
+                <Text style={styles.contactLabel}>Name:</Text>
+                <Text style={styles.contactValue}>Mohammad Junaid CR</Text>
+              </View>
+              
+              <View style={styles.contactInfo}>
+                <Text style={styles.contactLabel}>Phone:</Text>
+                <Text style={styles.contactValue}>8951627414</Text>
+              </View>
+              
+              <Text style={styles.closingText}>
+                For any queries, issues, or suggestions regarding this app, please feel free to call me anytime.
+              </Text>
+            </View>
+
+            <TouchableOpacity style={styles.callButton} onPress={handleCallSupport}>
+              <Text style={styles.callButtonText}>Call Now</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setShowContactModal(false)}
+            >
+              <Text style={styles.closeButtonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       <View style={styles.footer}>
         <Text style={styles.footerText}>Jalaliya Juma Masjid Somwarpet App</Text>
@@ -124,5 +175,76 @@ const styles = StyleSheet.create({
   footerVersion: {
     fontSize: 12,
     color: theme.colors.gray[400],
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: theme.spacing.xl,
+  },
+  modalContent: {
+    backgroundColor: theme.colors.white,
+    borderRadius: theme.radius.card,
+    padding: theme.spacing.xl,
+    width: '100%',
+    ...theme.shadow.card,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: theme.colors.textPrimary,
+    marginBottom: theme.spacing.lg,
+    fontFamily: theme.typography.display,
+  },
+  contactSection: {
+    marginBottom: theme.spacing.lg,
+  },
+  greetingText: {
+    fontSize: 16,
+    color: theme.colors.textPrimary,
+    marginBottom: theme.spacing.lg,
+    lineHeight: 22,
+  },
+  contactInfo: {
+    marginBottom: theme.spacing.md,
+  },
+  contactLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: theme.colors.textPrimary,
+    marginBottom: theme.spacing.xs,
+  },
+  contactValue: {
+    fontSize: 16,
+    color: theme.colors.textPrimary,
+  },
+  closingText: {
+    fontSize: 14,
+    color: theme.colors.gray[600],
+    marginTop: theme.spacing.lg,
+    lineHeight: 20,
+  },
+  callButton: {
+    backgroundColor: theme.colors.saveButton,
+    padding: theme.spacing.md,
+    borderRadius: theme.radius.button,
+    alignItems: 'center',
+    marginBottom: theme.spacing.sm,
+    ...theme.shadow.button,
+  },
+  callButtonText: {
+    color: theme.colors.saveButtonText,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  closeButton: {
+    padding: theme.spacing.md,
+    alignItems: 'center',
+  },
+  closeButtonText: {
+    color: theme.colors.gray[600],
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

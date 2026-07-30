@@ -156,6 +156,11 @@ export const api = {
         method: 'POST',
         body: JSON.stringify({ pin }),
       }),
+    createUstad: (data: any) =>
+      request('/madrasa/ustads', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
     updateUstad: (id: number, data: any) =>
       request(`/madrasa/ustads/${id}`, {
         method: 'PUT',

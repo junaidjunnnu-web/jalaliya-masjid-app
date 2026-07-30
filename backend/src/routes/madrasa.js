@@ -43,6 +43,30 @@ router.post('/ustads/verify-pin', async (req, res) => {
   }
 });
 
+// Create Ustad
+router.post('/ustads', async (req, res) => {
+  try {
+    const { name, phone, pin } = req.body;
+
+    if (!name || !pin) {
+      return res.status(400).json({ error: 'Name and PIN are required' });
+    }
+
+    const pinHash = await bcrypt.hash(pin, 10);
+
+    const [newUstad] = await db.insert(ustads).values({
+      name,
+      phone: phone || null,
+      pinHash,
+    }).returning();
+
+    res.status(201).json(newUstad);
+  } catch (error) {
+    console.error('Create ustad error:', error);
+    res.status(500).json({ error: 'Failed to create ustad' });
+  }
+});
+
 // Update Ustad (requires PIN verification)
 router.put('/ustads/:id', async (req, res) => {
   try {

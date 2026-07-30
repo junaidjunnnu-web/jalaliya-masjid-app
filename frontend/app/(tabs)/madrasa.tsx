@@ -17,6 +17,7 @@ export default function MadrasaScreen() {
   const [showAddStudentModal, setShowAddStudentModal] = useState(false);
   const [showPinModal, setShowPinModal] = useState(false);
   const [showUstadEditModal, setShowUstadEditModal] = useState(false);
+  const [showUstadAddModal, setShowUstadAddModal] = useState(false);
   const [showUstadDeleteModal, setShowUstadDeleteModal] = useState(false);
   const [selectedStandard, setSelectedStandard] = useState<string | null>(null);
   const [verifiedUstad, setVerifiedUstad] = useState<any>(null);
@@ -120,6 +121,50 @@ export default function MadrasaScreen() {
       pin: '',
     });
     setShowUstadEditModal(true);
+  };
+
+  const openUstadAddModal = () => {
+    setUstadFormData({
+      name: '',
+      phone: '',
+      pin: '',
+    });
+    setShowUstadAddModal(true);
+  };
+
+  const handleUstadAdd = async () => {
+    const { name, phone, pin } = ustadFormData;
+    if (!name) {
+      Alert.alert('Error', 'Name is required');
+      return;
+    }
+    if (!pin) {
+      Alert.alert('Error', 'PIN is required');
+      return;
+    }
+    if (pin.length !== 4) {
+      Alert.alert('Error', 'PIN must be 4 digits');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data, error } = await api.madrasa.createUstad({
+        name,
+        phone,
+        pin,
+      });
+      if (error) {
+        Alert.alert('Error', error);
+      } else {
+        Alert.alert('Success', 'Ustad added successfully');
+        setShowUstadAddModal(false);
+        await loadUstads();
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to add ustad');
+    }
+    setLoading(false);
   };
 
   const handleUstadEdit = async () => {
@@ -226,7 +271,12 @@ export default function MadrasaScreen() {
 
       {/* Ustad Cards */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Ustads</Text>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Ustads</Text>
+          <TouchableOpacity style={styles.addUstadButton} onPress={openUstadAddModal}>
+            <Text style={styles.addUstadButtonText}>+ Add Ustad</Text>
+          </TouchableOpacity>
+        </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.ustadsContainer}>
           {ustads.map((ustad) => (
             <View key={ustad.id} style={styles.ustadCardWrapper}>
@@ -426,6 +476,74 @@ export default function MadrasaScreen() {
         </KeyboardAvoidingView>
       </Modal>
 
+      {/* Add Ustad Modal */}
+      <Modal
+        visible={showUstadAddModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowUstadAddModal(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Add Ustad</Text>
+
+              <ScrollView style={styles.modalScrollView}>
+                <Text style={styles.modalLabel}>Ustad Name *</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="Enter ustad name"
+                  value={ustadFormData.name}
+                  onChangeText={(text) => setUstadFormData({ ...ustadFormData, name: text })}
+                />
+
+                <Text style={styles.modalLabel}>Phone Number</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="Enter phone number"
+                  value={ustadFormData.phone}
+                  onChangeText={(text) => setUstadFormData({ ...ustadFormData, phone: text })}
+                  keyboardType="phone-pad"
+                  maxLength={15}
+                />
+
+                <Text style={styles.modalLabel}>PIN (4 digits) *</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="Enter 4-digit PIN"
+                  value={ustadFormData.pin}
+                  onChangeText={(text) => setUstadFormData({ ...ustadFormData, pin: text })}
+                  keyboardType="numeric"
+                  maxLength={4}
+                  secureTextEntry
+                />
+              </ScrollView>
+
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.cancelModalButton]}
+                  onPress={() => setShowUstadAddModal(false)}
+                >
+                  <Text style={[styles.modalButtonText, styles.cancelModalButtonText]} numberOfLines={1}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.saveModalButton, loading && styles.modalButtonDisabled]}
+                  onPress={handleUstadAdd}
+                  disabled={loading}
+                >
+                  <Text style={[styles.modalButtonText, styles.saveModalButtonText]} numberOfLines={1}>
+                    {loading ? 'Adding...' : 'Add'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
       {/* Ustad Delete Confirmation Modal */}
       <Modal
         visible={showUstadDeleteModal}
@@ -517,12 +635,29 @@ const styles = StyleSheet.create({
   section: {
     padding: theme.spacing.md,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: theme.spacing.md,
+  },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: theme.colors.textPrimary,
-    marginBottom: theme.spacing.md,
     fontFamily: theme.typography.display,
+  },
+  addUstadButton: {
+    backgroundColor: theme.colors.saveButton,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.radius.button,
+    ...theme.shadow.button,
+  },
+  addUstadButtonText: {
+    color: theme.colors.saveButtonText,
+    fontSize: 14,
+    fontWeight: '600',
   },
   ustadsContainer: {
     flexDirection: 'row',
@@ -537,21 +672,23 @@ const styles = StyleSheet.create({
   },
   ustadDeleteButton: {
     position: 'absolute',
-    top: -8,
-    right: -8,
+    top: -6,
+    right: -6,
     backgroundColor: theme.colors.cancelButton,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 2,
+    borderColor: theme.colors.white,
     ...theme.shadow.button,
   },
   ustadDeleteButtonText: {
     color: theme.colors.white,
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
-    lineHeight: 16,
+    lineHeight: 18,
   },
   ustadAvatar: {
     width: 60,
