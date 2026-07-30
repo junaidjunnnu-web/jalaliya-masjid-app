@@ -21,7 +21,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#A8927E"
+        "backgroundColor": "#F5ECD9"
       },
       "package": "com.jalaliya.masjid"
     },

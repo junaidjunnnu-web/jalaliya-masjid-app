@@ -1,0 +1,30 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background for adaptive icon (no background, just the mosque) -->
+  <g transform="translate(512, 512)">
+    <!-- Left minaret -->
+    <rect x="-280" y="-200" width="40" height="400" fill="#164E63"/>
+    <rect x="-290" y="-220" width="60" height="30" fill="#164E63"/>
+    <circle cx="-260" cy="-230" r="15" fill="#164E63"/>
+    
+    <!-- Right minaret -->
+    <rect x="240" y="-200" width="40" height="400" fill="#164E63"/>
+    <rect x="230" y="-220" width="60" height="30" fill="#164E63"/>
+    <circle cx="260" cy="-230" r="15" fill="#164E63"/>
+    
+    <!-- Main dome -->
+    <ellipse cx="0" cy="-150" rx="180" ry="120" fill="#164E63"/>
+    <rect x="-160" y="-150" width="320" height="350" fill="#164E63"/>
+    
+    <!-- Crescent on top of dome -->
+    <circle cx="0" cy="-280" r="25" fill="#164E63"/>
+    <circle cx="0" cy="-280" r="15" fill="#F5ECD9"/>
+    
+    <!-- Arched doorway -->
+    <path d="M -60 200 L -60 50 Q 0 0 60 50 L 60 200 Z" fill="#F5ECD9"/>
+    
+    <!-- Windows -->
+    <rect x="-100" y="-50" width="40" height="60" rx="20" fill="#F5ECD9"/>
+    <rect x="60" y="-50" width="40" height="60" rx="20" fill="#F5ECD9"/>
+    <rect x="-20" y="-120" width="40" height="50" rx="20" fill="#F5ECD9"/>
+  </g>
+</svg>
