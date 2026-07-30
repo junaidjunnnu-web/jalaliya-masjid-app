@@ -10,9 +10,11 @@ export default function StandardScreen() {
   const [students, setStudents] = useState<any[]>([]);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [showPinModal, setShowPinModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [pin, setPin] = useState('');
   const [verifiedUstad, setVerifiedUstad] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [studentToDelete, setStudentToDelete] = useState<any>(null);
 
   useEffect(() => {
     loadStudents();
@@ -65,6 +67,37 @@ export default function StandardScreen() {
     } else {
       Alert.alert('Error', 'Invalid PIN');
     }
+  };
+
+  const handleDeleteStudent = (student: any) => {
+    setStudentToDelete(student);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!studentToDelete) return;
+
+    if (pin.length !== 4) {
+      Alert.alert('Error', 'PIN must be 4 digits');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await api.madrasa.deleteStudent(studentToDelete.id, pin);
+      if (error) {
+        Alert.alert('Error', error);
+      } else {
+        Alert.alert('Success', 'Student deleted');
+        await loadStudents();
+        setShowDeleteModal(false);
+        setPin('');
+        setStudentToDelete(null);
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to delete student');
+    }
+    setLoading(false);
   };
 
   return (
@@ -126,6 +159,13 @@ export default function StandardScreen() {
               >
                 <Text style={styles.attendanceButtonText} numberOfLines={1}>Absent</Text>
               </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.attendanceButton, styles.deleteButton]}
+                onPress={() => handleDeleteStudent(student)}
+                disabled={loading}
+              >
+                <Text style={styles.attendanceButtonText} numberOfLines={1}>Delete</Text>
+              </TouchableOpacity>
             </View>
           </View>
         ))}
@@ -169,6 +209,61 @@ export default function StandardScreen() {
                   onPress={handlePinSubmit}
                 >
                   <Text style={[styles.modalButtonText, styles.saveModalButtonText]} numberOfLines={1}>Verify</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        visible={showDeleteModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowDeleteModal(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Delete Student</Text>
+              {studentToDelete && (
+                <Text style={styles.deleteConfirmText}>
+                  Are you sure you want to delete {studentToDelete.name}?
+                </Text>
+              )}
+              <Text style={styles.modalLabel}>Enter PIN to confirm:</Text>
+              <TextInput
+                style={styles.pinInput}
+                value={pin}
+                onChangeText={setPin}
+                placeholder="Enter 4-digit PIN"
+                keyboardType="numeric"
+                maxLength={4}
+                secureTextEntry
+              />
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.cancelModalButton]}
+                  onPress={() => {
+                    setShowDeleteModal(false);
+                    setPin('');
+                    setStudentToDelete(null);
+                  }}
+                >
+                  <Text style={[styles.modalButtonText, styles.cancelModalButtonText]} numberOfLines={1}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.deleteModalButton, loading && styles.modalButtonDisabled]}
+                  onPress={handleConfirmDelete}
+                  disabled={loading}
+                >
+                  <Text style={[styles.modalButtonText, styles.deleteModalButtonText]} numberOfLines={1}>
+                    {loading ? 'Deleting...' : 'Delete'}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -307,6 +402,9 @@ const styles = StyleSheet.create({
   absentButton: {
     backgroundColor: theme.colors.alert,
   },
+  deleteButton: {
+    backgroundColor: theme.colors.cancelButton,
+  },
   attendanceButtonText: {
     fontSize: 12,
     fontWeight: '600',
@@ -334,6 +432,17 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.lg,
     fontFamily: theme.typography.display,
   },
+  deleteConfirmText: {
+    fontSize: 16,
+    color: theme.colors.textPrimary,
+    marginBottom: theme.spacing.lg,
+  },
+  modalLabel: {
+    fontSize: 14,
+    color: theme.colors.textPrimary,
+    marginBottom: theme.spacing.sm,
+    fontWeight: '600',
+  },
   pinInput: {
     backgroundColor: theme.colors.background,
     borderRadius: theme.radius.button,
@@ -356,6 +465,7 @@ const styles = StyleSheet.create({
     borderRadius: theme.radius.button,
     alignItems: 'center',
     minHeight: 48,
+    minWidth: 80,
   },
   cancelModalButton: {
     backgroundColor: theme.colors.cancelButton,
@@ -364,6 +474,12 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.saveButton,
     borderWidth: 2,
     borderColor: theme.colors.saveButton,
+  },
+  deleteModalButton: {
+    backgroundColor: theme.colors.cancelButton,
+  },
+  modalButtonDisabled: {
+    opacity: 0.6,
   },
   modalButtonText: {
     fontSize: 16,
@@ -375,6 +491,9 @@ const styles = StyleSheet.create({
     color: theme.colors.saveButtonText,
   },
   cancelModalButtonText: {
+    color: theme.colors.cancelButtonText,
+  },
+  deleteModalButtonText: {
     color: theme.colors.cancelButtonText,
   },
 });

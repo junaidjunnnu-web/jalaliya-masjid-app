@@ -17,9 +17,12 @@ export default function MadrasaScreen() {
   const [showAddStudentModal, setShowAddStudentModal] = useState(false);
   const [showPinModal, setShowPinModal] = useState(false);
   const [showUstadEditModal, setShowUstadEditModal] = useState(false);
+  const [showUstadDeleteModal, setShowUstadDeleteModal] = useState(false);
   const [selectedStandard, setSelectedStandard] = useState<string | null>(null);
   const [verifiedUstad, setVerifiedUstad] = useState<any>(null);
   const [selectedUstad, setSelectedUstad] = useState<any>(null);
+  const [ustadToDelete, setUstadToDelete] = useState<any>(null);
+  const [deletePin, setDeletePin] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     standard: '1st Standard',
@@ -150,6 +153,37 @@ export default function MadrasaScreen() {
     setLoading(false);
   };
 
+  const handleDeleteUstad = (ustad: any) => {
+    setUstadToDelete(ustad);
+    setShowUstadDeleteModal(true);
+  };
+
+  const handleConfirmDeleteUstad = async () => {
+    if (!ustadToDelete) return;
+
+    if (deletePin.length !== 4) {
+      Alert.alert('Error', 'PIN must be 4 digits');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await api.madrasa.deleteUstad(ustadToDelete.id, deletePin);
+      if (error) {
+        Alert.alert('Error', error);
+      } else {
+        Alert.alert('Success', 'Ustad deleted successfully');
+        await loadUstads();
+        setShowUstadDeleteModal(false);
+        setDeletePin('');
+        setUstadToDelete(null);
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to delete ustad');
+    }
+    setLoading(false);
+  };
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       <SafeAreaView style={styles.header}>
@@ -195,17 +229,24 @@ export default function MadrasaScreen() {
         <Text style={styles.sectionTitle}>Ustads</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.ustadsContainer}>
           {ustads.map((ustad) => (
-            <TouchableOpacity
-              key={ustad.id}
-              style={styles.ustadCard}
-              onPress={() => openUstadEditModal(ustad)}
-            >
-              <View style={styles.ustadAvatar}>
-                <Text style={styles.ustadAvatarText}>{ustad.name.charAt(0).toUpperCase()}</Text>
-              </View>
-              <Text style={styles.ustadName}>{ustad.name}</Text>
-              {ustad.phone && <Text style={styles.ustadPhone}>{ustad.phone}</Text>}
-            </TouchableOpacity>
+            <View key={ustad.id} style={styles.ustadCardWrapper}>
+              <TouchableOpacity
+                style={styles.ustadCard}
+                onPress={() => openUstadEditModal(ustad)}
+              >
+                <View style={styles.ustadAvatar}>
+                  <Text style={styles.ustadAvatarText}>{ustad.name.charAt(0).toUpperCase()}</Text>
+                </View>
+                <Text style={styles.ustadName}>{ustad.name}</Text>
+                {ustad.phone && <Text style={styles.ustadPhone}>{ustad.phone}</Text>}
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.ustadDeleteButton}
+                onPress={() => handleDeleteUstad(ustad)}
+              >
+                <Text style={styles.ustadDeleteButtonText}>×</Text>
+              </TouchableOpacity>
+            </View>
           ))}
         </ScrollView>
       </View>
@@ -384,6 +425,61 @@ export default function MadrasaScreen() {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      {/* Ustad Delete Confirmation Modal */}
+      <Modal
+        visible={showUstadDeleteModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowUstadDeleteModal(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Delete Ustad</Text>
+              {ustadToDelete && (
+                <Text style={styles.deleteConfirmText}>
+                  Are you sure you want to delete {ustadToDelete.name}?
+                </Text>
+              )}
+              <Text style={styles.modalLabel}>Enter PIN to confirm:</Text>
+              <TextInput
+                style={styles.modalInput}
+                value={deletePin}
+                onChangeText={setDeletePin}
+                placeholder="Enter 4-digit PIN"
+                keyboardType="numeric"
+                maxLength={4}
+                secureTextEntry
+              />
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.cancelModalButton]}
+                  onPress={() => {
+                    setShowUstadDeleteModal(false);
+                    setDeletePin('');
+                    setUstadToDelete(null);
+                  }}
+                >
+                  <Text style={[styles.modalButtonText, styles.cancelModalButtonText]} numberOfLines={1}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.deleteModalButton, loading && styles.modalButtonDisabled]}
+                  onPress={handleConfirmDeleteUstad}
+                  disabled={loading}
+                >
+                  <Text style={[styles.modalButtonText, styles.deleteModalButtonText]} numberOfLines={1}>
+                    {loading ? 'Deleting...' : 'Delete'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </ScrollView>
   );
 }
@@ -434,6 +530,28 @@ const styles = StyleSheet.create({
   ustadCard: {
     alignItems: 'center',
     marginRight: theme.spacing.md,
+  },
+  ustadCardWrapper: {
+    position: 'relative',
+    marginRight: theme.spacing.md,
+  },
+  ustadDeleteButton: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    backgroundColor: theme.colors.cancelButton,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...theme.shadow.button,
+  },
+  ustadDeleteButtonText: {
+    color: theme.colors.white,
+    fontSize: 16,
+    fontWeight: 'bold',
+    lineHeight: 16,
   },
   ustadAvatar: {
     width: 60,
@@ -552,6 +670,11 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.lg,
     fontFamily: theme.typography.display,
   },
+  deleteConfirmText: {
+    fontSize: 16,
+    color: theme.colors.textPrimary,
+    marginBottom: theme.spacing.lg,
+  },
   modalLabel: {
     fontSize: 14,
     color: theme.colors.textPrimary,
@@ -603,6 +726,7 @@ const styles = StyleSheet.create({
     borderRadius: theme.radius.button,
     alignItems: 'center',
     minHeight: 48,
+    minWidth: 80,
   },
   cancelModalButton: {
     backgroundColor: theme.colors.cancelButton,
@@ -611,6 +735,9 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.saveButton,
     borderWidth: 2,
     borderColor: theme.colors.saveButton,
+  },
+  deleteModalButton: {
+    backgroundColor: theme.colors.cancelButton,
   },
   modalButtonDisabled: {
     opacity: 0.6,
@@ -625,6 +752,9 @@ const styles = StyleSheet.create({
     color: theme.colors.saveButtonText,
   },
   cancelModalButtonText: {
+    color: theme.colors.cancelButtonText,
+  },
+  deleteModalButtonText: {
     color: theme.colors.cancelButtonText,
   },
 });

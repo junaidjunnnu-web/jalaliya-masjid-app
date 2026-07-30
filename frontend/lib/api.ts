@@ -161,6 +161,11 @@ export const api = {
         method: 'PUT',
         body: JSON.stringify(data),
       }),
+    deleteUstad: (id: number, pin: string) =>
+      request(`/madrasa/ustads/${id}`, {
+        method: 'DELETE',
+        body: JSON.stringify({ pin }),
+      }),
     getStudents: (params?: string) => request(`/madrasa/students${params ? `?${params}` : ''}`),
     searchStudents: (query: string) => request(`/madrasa/students/search?q=${encodeURIComponent(query)}`),
     getStudent: (id: number) => request(`/madrasa/students/${id}`),
@@ -174,9 +179,10 @@ export const api = {
         method: 'PUT',
         body: JSON.stringify(data),
       }),
-    deleteStudent: (id: number) =>
+    deleteStudent: (id: number, pin: string) =>
       request(`/madrasa/students/${id}`, {
         method: 'DELETE',
+        body: JSON.stringify({ pin }),
       }),
     markAttendance: (data: any) =>
       request('/madrasa/attendance', {

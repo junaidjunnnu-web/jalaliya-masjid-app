@@ -77,6 +77,36 @@ router.put('/ustads/:id', async (req, res) => {
   }
 });
 
+// Delete Ustad (requires PIN verification)
+router.delete('/ustads/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { pin } = req.body;
+
+    // Verify PIN
+    const ustadsList = await db.select().from(ustads);
+    let verifiedUstad = null;
+    
+    for (const ustad of ustadsList) {
+      const isValid = await bcrypt.compare(pin, ustad.pinHash);
+      if (isValid) {
+        verifiedUstad = ustad;
+        break;
+      }
+    }
+
+    if (!verifiedUstad) {
+      return res.status(401).json({ error: 'Invalid PIN' });
+    }
+
+    await db.delete(ustads).where(eq(ustads.id, id));
+    res.json({ message: 'Ustad deleted' });
+  } catch (error) {
+    console.error('Delete ustad error:', error);
+    res.status(500).json({ error: 'Failed to delete ustad' });
+  }
+});
+
 // Get all students
 router.get('/students', async (req, res) => {
   try {
@@ -228,10 +258,30 @@ router.put('/students/:id', async (req, res) => {
   }
 });
 
-// Delete student
+// Delete student (requires PIN verification)
 router.delete('/students/:id', async (req, res) => {
   try {
-    await db.delete(madrasaStudents).where(eq(madrasaStudents.id, req.params.id));
+    const { id } = req.params;
+    const { pin } = req.body;
+
+    // Verify PIN
+    const ustadsList = await db.select().from(ustads);
+    let verifiedUstad = null;
+    
+    for (const ustad of ustadsList) {
+      const isValid = await bcrypt.compare(pin, ustad.pinHash);
+      if (isValid) {
+        verifiedUstad = ustad;
+        break;
+      }
+    }
+
+    if (!verifiedUstad) {
+      return res.status(401).json({ error: 'Invalid PIN' });
+    }
+
+    // Delete student (attendance records will be cascade deleted)
+    await db.delete(madrasaStudents).where(eq(madrasaStudents.id, id));
     res.json({ message: 'Student deleted' });
   } catch (error) {
     console.error('Delete student error:', error);
