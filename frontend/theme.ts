@@ -2,6 +2,12 @@ export const theme = {
   colors: {
     primary: '#A8927E',      // Warm tan — base color, headers
     addButtonColor: '#8C3B4A',  // Deep rose red — Add/Create buttons
+    saveButton: '#F4C430',   // Yellow — Save buttons
+    saveButtonText: '#1A1A1A', // Black — Save button text
+    cancelButton: '#DC3545', // Red — Cancel buttons
+    cancelButtonText: '#FFFFFF', // White — Cancel button text
+    editButton: '#E11D48',   // Rose-red — Edit buttons
+    editButtonText: '#FFFFFF', // White — Edit button text
     membersAccent: '#A8927E',   // Warm tan — unified across all sections
     committeeAccent: '#A8927E',  // Warm tan — unified across all sections
     eventsAccent: '#A8927E',     // Warm tan — unified across all sections

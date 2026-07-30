@@ -958,18 +958,18 @@ const styles = StyleSheet.create({
     ...theme.shadow.button,
   },
   cancelButton: {
-    backgroundColor: theme.colors.gray[200],
+    backgroundColor: theme.colors.cancelButton,
   },
   cancelButtonText: {
-    color: theme.colors.textPrimary,
+    color: theme.colors.cancelButtonText,
     fontSize: 16,
     fontWeight: '600',
   },
   saveButton: {
-    backgroundColor: theme.colors.addButtonColor,
+    backgroundColor: theme.colors.saveButton,
   },
   saveButtonText: {
-    color: theme.colors.white,
+    color: theme.colors.saveButtonText,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -1012,7 +1012,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.addButtonColor,
   },
   balanceEditButton: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.editButton,
   },
   detailActionButtonText: {
     color: theme.colors.white,
@@ -1058,10 +1058,10 @@ const styles = StyleSheet.create({
     color: theme.colors.gray[600],
   },
   closeButton: {
-    backgroundColor: theme.colors.gray[200],
+    backgroundColor: theme.colors.cancelButton,
   },
   closeButtonText: {
-    color: theme.colors.textPrimary,
+    color: theme.colors.cancelButtonText,
     fontSize: 16,
     fontWeight: '600',
   },

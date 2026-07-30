@@ -205,31 +205,33 @@ export default function FamilyDetailScreen() {
         ) : (
           members.map((member) => (
             <View key={member.id} style={styles.memberCard}>
-              <View style={styles.memberInfo}>
-                <Text style={styles.memberName}>{member.name}</Text>
-                <Text style={styles.memberRelation}>{member.relation}</Text>
-                {member.phone && (
-                  <Text style={styles.memberPhone}>{member.phone}</Text>
-                )}
-                {member.occupation && (
-                  <Text style={styles.memberOccupation}>{member.occupation}</Text>
-                )}
-              </View>
-              <View style={styles.memberActions}>
-                <TouchableOpacity
-                  style={styles.memberActionButton}
-                  onPress={() => openEditMemberModal(member)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.memberActionText}>Edit</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.memberActionButton, styles.deleteButton]}
-                  onPress={() => handleDeleteMember(member)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.memberActionText}>Delete</Text>
-                </TouchableOpacity>
+              <View style={styles.memberHeader}>
+                <View style={styles.memberInfo}>
+                  <Text style={styles.memberName}>{member.name}</Text>
+                  <Text style={styles.memberRelation}>{member.relation}</Text>
+                  {member.phone && (
+                    <Text style={styles.memberPhone}>{member.phone}</Text>
+                  )}
+                  {member.occupation && (
+                    <Text style={styles.memberOccupation}>{member.occupation}</Text>
+                  )}
+                </View>
+                <View style={styles.memberActions}>
+                  <TouchableOpacity
+                    style={styles.memberActionButton}
+                    onPress={() => openEditMemberModal(member)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.memberActionText}>Edit</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.memberActionButton, styles.deleteButton]}
+                    onPress={() => handleDeleteMember(member)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.memberActionText}>Delete</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
               <View style={styles.memberDetails}>
                 {member.age && <Text style={styles.memberDetail}>Age: {member.age}</Text>}
@@ -378,14 +380,14 @@ export default function FamilyDetailScreen() {
                   style={[styles.modalButton, styles.cancelModalButton]}
                   onPress={() => setShowMemberModal(false)}
                 >
-                  <Text style={styles.modalButtonText} numberOfLines={1}>Cancel</Text>
+                  <Text style={[styles.modalButtonText, styles.cancelModalButtonText]} numberOfLines={1}>Cancel</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.modalButton, styles.saveModalButton, loading && styles.modalButtonDisabled]}
                   onPress={handleSaveMember}
                   disabled={loading}
                 >
-                  <Text style={styles.modalButtonText} numberOfLines={1}>
+                  <Text style={[styles.modalButtonText, styles.saveModalButtonText]} numberOfLines={1}>
                     {loading ? 'Saving...' : 'Save'}
                   </Text>
                 </TouchableOpacity>
@@ -642,17 +644,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
+  memberHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
   memberActions: {
     flexDirection: 'row',
     gap: theme.spacing.sm,
     alignItems: 'center',
-    marginTop: theme.spacing.sm,
   },
   memberActionButton: {
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.sm,
     borderRadius: 8,
-    backgroundColor: theme.colors.addButtonColor,
+    backgroundColor: theme.colors.editButton,
     minWidth: 60,
     alignItems: 'center',
   },
@@ -769,12 +775,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancelModalButton: {
-    backgroundColor: theme.colors.gray[200],
+    backgroundColor: theme.colors.cancelButton,
   },
   saveModalButton: {
-    backgroundColor: theme.colors.membersAccent,
+    backgroundColor: theme.colors.saveButton,
     borderWidth: 2,
-    borderColor: theme.colors.primary,
+    borderColor: theme.colors.saveButton,
   },
   modalButtonDisabled: {
     opacity: 0.6,
@@ -784,5 +790,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: theme.colors.textPrimary,
     flexShrink: 0,
+  },
+  saveModalButtonText: {
+    color: theme.colors.saveButtonText,
+  },
+  cancelModalButtonText: {
+    color: theme.colors.cancelButtonText,
   },
 });

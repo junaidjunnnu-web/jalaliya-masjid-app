@@ -300,14 +300,14 @@ export default function MadrasaScreen() {
                   style={[styles.modalButton, styles.cancelModalButton]}
                   onPress={() => setShowAddStudentModal(false)}
                 >
-                  <Text style={styles.modalButtonText} numberOfLines={1}>Cancel</Text>
+                  <Text style={[styles.modalButtonText, styles.cancelModalButtonText]} numberOfLines={1}>Cancel</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.modalButton, styles.saveModalButton, loading && styles.modalButtonDisabled]}
                   onPress={handleAddStudent}
                   disabled={loading}
                 >
-                  <Text style={styles.modalButtonText} numberOfLines={1}>
+                  <Text style={[styles.modalButtonText, styles.saveModalButtonText]} numberOfLines={1}>
                     {loading ? 'Adding...' : 'Add Student'}
                   </Text>
                 </TouchableOpacity>
@@ -368,14 +368,14 @@ export default function MadrasaScreen() {
                   style={[styles.modalButton, styles.cancelModalButton]}
                   onPress={() => setShowUstadEditModal(false)}
                 >
-                  <Text style={styles.modalButtonText} numberOfLines={1}>Cancel</Text>
+                  <Text style={[styles.modalButtonText, styles.cancelModalButtonText]} numberOfLines={1}>Cancel</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.modalButton, styles.saveModalButton, loading && styles.modalButtonDisabled]}
                   onPress={handleUstadEdit}
                   disabled={loading}
                 >
-                  <Text style={styles.modalButtonText} numberOfLines={1}>
+                  <Text style={[styles.modalButtonText, styles.saveModalButtonText]} numberOfLines={1}>
                     {loading ? 'Saving...' : 'Save'}
                   </Text>
                 </TouchableOpacity>
@@ -605,12 +605,12 @@ const styles = StyleSheet.create({
     minHeight: 48,
   },
   cancelModalButton: {
-    backgroundColor: theme.colors.gray[200],
+    backgroundColor: theme.colors.cancelButton,
   },
   saveModalButton: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.saveButton,
     borderWidth: 2,
-    borderColor: theme.colors.primary,
+    borderColor: theme.colors.saveButton,
   },
   modalButtonDisabled: {
     opacity: 0.6,
@@ -620,5 +620,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: theme.colors.textPrimary,
     flexShrink: 0,
+  },
+  saveModalButtonText: {
+    color: theme.colors.saveButtonText,
+  },
+  cancelModalButtonText: {
+    color: theme.colors.cancelButtonText,
   },
 });

@@ -162,13 +162,13 @@ export default function StandardScreen() {
                     setPin('');
                   }}
                 >
-                  <Text style={styles.modalButtonText} numberOfLines={1}>Cancel</Text>
+                  <Text style={[styles.modalButtonText, styles.cancelModalButtonText]} numberOfLines={1}>Cancel</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.modalButton, styles.saveModalButton]}
                   onPress={handlePinSubmit}
                 >
-                  <Text style={styles.modalButtonText} numberOfLines={1}>Verify</Text>
+                  <Text style={[styles.modalButtonText, styles.saveModalButtonText]} numberOfLines={1}>Verify</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -358,17 +358,23 @@ const styles = StyleSheet.create({
     minHeight: 48,
   },
   cancelModalButton: {
-    backgroundColor: theme.colors.gray[200],
+    backgroundColor: theme.colors.cancelButton,
   },
   saveModalButton: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.saveButton,
     borderWidth: 2,
-    borderColor: theme.colors.primary,
+    borderColor: theme.colors.saveButton,
   },
   modalButtonText: {
     fontSize: 16,
     fontWeight: '600',
     color: theme.colors.textPrimary,
     flexShrink: 0,
+  },
+  saveModalButtonText: {
+    color: theme.colors.saveButtonText,
+  },
+  cancelModalButtonText: {
+    color: theme.colors.cancelButtonText,
   },
 });

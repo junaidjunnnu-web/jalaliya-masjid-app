@@ -448,14 +448,14 @@ export default function CommitteeScreen() {
                 style={[styles.modalButton, styles.cancelModalButton]}
                 onPress={() => setShowModal(false)}
               >
-                <Text style={styles.modalButtonText} numberOfLines={1}>Cancel</Text>
+                <Text style={[styles.modalButtonText, styles.cancelModalButtonText]} numberOfLines={1}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.modalButton, styles.saveModalButton, loading && styles.modalButtonDisabled]}
                 onPress={handleSave}
                 disabled={loading}
               >
-                <Text style={styles.modalButtonText} numberOfLines={1}>
+                <Text style={[styles.modalButtonText, styles.saveModalButtonText]} numberOfLines={1}>
                   {loading ? 'Saving...' : 'Save'}
                 </Text>
               </TouchableOpacity>
@@ -737,12 +737,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancelModalButton: {
-    backgroundColor: theme.colors.gray[200],
+    backgroundColor: theme.colors.cancelButton,
   },
   saveModalButton: {
-    backgroundColor: theme.colors.committeeAccent,
+    backgroundColor: theme.colors.saveButton,
     borderWidth: 2,
-    borderColor: theme.colors.primary,
+    borderColor: theme.colors.saveButton,
   },
   modalButtonDisabled: {
     opacity: 0.6,
@@ -752,6 +752,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: theme.colors.textPrimary,
     flexShrink: 0,
+  },
+  saveModalButtonText: {
+    color: theme.colors.saveButtonText,
+  },
+  cancelModalButtonText: {
+    color: theme.colors.cancelButtonText,
   },
   emptyText: {
     fontSize: 14,

@@ -164,14 +164,14 @@ export default function AnnouncementsScreen() {
                 style={[styles.modalButton, styles.cancelModalButton]}
                 onPress={() => setShowModal(false)}
               >
-                <Text style={styles.modalButtonText} numberOfLines={1}>Cancel</Text>
+                <Text style={[styles.modalButtonText, styles.cancelModalButtonText]} numberOfLines={1}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.modalButton, styles.saveModalButton, loading && styles.modalButtonDisabled]}
                 onPress={handleSave}
                 disabled={loading}
               >
-                <Text style={styles.modalButtonText} numberOfLines={1}>
+                <Text style={[styles.modalButtonText, styles.saveModalButtonText]} numberOfLines={1}>
                   {loading ? 'Creating...' : 'Create Announcement'}
                 </Text>
               </TouchableOpacity>
@@ -305,12 +305,12 @@ const styles = StyleSheet.create({
     ...theme.shadow.button,
   },
   cancelModalButton: {
-    backgroundColor: theme.colors.gray[300],
+    backgroundColor: theme.colors.cancelButton,
   },
   saveModalButton: {
-    backgroundColor: theme.colors.announcementsAccent,
+    backgroundColor: theme.colors.saveButton,
     borderWidth: 2,
-    borderColor: theme.colors.primary,
+    borderColor: theme.colors.saveButton,
   },
   modalButtonDisabled: {
     opacity: 0.6,
@@ -320,6 +320,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     flexShrink: 0,
+  },
+  saveModalButtonText: {
+    color: theme.colors.saveButtonText,
+  },
+  cancelModalButtonText: {
+    color: theme.colors.cancelButtonText,
   },
   modalTitle: {
     fontSize: 20,

@@ -264,14 +264,14 @@ export default function NamazScreen() {
                   style={[styles.modalButton, styles.cancelModalButton]}
                   onPress={() => setShowEditModal(false)}
                 >
-                  <Text style={styles.modalButtonText} numberOfLines={1}>Cancel</Text>
+                  <Text style={[styles.modalButtonText, styles.cancelModalButtonText]} numberOfLines={1}>Cancel</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.modalButton, styles.saveModalButton, loading && styles.modalButtonDisabled]}
                   onPress={handleSaveTimings}
                   disabled={loading}
                 >
-                  <Text style={styles.modalButtonText} numberOfLines={1}>
+                  <Text style={[styles.modalButtonText, styles.saveModalButtonText]} numberOfLines={1}>
                     {loading ? 'Saving...' : 'Save Timings'}
                   </Text>
                 </TouchableOpacity>
@@ -387,7 +387,7 @@ const styles = StyleSheet.create({
     fontVariant: ['tabular-nums'] as any,
   },
   editButton: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.editButton,
     margin: theme.spacing.md,
     borderRadius: theme.radius.button,
     padding: theme.spacing.md,
@@ -395,7 +395,7 @@ const styles = StyleSheet.create({
     ...theme.shadow.button,
   },
   editButtonText: {
-    color: theme.colors.white,
+    color: theme.colors.editButtonText,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -436,12 +436,12 @@ const styles = StyleSheet.create({
     minHeight: 48,
   },
   cancelModalButton: {
-    backgroundColor: theme.colors.gray[200],
+    backgroundColor: theme.colors.cancelButton,
   },
   saveModalButton: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.saveButton,
     borderWidth: 2,
-    borderColor: theme.colors.primary,
+    borderColor: theme.colors.saveButton,
   },
   modalButtonDisabled: {
     opacity: 0.6,
@@ -451,6 +451,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: theme.colors.textPrimary,
     flexShrink: 0,
+  },
+  saveModalButtonText: {
+    color: theme.colors.saveButtonText,
+  },
+  cancelModalButtonText: {
+    color: theme.colors.cancelButtonText,
   },
   prayerEditRow: {
     marginBottom: theme.spacing.md,
