@@ -234,14 +234,14 @@ export default function EventsScreen() {
                 style={[styles.modalButton, styles.cancelModalButton]}
                 onPress={() => setShowModal(false)}
               >
-                <Text style={styles.modalButtonText}>Cancel</Text>
+                <Text style={styles.modalButtonText} numberOfLines={1}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.modalButton, styles.saveModalButton, loading && styles.modalButtonDisabled]}
                 onPress={handleSave}
                 disabled={loading}
               >
-                <Text style={styles.modalButtonText}>
+                <Text style={styles.modalButtonText} numberOfLines={1}>
                   {loading ? 'Saving...' : 'Save Event'}
                 </Text>
               </TouchableOpacity>
@@ -411,6 +411,7 @@ const styles = StyleSheet.create({
     color: theme.colors.white,
     fontSize: 16,
     fontWeight: '600',
+    flexShrink: 0,
   },
   modalTitle: {
     fontSize: 20,

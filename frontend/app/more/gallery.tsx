@@ -263,14 +263,14 @@ export default function GalleryScreen() {
                 style={[styles.modalButton, styles.cancelModalButton]}
                 onPress={() => setShowUploadModal(false)}
               >
-                <Text style={styles.modalButtonText}>Cancel</Text>
+                <Text style={styles.modalButtonText} numberOfLines={1}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.modalButton, styles.saveModalButton, uploading && styles.modalButtonDisabled]}
                 onPress={handleUpload}
                 disabled={uploading}
               >
-                <Text style={styles.modalButtonText}>
+                <Text style={styles.modalButtonText} numberOfLines={1}>
                   {uploading ? 'Uploading...' : 'Upload Photo'}
                 </Text>
               </TouchableOpacity>
@@ -459,6 +459,7 @@ const styles = StyleSheet.create({
     color: theme.colors.white,
     fontSize: 16,
     fontWeight: '600',
+    flexShrink: 0,
   },
   modalTitle: {
     fontSize: 20,

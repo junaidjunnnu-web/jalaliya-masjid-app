@@ -378,14 +378,14 @@ export default function FamilyDetailScreen() {
                   style={[styles.modalButton, styles.cancelModalButton]}
                   onPress={() => setShowMemberModal(false)}
                 >
-                  <Text style={styles.modalButtonText}>Cancel</Text>
+                  <Text style={styles.modalButtonText} numberOfLines={1}>Cancel</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.modalButton, styles.saveModalButton, loading && styles.modalButtonDisabled]}
                   onPress={handleSaveMember}
                   disabled={loading}
                 >
-                  <Text style={styles.modalButtonText}>
+                  <Text style={styles.modalButtonText} numberOfLines={1}>
                     {loading ? 'Saving...' : 'Save'}
                   </Text>
                 </TouchableOpacity>
@@ -783,5 +783,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: theme.colors.textPrimary,
+    flexShrink: 0,
   },
 });

@@ -264,14 +264,14 @@ export default function NamazScreen() {
                   style={[styles.modalButton, styles.cancelModalButton]}
                   onPress={() => setShowEditModal(false)}
                 >
-                  <Text style={styles.modalButtonText}>Cancel</Text>
+                  <Text style={styles.modalButtonText} numberOfLines={1}>Cancel</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.modalButton, styles.saveModalButton, loading && styles.modalButtonDisabled]}
                   onPress={handleSaveTimings}
                   disabled={loading}
                 >
-                  <Text style={styles.modalButtonText}>
+                  <Text style={styles.modalButtonText} numberOfLines={1}>
                     {loading ? 'Saving...' : 'Save Timings'}
                   </Text>
                 </TouchableOpacity>
@@ -421,6 +421,36 @@ const styles = StyleSheet.create({
     color: theme.colors.textPrimary,
     marginBottom: theme.spacing.lg,
     fontFamily: theme.typography.display,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: theme.spacing.md,
+    marginTop: theme.spacing.lg,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.lg,
+    borderRadius: theme.radius.button,
+    alignItems: 'center',
+    minHeight: 48,
+  },
+  cancelModalButton: {
+    backgroundColor: theme.colors.gray[200],
+  },
+  saveModalButton: {
+    backgroundColor: theme.colors.primary,
+    borderWidth: 2,
+    borderColor: theme.colors.primary,
+  },
+  modalButtonDisabled: {
+    opacity: 0.6,
+  },
+  modalButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: theme.colors.textPrimary,
+    flexShrink: 0,
   },
   prayerEditRow: {
     marginBottom: theme.spacing.md,
