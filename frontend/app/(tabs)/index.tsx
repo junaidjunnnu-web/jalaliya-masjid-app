@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { theme } from '../../theme';
 import { api } from '../../lib/api';
 import { PrayerTimes, CalculationMethod, Coordinates } from 'adhan';
+import AddToHomeScreenBanner from '../../components/AddToHomeScreenBanner';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -198,6 +199,7 @@ export default function HomeScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
+      <AddToHomeScreenBanner />
       {/* Header */}
       <SafeAreaView style={styles.header}>
         <Text style={styles.headerTitle}>Jalaliya Juma Masjid Somwarpet</Text>
