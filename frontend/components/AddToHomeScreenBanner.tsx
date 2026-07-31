@@ -4,6 +4,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../theme';
 
 export default function AddToHomeScreenBanner() {
+  // Early return if not on web platform
+  if (Platform.OS !== 'web') {
+    return null;
+  }
+
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
